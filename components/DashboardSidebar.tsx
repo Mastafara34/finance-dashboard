@@ -5,13 +5,13 @@ import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 const NAV = [
-  { href: '/dashboard',              icon: '◉', label: 'Overview'     },
-  { href: '/dashboard/transactions', icon: '↕', label: 'Transaksi'    },
-  { href: '/dashboard/goals',        icon: '◎', label: 'Goals'        },
-  { href: '/dashboard/analytics',    icon: '▦', label: 'Analitik'     },
-  { href: '/dashboard/networth',     icon: '◈', label: 'Net Worth'    },
-  { href: '/dashboard/budgets',      icon: '▣', label: 'Budget'       },
-  { href: '/dashboard/settings',     icon: '◌', label: 'Pengaturan'  },
+  { href: '/dashboard',              icon: '◉', label: 'Overview'   },
+  { href: '/dashboard/transactions', icon: '↕', label: 'Transaksi'  },
+  { href: '/dashboard/goals',        icon: '◎', label: 'Goals'      },
+  { href: '/dashboard/analytics',    icon: '▦', label: 'Analitik'   },
+  { href: '/dashboard/networth',     icon: '◈', label: 'Net Worth'  },
+  { href: '/dashboard/budgets',      icon: '▣', label: 'Budget'     },
+  { href: '/dashboard/settings',     icon: '◌', label: 'Pengaturan' },
 ];
 
 interface Props {
@@ -32,16 +32,19 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram }: P
   }
 
   return (
-    <aside style={{
-      position: 'fixed', top: 0, left: 0,
-      width: '240px', height: '100vh',
-      background: '#111118',
-      borderRight: '1px solid #1f1f2e',
-      display: 'flex', flexDirection: 'column',
-      padding: '24px 0',
-      zIndex: 50,
-    }}>
-
+    <aside
+      className="hide-mobile"
+      style={{
+        position: 'fixed', top: 0, left: 0,
+        width: 'var(--sidebar-width)', height: '100vh',
+        background: '#111118',
+        borderRight: '1px solid #1f1f2e',
+        display: 'flex', flexDirection: 'column',
+        padding: '24px 0',
+        zIndex: 50,
+        overflowY: 'auto',
+      }}
+    >
       {/* Logo */}
       <div style={{ padding: '0 20px 24px', borderBottom: '1px solid #1f1f2e' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -52,12 +55,8 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram }: P
             fontSize: '16px', flexShrink: 0,
           }}>💰</div>
           <div>
-            <div style={{ color: '#f0f0f5', fontSize: '14px', fontWeight: '600' }}>
-              FinTrack AI
-            </div>
-            <div style={{ color: '#374151', fontSize: '11px' }}>
-              Personal Finance
-            </div>
+            <div style={{ color: '#f0f0f5', fontSize: '14px', fontWeight: '600' }}>FinTrack AI</div>
+            <div style={{ color: '#374151', fontSize: '11px' }}>Personal Finance</div>
           </div>
         </div>
       </div>
@@ -80,10 +79,10 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram }: P
                 color: isActive ? '#f0f0f5' : '#6b7280',
               }}
               onMouseEnter={e => {
-                if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = '#16161f';
+                if (!isActive) (e.currentTarget).style.background = '#16161f';
               }}
               onMouseLeave={e => {
-                if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'transparent';
+                if (!isActive) (e.currentTarget).style.background = 'transparent';
               }}
             >
               <span style={{
@@ -97,21 +96,19 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram }: P
                 <span style={{
                   marginLeft: 'auto', width: '4px', height: '4px',
                   borderRadius: '99px', background: '#2563eb', flexShrink: 0,
-                }}/>
+                }} />
               )}
             </a>
           );
         })}
       </nav>
 
-      {/* Telegram status */}
+      {/* Telegram warning */}
       {!hasTelegram && (
         <div style={{
           margin: '0 12px 12px',
           padding: '10px 12px',
-          background: '#1a1000',
-          border: '1px solid #3d2a00',
-          borderRadius: '8px',
+          background: '#1a1000', border: '1px solid #3d2a00', borderRadius: '8px',
         }}>
           <div style={{ color: '#f59e0b', fontSize: '12px', fontWeight: '500', marginBottom: '2px' }}>
             Bot belum terhubung
@@ -122,18 +119,11 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram }: P
         </div>
       )}
 
-      {/* User info + logout */}
-      <div style={{
-        padding: '16px 20px 0',
-        borderTop: '1px solid #1f1f2e',
-      }}>
+      {/* User + logout */}
+      <div style={{ padding: '16px 20px 0', borderTop: '1px solid #1f1f2e' }}>
         <div style={{ marginBottom: '12px' }}>
-          <div style={{ color: '#f0f0f5', fontSize: '13px', fontWeight: '500' }}>
-            {userName}
-          </div>
-          <div style={{ color: '#374151', fontSize: '11px', marginTop: '2px' }}>
-            {userEmail}
-          </div>
+          <div style={{ color: '#f0f0f5', fontSize: '13px', fontWeight: '500' }}>{userName}</div>
+          <div style={{ color: '#374151', fontSize: '11px', marginTop: '2px' }}>{userEmail}</div>
         </div>
         <button
           onClick={handleLogout}
@@ -144,12 +134,12 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram }: P
             cursor: 'pointer', transition: 'all .15s',
           }}
           onMouseEnter={e => {
-            (e.currentTarget as HTMLButtonElement).style.borderColor = '#3d1515';
-            (e.currentTarget as HTMLButtonElement).style.color = '#f87171';
+            (e.currentTarget).style.borderColor = '#3d1515';
+            (e.currentTarget).style.color = '#f87171';
           }}
           onMouseLeave={e => {
-            (e.currentTarget as HTMLButtonElement).style.borderColor = '#1f1f2e';
-            (e.currentTarget as HTMLButtonElement).style.color = '#6b7280';
+            (e.currentTarget).style.borderColor = '#1f1f2e';
+            (e.currentTarget).style.color = '#6b7280';
           }}
         >
           Keluar

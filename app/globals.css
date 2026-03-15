@@ -1,26 +1,179 @@
-@import "tailwindcss";
+/* app/globals.css */
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ─── Reset & Base ──────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "DM Sans", system-ui, -apple-system, sans-serif;
+  background: #0a0a0f;
+  color: #f0f0f5;
+  overscroll-behavior: none;
+  /* Safe area untuk iPhone notch & home indicator */
+  padding-bottom: env(safe-area-inset-bottom);
 }
+
+/* ─── Scrollbar (desktop) ────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #374151; }
+
+/* ─── Typography ─────────────────────────────────────────────────────────────── */
+code {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.875em;
+}
+
+/* ─── Responsive breakpoints ────────────────────────────────────────────────── */
+:root {
+  --sidebar-width: 240px;
+  --content-padding: 32px;
+  --bottom-nav-height: 0px;
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  :root {
+    --content-padding: 20px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 0px;
+    --content-padding: 16px;
+    --bottom-nav-height: 64px;
+  }
+
+  body {
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+  }
+}
+
+/* ─── Layout helpers ──────────────────────────────────────────────────────────── */
+.dashboard-main {
+  margin-left: var(--sidebar-width);
+  padding: var(--content-padding);
+  min-height: 100vh;
+  transition: margin-left 0.2s ease;
+}
+
+@media (max-width: 768px) {
+  .dashboard-main {
+    margin-left: 0;
+    padding: 16px 16px calc(var(--bottom-nav-height) + 16px);
+  }
+}
+
+/* ─── Grid responsive ────────────────────────────────────────────────────────── */
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .grid-3 { grid-template-columns: 1fr; gap: 10px; }
+  .grid-2 { grid-template-columns: 1fr; gap: 10px; }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ─── Card base ──────────────────────────────────────────────────────────────── */
+.card {
+  background: #111118;
+  border: 1px solid #1f1f2e;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+@media (max-width: 768px) {
+  .card { padding: 16px; border-radius: 10px; }
+}
+
+/* ─── Table responsive ───────────────────────────────────────────────────────── */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ─── Form inputs ────────────────────────────────────────────────────────────── */
+input, select, textarea {
+  font-family: inherit;
+  font-size: 16px; /* Penting: 16px mencegah iOS auto-zoom saat fokus */
+}
+
+/* ─── Button tap target ──────────────────────────────────────────────────────── */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  min-height: 36px; /* Minimum tap target */
+}
+
+@media (max-width: 768px) {
+  button { min-height: 44px; } /* iOS HIG: 44pt minimum */
+}
+
+/* ─── PWA install prompt ─────────────────────────────────────────────────────── */
+.pwa-install-banner {
+  position: fixed;
+  bottom: calc(var(--bottom-nav-height) + 12px + env(safe-area-inset-bottom));
+  left: 16px; right: 16px;
+  background: #1f1f2e;
+  border: 1px solid #2a2a3a;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 90;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ─── Utilities ──────────────────────────────────────────────────────────────── */
+.hide-mobile  { display: block; }
+.show-mobile  { display: none; }
+
+@media (max-width: 768px) {
+  .hide-mobile { display: none !important; }
+  .show-mobile { display: block !important; }
+  .show-mobile-flex { display: flex !important; }
+}
+
+/* ─── Smooth scroll ──────────────────────────────────────────────────────────── */
+html { scroll-behavior: smooth; }
+
+/* ─── Selection color ────────────────────────────────────────────────────────── */
+::selection { background: #2563eb44; color: #f0f0f5; }
