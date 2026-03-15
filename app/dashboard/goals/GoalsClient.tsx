@@ -619,6 +619,7 @@ function UpdateProgressModal({
               color: '#9ca3af', fontSize: '14px', cursor: 'pointer',
             }}>Batal</button>
           </div>
+          </div>
         </form>
       </div>
     </div>

@@ -5,6 +5,7 @@ import DashboardSidebar from '@/components/DashboardSidebar';
 import BottomNav from '@/components/BottomNav';
 import MobileHeader from '@/components/MobileHeader';
 import QuickAdd from '@/components/QuickAdd';
+import DemoBanner from '@/components/DemoBanner';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -59,6 +60,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
           userEmail={user.email ?? ''}
           hasTelegram={!!profile?.telegram_chat_id}
         />
+
+        <DemoBanner email={user.email ?? null} />
 
         <main className="fintrack-content">
           <MobileHeader />
