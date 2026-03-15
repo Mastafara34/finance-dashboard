@@ -392,7 +392,7 @@ export default function TransactionsClient({ transactions, categories, userId }:
                     >
                       <option value="">— Tidak dikategori —</option>
                       {categories
-                        .filter(c => editForm.type === 'all' || c.type === editForm.type)
+                        .filter(c => !editForm.type || c.type === editForm.type)
                         .map(c => (
                           <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
                         ))}
