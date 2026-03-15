@@ -61,9 +61,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
           hasTelegram={!!profile?.telegram_chat_id}
         />
 
-        <DemoBanner email={user.email ?? null} />
-
         <main className="fintrack-content">
+          <DemoBanner email={user.email ?? null} />
           <MobileHeader />
           {children}
         </main>
