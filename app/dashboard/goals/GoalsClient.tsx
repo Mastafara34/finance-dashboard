@@ -294,6 +294,14 @@ function GoalFormModal({
   });
   const [saving, setSaving] = useState(false);
 
+  // Display states untuk format Rp
+  const [displayTarget,  setDisplayTarget]  = useState(goal?.target_amount  ? goal.target_amount.toLocaleString('id-ID')  : '');
+  const [displayCurrent, setDisplayCurrent] = useState(goal?.current_amount ? goal.current_amount.toLocaleString('id-ID') : '');
+  const [displayMonthly, setDisplayMonthly] = useState(goal?.monthly_allocation ? goal.monthly_allocation.toLocaleString('id-ID') : '');
+
+  function parseAmt(raw: string): number { return parseInt(raw.replace(/[^0-9]/g, ''), 10) || 0; }
+  function toDisp(n: number): string { return n === 0 ? '' : n.toLocaleString('id-ID'); }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name || !form.target_amount) return;
@@ -378,23 +386,29 @@ function GoalFormModal({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
             <div>
               <label style={lbl}>Target Amount <span style={{ color: '#ef4444' }}>*</span></label>
-              <input type="number" value={form.target_amount || ''} required min={1}
-                onChange={e => setForm(p => ({ ...p, target_amount: Number(e.target.value) }))}
-                placeholder="85000000"
-                style={inp}
-                onFocus={e => e.target.style.borderColor = '#2563eb'}
-                onBlur={e  => e.target.style.borderColor = '#2a2a3a'}
-              />
+              <div style={{ position:'relative' }}>
+                <span style={{ position:'absolute', left:'9px', top:'50%', transform:'translateY(-50%)', fontSize:'11px', color:'#6b7280', pointerEvents:'none' }}>Rp</span>
+                <input type="text" inputMode="numeric" value={displayTarget} required placeholder="0"
+                  onChange={e => { const n=parseAmt(e.target.value); setDisplayTarget(toDisp(n)); setForm(p=>({...p,target_amount:n})); }}
+                  onFocus={e => { e.target.style.borderColor='#2563eb'; setDisplayTarget((form.target_amount??0)===0?'':(form.target_amount??0).toString()); }}
+                  onBlur={e  => { e.target.style.borderColor='#2a2a3a'; setDisplayTarget(toDisp(form.target_amount??0)); }}
+                  style={{...inp, paddingLeft:'28px', fontSize:'16px'}}
+                />
+              </div>
+              {(form.target_amount??0)>0 && <div style={{fontSize:'11px',color:'#6b7280',marginTop:'3px'}}>Rp {(form.target_amount??0).toLocaleString('id-ID')}</div>}
             </div>
             <div>
               <label style={lbl}>Sudah terkumpul</label>
-              <input type="number" value={form.current_amount || ''} min={0}
-                onChange={e => setForm(p => ({ ...p, current_amount: Number(e.target.value) }))}
-                placeholder="0"
-                style={inp}
-                onFocus={e => e.target.style.borderColor = '#2563eb'}
-                onBlur={e  => e.target.style.borderColor = '#2a2a3a'}
-              />
+              <div style={{ position:'relative' }}>
+                <span style={{ position:'absolute', left:'9px', top:'50%', transform:'translateY(-50%)', fontSize:'11px', color:'#6b7280', pointerEvents:'none' }}>Rp</span>
+                <input type="text" inputMode="numeric" value={displayCurrent} placeholder="0"
+                  onChange={e => { const n=parseAmt(e.target.value); setDisplayCurrent(toDisp(n)); setForm(p=>({...p,current_amount:n})); }}
+                  onFocus={e => { e.target.style.borderColor='#2563eb'; setDisplayCurrent((form.current_amount??0)===0?'':(form.current_amount??0).toString()); }}
+                  onBlur={e  => { e.target.style.borderColor='#2a2a3a'; setDisplayCurrent(toDisp(form.current_amount??0)); }}
+                  style={{...inp, paddingLeft:'28px', fontSize:'16px'}}
+                />
+              </div>
+              {(form.current_amount??0)>0 && <div style={{fontSize:'11px',color:'#6b7280',marginTop:'3px'}}>Rp {(form.current_amount??0).toLocaleString('id-ID')}</div>}
             </div>
           </div>
 
@@ -402,13 +416,16 @@ function GoalFormModal({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
             <div>
               <label style={lbl}>Cicilan per bulan</label>
-              <input type="number" value={form.monthly_allocation || ''} min={0}
-                onChange={e => setForm(p => ({ ...p, monthly_allocation: e.target.value ? Number(e.target.value) : null }))}
-                placeholder="2000000"
-                style={inp}
-                onFocus={e => e.target.style.borderColor = '#2563eb'}
-                onBlur={e  => e.target.style.borderColor = '#2a2a3a'}
-              />
+              <div style={{ position:'relative' }}>
+                <span style={{ position:'absolute', left:'9px', top:'50%', transform:'translateY(-50%)', fontSize:'11px', color:'#6b7280', pointerEvents:'none' }}>Rp</span>
+                <input type="text" inputMode="numeric" value={displayMonthly} placeholder="0"
+                  onChange={e => { const n=parseAmt(e.target.value); setDisplayMonthly(toDisp(n)); setForm(p=>({...p,monthly_allocation:n||null})); }}
+                  onFocus={e => { e.target.style.borderColor='#2563eb'; const v=form.monthly_allocation??0; setDisplayMonthly(v===0?'':v.toString()); }}
+                  onBlur={e  => { e.target.style.borderColor='#2a2a3a'; setDisplayMonthly(toDisp(form.monthly_allocation??0)); }}
+                  style={{...inp, paddingLeft:'28px', fontSize:'16px'}}
+                />
+              </div>
+              {(form.monthly_allocation??0)>0 && <div style={{fontSize:'11px',color:'#6b7280',marginTop:'3px'}}>Rp {(form.monthly_allocation??0).toLocaleString('id-ID')}</div>}
             </div>
             <div>
               <label style={lbl}>Deadline (opsional)</label>
@@ -488,18 +505,22 @@ function UpdateProgressModal({
   onSave: (id: string, amount: number) => Promise<void>;
   onClose: () => void;
 }) {
-  const [amount,  setAmount]  = useState('');
-  const [saving,  setSaving]  = useState(false);
+  const [amount,   setAmount]   = useState(0);
+  const [display,  setDisplay]  = useState('');
+  const [saving,   setSaving]   = useState(false);
 
-  const parsed  = parseFloat(amount.replace(/[^0-9.]/g, '')) || 0;
+  function parseAmt(raw: string): number { return parseInt(raw.replace(/[^0-9]/g,''),10)||0; }
+  function toDisp(n: number): string { return n===0?'':n.toLocaleString('id-ID'); }
+
+  const parsed  = amount;
   const newTotal = goal.current_amount + parsed;
   const newPct   = Math.min(Math.round((newTotal / goal.target_amount) * 100), 100);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (parsed <= 0) return;
+    if (amount <= 0) return;
     setSaving(true);
-    await onSave(goal.id, parsed);
+    await onSave(goal.id, amount);
     setSaving(false);
   }
 
@@ -540,20 +561,25 @@ function UpdateProgressModal({
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '14px' }}>
             <label style={lbl}>Jumlah yang ditambahkan</label>
-            <input
-              value={amount} onChange={e => setAmount(e.target.value)}
-              placeholder="cth: 2000000 atau 2 juta"
-              required autoFocus
-              style={{
-                width: '100%', padding: '11px 14px',
-                background: '#0a0a0f', border: '1px solid #2a2a3a',
-                borderRadius: '9px', color: '#f0f0f5', fontSize: '14px',
-                outline: 'none', boxSizing: 'border-box',
-              }}
-              onFocus={e => e.target.style.borderColor = '#2563eb'}
-              onBlur={e  => e.target.style.borderColor = '#2a2a3a'}
-            />
-          </div>
+            <div style={{ position:'relative' }}>
+              <span style={{ position:'absolute', left:'12px', top:'50%', transform:'translateY(-50%)', fontSize:'13px', color:'#6b7280', pointerEvents:'none' }}>Rp</span>
+              <input
+                type="text" inputMode="numeric"
+                value={display}
+                placeholder="0"
+                required autoFocus
+                onChange={e => { const n=parseAmt(e.target.value); setDisplay(toDisp(n)); setAmount(n); }}
+                onFocus={e => { e.target.style.borderColor='#2563eb'; setDisplay(amount===0?'':amount.toString()); }}
+                onBlur={e => { e.target.style.borderColor='#2a2a3a'; setDisplay(toDisp(amount)); }}
+                style={{
+                  width:'100%', padding:'11px 12px 11px 36px',
+                  background:'#0a0a0f', border:'1px solid #2a2a3a',
+                  borderRadius:'9px', color:'#f0f0f5', fontSize:'16px',
+                  outline:'none', boxSizing:'border-box',
+                }}
+              />
+            </div>
+            {amount > 0 && <div style={{fontSize:'11px',color:'#6b7280',marginTop:'3px'}}>Rp {amount.toLocaleString('id-ID')}</div>}
 
           {/* Preview */}
           {parsed > 0 && (
