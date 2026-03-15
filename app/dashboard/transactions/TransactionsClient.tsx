@@ -104,17 +104,20 @@ export default function TransactionsClient({ transactions, categories, userId }:
       <style>{`
         .tx-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
         .tx-filters { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
-        .tx-table-header { display:grid; grid-template-columns:1fr 120px 90px 70px; }
-        .tx-row { display:grid; grid-template-columns:1fr 120px 90px 70px; }
+        .tx-table-header { display:grid; grid-template-columns:1fr 130px 100px 80px; }
+        .tx-row { display:grid; grid-template-columns:1fr 130px 100px 80px; }
+        .tx-amount-mobile { display:none; }
         @media (max-width:768px) {
           .tx-summary { grid-template-columns:1fr 1fr; gap:8px; }
           .tx-summary .tx-sum-3 { grid-column: span 2; }
           .tx-filters { gap:6px; }
           .tx-filters select { flex:1; }
           .tx-table-header { display:none; }
-          .tx-row { grid-template-columns:1fr auto; gap:0; }
+          .tx-row { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+          .tx-row .tx-amount-desktop { display:none; }
           .tx-row .tx-date { display:none; }
           .tx-row .tx-source { display:none; }
+          .tx-amount-mobile { display:flex !important; }
         }
       `}</style>
 
@@ -233,24 +236,38 @@ export default function TransactionsClient({ transactions, categories, userId }:
                   {fmtDate(t.date)}
                 </div>
 
-                {/* Col 4: Actions — mobile: amount + actions stacked */}
-                <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'4px' }}>
-                  {/* Amount di mobile */}
+                {/* Col 4: Actions desktop */}
+                <div style={{ display:'flex', gap:'4px', justifyContent:'flex-end' }}>
+                  <button onClick={() => startEdit(t)} style={{
+                    padding:'4px 10px', background:'transparent',
+                    border:'1px solid #1f1f2e', borderRadius:'5px',
+                    color:'#9ca3af', fontSize:'11px', cursor:'pointer',
+                  }}>Edit</button>
+                  <button onClick={() => setConfirmId(t.id)}
+                    disabled={deletingId===t.id} style={{
+                    padding:'4px 8px', background:'transparent',
+                    border:'1px solid #1f1f2e', borderRadius:'5px',
+                    color:'#6b7280', fontSize:'11px', cursor:'pointer',
+                  }}>{deletingId===t.id ? '...' : '✕'}</button>
+                </div>
+
+                {/* Mobile: amount + actions (hidden desktop) */}
+                <div className="tx-amount-mobile" style={{ flexDirection:'column', alignItems:'flex-end', gap:'4px' }}>
                   <div style={{ fontSize:'13px', fontWeight:'700',
                     color: t.type==='income' ? '#4ade80' : '#f87171' }}>
                     {t.type==='income' ? '+' : '-'}{fmt(t.amount)}
                   </div>
                   <div style={{ display:'flex', gap:'4px' }}>
                     <button onClick={() => startEdit(t)} style={{
-                      padding:'3px 8px', background:'transparent',
-                      border:'1px solid #1f1f2e', borderRadius:'5px',
-                      color:'#9ca3af', fontSize:'11px', cursor:'pointer',
+                      padding:'4px 10px', background:'transparent',
+                      border:'1px solid #1f1f2e', borderRadius:'6px',
+                      color:'#9ca3af', fontSize:'12px', cursor:'pointer',
                     }}>Edit</button>
                     <button onClick={() => setConfirmId(t.id)}
                       disabled={deletingId===t.id} style={{
-                      padding:'3px 7px', background:'transparent',
-                      border:'1px solid #1f1f2e', borderRadius:'5px',
-                      color:'#6b7280', fontSize:'11px', cursor:'pointer',
+                      padding:'4px 8px', background:'transparent',
+                      border:'1px solid #1f1f2e', borderRadius:'6px',
+                      color:'#6b7280', fontSize:'12px', cursor:'pointer',
                     }}>{deletingId===t.id ? '...' : '✕'}</button>
                   </div>
                 </div>

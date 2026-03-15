@@ -224,8 +224,8 @@ function GoalCard({
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         {goal.status === 'active' && (
           <button onClick={() => onUpdateProgress(goal)} style={{
-            flex: 1, padding: '8px 14px', background: '#2563eb', border: 'none',
-            borderRadius: '8px', color: '#fff', fontSize: '12px',
+            flex: 1, padding: '10px 14px', background: '#2563eb', border: 'none',
+            borderRadius: '8px', color: '#fff', fontSize: '13px',
             fontWeight: '600', cursor: 'pointer',
           }}
             onMouseEnter={e => (e.currentTarget).style.background = '#1d4ed8'}
@@ -747,27 +747,34 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
         />
       )}
 
+      <style>{`
+        .goals-summary { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
+        .goals-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:14px; }
+        @media (max-width:768px) {
+          .goals-summary { grid-template-columns:repeat(2,1fr); gap:8px; }
+          .goals-grid { grid-template-columns:1fr; gap:10px; }
+        }
+      `}</style>
+
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
         <div>
-          <h1 style={{ fontSize: '22px', fontWeight: '600', margin: '0 0 4px', letterSpacing: '-0.4px' }}>Goals</h1>
-          <p style={{ color: '#6b7280', fontSize: '13px', margin: 0 }}>
-            Pantau semua tujuan finansialmu
-          </p>
+          <h1 style={{ fontSize: '20px', fontWeight: '600', margin: '0 0 4px', letterSpacing: '-0.4px' }}>Goals</h1>
+          <p style={{ color: '#6b7280', fontSize: '13px', margin: 0 }}>Pantau semua tujuan finansialmu</p>
         </div>
         <button onClick={() => setShowForm(true)} style={{
-          padding: '9px 18px', background: '#2563eb', border: 'none',
+          padding: '9px 16px', background: '#2563eb', border: 'none',
           borderRadius: '9px', color: '#fff', fontSize: '13px',
-          fontWeight: '600', cursor: 'pointer',
+          fontWeight: '600', cursor: 'pointer', flexShrink: 0,
         }}
           onMouseEnter={e => (e.currentTarget).style.background = '#1d4ed8'}
           onMouseLeave={e => (e.currentTarget).style.background = '#2563eb'}
-        >+ Tambah Goal</button>
+        >+ Tambah</button>
       </div>
 
       {/* Summary */}
       {goals.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+        <div className="goals-summary">
           {[
             { label: 'Goals Aktif', value: active.length.toString(), color: '#60a5fa' },
             { label: 'Tercapai', value: achieved.length.toString(), color: '#4ade80' },
@@ -788,7 +795,7 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
 
       {/* Filter tabs */}
       {goals.length > 0 && (
-        <div style={{ display: 'flex', gap: '6px', marginBottom: '20px', flexWrap: 'wrap' }}>
+        <div style={{ display:'flex', gap:'6px', marginBottom:'16px', overflowX:'auto', paddingBottom:'2px', WebkitOverflowScrolling:'touch', msOverflowStyle:'none', scrollbarWidth:'none' }}>
           {(['all', 'active', 'achieved', 'paused', 'cancelled'] as const).map(s => (
             <button key={s} onClick={() => setFilterStatus(s)} style={{
               padding: '6px 14px', borderRadius: '99px', border: '1px solid',
@@ -816,11 +823,7 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
               Tidak ada goal dengan status ini.
             </div>
       ) : (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-          gap: '16px',
-        }}>
+        <div className="goals-grid">
           {filtered.map(g => (
             <GoalCard key={g.id} goal={g}
               onEdit={g => setEditGoal(g)}
