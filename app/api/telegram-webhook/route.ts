@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     const userText = body.message.text;
 
     // 1. Kirim teks ke Gemini untuk diekstrak menjadi JSON
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const prompt = `
       Anda adalah asisten pencatat keuangan. Ekstrak pesan berikut ke dalam format JSON.
       HANYA kembalikan JSON murni tanpa markdown, tanpa backticks, dan tanpa penjelasan lain.
