@@ -1,8 +1,9 @@
-// middleware.ts — taruh di ROOT project (sejajar package.json)
+// proxy.ts — taruh di ROOT project (gantikan middleware.ts, lalu hapus middleware.ts)
+// Next.js 16+ menggunakan "proxy" convention menggantikan "middleware"
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -26,25 +27,23 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh session — PENTING: jangan hapus ini
+  // Refresh session — jangan hapus ini
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Redirect ke /login kalau belum login dan akses halaman protected
   const { pathname } = request.nextUrl;
-  const isProtected = pathname.startsWith('/dashboard') || pathname.startsWith('/goals');
-  const isAuthPage  = pathname === '/login';
+  const isProtected  = pathname.startsWith('/dashboard');
+  const isAuthPage   = pathname === '/login';
 
   if (isProtected && !user) {
-    const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = '/login';
-    return NextResponse.redirect(loginUrl);
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    return NextResponse.redirect(url);
   }
 
-  // Kalau sudah login dan buka /login, redirect ke dashboard
   if (isAuthPage && user) {
-    const dashUrl = request.nextUrl.clone();
-    dashUrl.pathname = '/dashboard';
-    return NextResponse.redirect(dashUrl);
+    const url = request.nextUrl.clone();
+    url.pathname = '/dashboard';
+    return NextResponse.redirect(url);
   }
 
   return supabaseResponse;
@@ -52,7 +51,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Jalankan middleware di semua path kecuali static files dan API
-    '/((?!_next/static|_next/image|favicon.ico|api/).*)',
+    '/((?!_next/static|_next/image|favicon.ico|icons/|api/).*)',
   ],
 };
