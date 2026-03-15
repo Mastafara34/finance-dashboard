@@ -623,6 +623,86 @@ async function cmdLaporan(chatId: number, userId: string): Promise<void> {
   );
 }
 
+
+// ─── Anomaly Detection ────────────────────────────────────────────────────────
+/**
+ * Cek apakah transaksi ini tidak wajar dibanding historis kategori yang sama.
+ * Strategi: bandingkan dengan rata-rata 30 hari terakhir di kategori ini.
+ * Alert jika: amount >= 2.5x rata-rata DAN rata-rata > 0 DAN ada >= 3 data historis.
+ * Fire-and-forget — tidak pernah block response utama.
+ */
+async function checkAnomaly(
+  chatId: number,
+  userId: string,
+  categoryId: string,
+  categoryName: string,
+  amount: number
+): Promise<void> {
+  try {
+    const since30 = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
+    const today   = new Date().toISOString().split('T')[0];
+
+    // Ambil semua transaksi kategori ini 30 hari terakhir (kecuali hari ini)
+    const { data: history } = await supabase
+      .from('transactions')
+      .select('amount, date')
+      .eq('user_id', userId)
+      .eq('category_id', categoryId)
+      .eq('type', 'expense')
+      .eq('is_deleted', false)
+      .gte('date', since30)
+      .lt('date', today)   // exclude hari ini supaya tidak compare dengan dirinya sendiri
+      .order('date', { ascending: false });
+
+    const rows = history ?? [];
+
+    // Butuh minimal 3 data historis untuk anomaly detection yang bermakna
+    if (rows.length < 3) return;
+
+    const total = rows.reduce((s: number, r: any) => s + r.amount, 0);
+    const avg   = total / rows.length;
+
+    // Tidak anomali kalau rata-rata sangat kecil
+    if (avg < 5000) return;
+
+    const ratio = amount / avg;
+
+    // Threshold: 2.5x rata-rata = anomali
+    if (ratio < 2.5) return;
+
+    // Susun pesan alert
+    const ratioLabel = ratio >= 5 ? `${Math.round(ratio)}x` : `${ratio.toFixed(1)}x`;
+    const dayCount   = rows.length;
+
+    await sendMessage(
+      chatId,
+      `⚠️ *Pengeluaran tidak biasa terdeteksi!*
+
+` +
+      `📂 Kategori : *${categoryName}*
+` +
+      `💸 Transaksi ini : *${fmt(amount)}*
+` +
+      `📊 Rata-rata 30 hari : ${fmt(Math.round(avg))} _(${dayCount} data)_
+` +
+      `📈 Selisih : *${ratioLabel} lebih besar* dari biasanya
+
+` +
+      `_Ini hanya informasi — bukan kesalahan. Ketik /status untuk lihat konteks bulan ini._`
+    );
+
+    void writeAuditLog(chatId, 'anomaly_detected', 'warn', {
+      category: categoryName,
+      amount,
+      avg: Math.round(avg),
+      ratio: parseFloat(ratio.toFixed(2)),
+    });
+
+  } catch {
+    // Anomaly check tidak boleh break flow utama
+  }
+}
+
 // ─── Transaction handler ──────────────────────────────────────────────────────
 async function handleTransaction(
   chatId: number,
@@ -684,6 +764,11 @@ async function handleTransaction(
     type: data.type,
     category: data.category_name,
   });
+
+  // Anomaly detection — hanya untuk pengeluaran, fire-and-forget
+  if (data.type === 'expense' && cat?.id) {
+    void checkAnomaly(chatId, userId, cat.id, data.category_name, data.amount);
+  }
 
   const typeEmoji = data.type === 'income' ? '💚' : '🔴';
   const typeLabel = data.type === 'income' ? 'Pemasukan' : 'Pengeluaran';
