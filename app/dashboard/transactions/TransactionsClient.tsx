@@ -39,6 +39,7 @@ export default function TransactionsClient({ transactions, categories, userId }:
   const [editingId,   setEditingId]   = useState<string | null>(null);
   const [editForm,    setEditForm]    = useState<Partial<Transaction>>({});
   const [saving,      setSaving]      = useState(false);
+  const [amountDisplay, setAmountDisplay] = useState('');
   const [deletingId,  setDeletingId]  = useState<string | null>(null);
   const [toast,       setToast]       = useState<{ msg: string; ok: boolean } | null>(null);
 
@@ -82,6 +83,7 @@ export default function TransactionsClient({ transactions, categories, userId }:
     setEditingId(t.id);
     setEditForm({ amount: t.amount, note: t.note ?? '', type: t.type,
       date: t.date, categories: t.categories });
+    setAmountDisplay(t.amount.toLocaleString('id-ID'));
   }
 
   async function saveEdit() {
@@ -357,9 +359,41 @@ export default function TransactionsClient({ transactions, categories, userId }:
                     {/* Amount */}
                     <div>
                       <label style={lbl}>Nominal</label>
-                      <input type="number" value={editForm.amount ?? ''} onChange={e => setEditForm(p => ({ ...p, amount: Number(e.target.value) }))}
-                        style={inp} onFocus={e => e.target.style.borderColor = '#2563eb'}
-                        onBlur={e => e.target.style.borderColor = '#2a2a3a'} />
+                      <div style={{ position: 'relative' }}>
+                        <span style={{
+                          position: 'absolute', left: '10px', top: '50%',
+                          transform: 'translateY(-50%)', fontSize: '12px',
+                          color: '#6b7280', pointerEvents: 'none',
+                        }}>Rp</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={amountDisplay}
+                          onChange={e => {
+                            const raw = e.target.value.replace(/[^0-9]/g, '');
+                            const num = parseInt(raw, 10) || 0;
+                            setAmountDisplay(num === 0 ? '' : num.toLocaleString('id-ID'));
+                            setEditForm(p => ({ ...p, amount: num }));
+                          }}
+                          onFocus={e => {
+                            e.target.style.borderColor = '#2563eb';
+                            const raw = (editForm.amount ?? 0).toString();
+                            setAmountDisplay(raw === '0' ? '' : raw);
+                          }}
+                          onBlur={e => {
+                            e.target.style.borderColor = '#2a2a3a';
+                            const num = editForm.amount ?? 0;
+                            setAmountDisplay(num === 0 ? '' : num.toLocaleString('id-ID'));
+                          }}
+                          placeholder="0"
+                          style={{ ...inp, paddingLeft: '32px' }}
+                        />
+                      </div>
+                      {(editForm.amount ?? 0) > 0 && (
+                        <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+                          {(editForm.amount ?? 0).toLocaleString('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })}
+                        </div>
+                      )}
                     </div>
                     {/* Type */}
                     <div>
