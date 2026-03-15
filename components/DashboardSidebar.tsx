@@ -11,6 +11,7 @@ const NAV = [
   { href: '/dashboard/analytics',    icon: '▦', label: 'Analitik'     },
   { href: '/dashboard/networth',     icon: '◈', label: 'Net Worth'    },
   { href: '/dashboard/budgets',      icon: '▣', label: 'Budget'       },
+  { href: '/dashboard/settings',     icon: '◌', label: 'Pengaturan'  },
 ];
 
 interface Props {
