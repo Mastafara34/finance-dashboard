@@ -104,20 +104,19 @@ export default function TransactionsClient({ transactions, categories, userId }:
       <style>{`
         .tx-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
         .tx-filters { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
-        .tx-table-header { display:grid; grid-template-columns:1fr 130px 100px 80px; }
-        .tx-row { display:grid; grid-template-columns:1fr 130px 100px 80px; }
-        .tx-amount-mobile { display:none; }
+        .tx-table-header { display:grid; grid-template-columns:1fr 140px 110px 90px; padding:8px 14px; }
+        .tx-row-desktop { display:grid; grid-template-columns:1fr 140px 110px 90px; padding:12px 14px; align-items:center; cursor:default; }
+        .tx-row-desktop:hover { background:#16161f; }
+        .tx-row-mobile { display:none; }
         @media (max-width:768px) {
           .tx-summary { grid-template-columns:1fr 1fr; gap:8px; }
           .tx-summary .tx-sum-3 { grid-column: span 2; }
           .tx-filters { gap:6px; }
           .tx-filters select { flex:1; }
           .tx-table-header { display:none; }
-          .tx-row { display:flex; justify-content:space-between; align-items:center; gap:8px; }
-          .tx-row .tx-amount-desktop { display:none; }
-          .tx-row .tx-date { display:none; }
-          .tx-row .tx-source { display:none; }
-          .tx-amount-mobile { display:flex !important; }
+          .tx-row-desktop { display:none !important; }
+          .tx-row-mobile { display:flex; padding:12px 14px; align-items:center; justify-content:space-between; gap:8px; }
+          .tx-row-mobile:hover { background:#16161f; }
         }
       `}</style>
 
@@ -202,73 +201,46 @@ export default function TransactionsClient({ transactions, categories, userId }:
         ) : filtered.map((t, i) => (
           <div key={t.id}>
             {editingId !== t.id ? (
-              // ── Normal row ──────────────────────────────────────────────
-              <div className="tx-row" style={{
-                padding:'12px 14px', alignItems:'center',
+              // ── Desktop row ─────────────────────────────────────────────
+              <div className="tx-row-desktop" style={{
                 borderBottom: i < filtered.length-1 ? '1px solid #1a1a24' : 'none',
-              }}
-                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background='#16161f'}
-                onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background='transparent'}
-              >
-                {/* Col 1: Note + category */}
+              }}>
                 <div style={{ minWidth:0 }}>
-                  <div style={{ fontSize:'13px', fontWeight:'500',
-                    whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-                    {t.note || '-'}
+                  <div style={{ fontSize:'13px', fontWeight:'500', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{t.note || '-'}</div>
+                  <div style={{ fontSize:'11px', color:'#6b7280', marginTop:'2px' }}>
+                    {t.categories?.icon ?? ''} {t.categories?.name ?? 'Tidak dikategori'}
                   </div>
-                  <div style={{ fontSize:'11px', color:'#6b7280', marginTop:'2px', display:'flex', alignItems:'center', gap:'6px' }}>
+                </div>
+                <div style={{ fontSize:'13px', fontWeight:'600', color: t.type==='income'?'#4ade80':'#f87171' }}>
+                  {t.type==='income'?'+':'-'}{fmt(t.amount)}
+                </div>
+                <div style={{ fontSize:'12px', color:'#9ca3af' }}>{fmtDate(t.date)}</div>
+                <div style={{ display:'flex', gap:'4px', justifyContent:'flex-end' }}>
+                  <button onClick={() => startEdit(t)} style={{ padding:'4px 10px', background:'transparent', border:'1px solid #1f1f2e', borderRadius:'5px', color:'#9ca3af', fontSize:'11px', cursor:'pointer' }}>Edit</button>
+                  <button onClick={() => setConfirmId(t.id)} disabled={deletingId===t.id} style={{ padding:'4px 8px', background:'transparent', border:'1px solid #1f1f2e', borderRadius:'5px', color:'#6b7280', fontSize:'11px', cursor:'pointer' }}>{deletingId===t.id?'...':'✕'}</button>
+                </div>
+              </div>
+
+              {/* ── Mobile row ──────────────────────────────────────────────── */}
+              <div className="tx-row-mobile" style={{
+                borderBottom: i < filtered.length-1 ? '1px solid #1a1a24' : 'none',
+              }}>
+                {/* Kiri: info */}
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:'13px', fontWeight:'500', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{t.note || '-'}</div>
+                  <div style={{ fontSize:'11px', color:'#6b7280', marginTop:'2px', display:'flex', gap:'5px', flexWrap:'wrap' }}>
                     <span>{t.categories?.icon ?? ''} {t.categories?.name ?? 'Tidak dikategori'}</span>
-                    {/* Tanggal di mobile tampil di sini */}
                     <span style={{ color:'#374151' }}>· {fmtDateShort(t.date)}</span>
                   </div>
                 </div>
-
-                {/* Col 2: Amount — desktop */}
-                <div className="tx-amount-desktop" style={{
-                  fontSize:'13px', fontWeight:'600',
-                  color: t.type==='income' ? '#4ade80' : '#f87171',
-                }}>
-                  {t.type==='income' ? '+' : '-'}{fmt(t.amount)}
-                </div>
-
-                {/* Col 3: Date — desktop only */}
-                <div className="tx-date" style={{ fontSize:'12px', color:'#9ca3af' }}>
-                  {fmtDate(t.date)}
-                </div>
-
-                {/* Col 4: Actions desktop */}
-                <div style={{ display:'flex', gap:'4px', justifyContent:'flex-end' }}>
-                  <button onClick={() => startEdit(t)} style={{
-                    padding:'4px 10px', background:'transparent',
-                    border:'1px solid #1f1f2e', borderRadius:'5px',
-                    color:'#9ca3af', fontSize:'11px', cursor:'pointer',
-                  }}>Edit</button>
-                  <button onClick={() => setConfirmId(t.id)}
-                    disabled={deletingId===t.id} style={{
-                    padding:'4px 8px', background:'transparent',
-                    border:'1px solid #1f1f2e', borderRadius:'5px',
-                    color:'#6b7280', fontSize:'11px', cursor:'pointer',
-                  }}>{deletingId===t.id ? '...' : '✕'}</button>
-                </div>
-
-                {/* Mobile: amount + actions (hidden desktop) */}
-                <div className="tx-amount-mobile" style={{ flexDirection:'column', alignItems:'flex-end', gap:'4px' }}>
-                  <div style={{ fontSize:'13px', fontWeight:'700',
-                    color: t.type==='income' ? '#4ade80' : '#f87171' }}>
-                    {t.type==='income' ? '+' : '-'}{fmt(t.amount)}
+                {/* Kanan: amount + tombol */}
+                <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'6px', flexShrink:0 }}>
+                  <div style={{ fontSize:'14px', fontWeight:'700', color: t.type==='income'?'#4ade80':'#f87171' }}>
+                    {t.type==='income'?'+':'-'}{fmt(t.amount)}
                   </div>
-                  <div style={{ display:'flex', gap:'4px' }}>
-                    <button onClick={() => startEdit(t)} style={{
-                      padding:'4px 10px', background:'transparent',
-                      border:'1px solid #1f1f2e', borderRadius:'6px',
-                      color:'#9ca3af', fontSize:'12px', cursor:'pointer',
-                    }}>Edit</button>
-                    <button onClick={() => setConfirmId(t.id)}
-                      disabled={deletingId===t.id} style={{
-                      padding:'4px 8px', background:'transparent',
-                      border:'1px solid #1f1f2e', borderRadius:'6px',
-                      color:'#6b7280', fontSize:'12px', cursor:'pointer',
-                    }}>{deletingId===t.id ? '...' : '✕'}</button>
+                  <div style={{ display:'flex', gap:'5px' }}>
+                    <button onClick={() => startEdit(t)} style={{ padding:'5px 12px', background:'transparent', border:'1px solid #2a2a3a', borderRadius:'6px', color:'#9ca3af', fontSize:'12px', cursor:'pointer' }}>Edit</button>
+                    <button onClick={() => setConfirmId(t.id)} disabled={deletingId===t.id} style={{ padding:'5px 10px', background:'transparent', border:'1px solid #2a2a3a', borderRadius:'6px', color:'#6b7280', fontSize:'12px', cursor:'pointer' }}>{deletingId===t.id?'...':'✕'}</button>
                   </div>
                 </div>
               </div>

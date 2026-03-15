@@ -3,6 +3,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 interface Category { id: string; name: string; icon: string; type: string }
@@ -14,6 +15,7 @@ interface Props {
 
 export default function QuickAdd({ userId, categories }: Props) {
   const supabase = createClient();
+  const router    = useRouter();
 
   const [open,    setOpen]    = useState(false);
   const [type,    setType]    = useState<'expense'|'income'>('expense');
@@ -71,8 +73,8 @@ export default function QuickAdd({ userId, categories }: Props) {
     resetForm();
     setOpen(false);
 
-    // Refresh halaman untuk update data
-    setTimeout(() => window.location.reload(), 500);
+    // Refresh Server Component data tanpa full page reload
+    router.refresh();
   }
 
   const filteredCats = categories.filter(c => c.type === type);

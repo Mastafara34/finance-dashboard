@@ -795,23 +795,26 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
 
       {/* Filter tabs */}
       {goals.length > 0 && (
-        <div style={{ display:'flex', gap:'6px', marginBottom:'16px', overflowX:'auto', paddingBottom:'2px', WebkitOverflowScrolling:'touch', msOverflowStyle:'none', scrollbarWidth:'none' }}>
-          {(['all', 'active', 'achieved', 'paused', 'cancelled'] as const).map(s => (
-            <button key={s} onClick={() => setFilterStatus(s)} style={{
-              padding: '6px 14px', borderRadius: '99px', border: '1px solid',
-              fontSize: '12px', cursor: 'pointer', fontWeight: '500',
-              borderColor: filterStatus === s ? '#2563eb' : '#2a2a3a',
-              background: filterStatus === s ? '#0c1f3a' : 'transparent',
-              color: filterStatus === s ? '#60a5fa' : '#6b7280',
-            }}>
-              {s === 'all' ? 'Semua' : STATUS_LABEL[s]}
-              {s !== 'all' && (
-                <span style={{ marginLeft: '6px', opacity: .7 }}>
-                  {goals.filter(g => g.status === s).length}
+        <div style={{ display:'flex', gap:'6px', marginBottom:'16px', flexWrap:'wrap' }}>
+          {(['all', 'active', 'achieved', 'paused', 'cancelled'] as const).map(s => {
+            const count = s === 'all' ? goals.length : goals.filter(g => g.status === s).length;
+            const active = filterStatus === s;
+            return (
+              <button key={s} onClick={() => setFilterStatus(s)} style={{
+                padding: '6px 12px', borderRadius: '99px', border: '1px solid',
+                fontSize: '12px', cursor: 'pointer', fontWeight: '500',
+                whiteSpace: 'nowrap',
+                borderColor: active ? '#2563eb' : '#2a2a3a',
+                background: active ? '#0c1f3a' : 'transparent',
+                color: active ? '#60a5fa' : '#6b7280',
+              }}>
+                {s === 'all' ? 'Semua' : STATUS_LABEL[s]}
+                <span style={{ marginLeft: '5px', opacity: .7, fontSize: '11px' }}>
+                  {count}
                 </span>
-              )}
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       )}
 
