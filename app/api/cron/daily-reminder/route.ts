@@ -24,18 +24,18 @@ const supabase = createClient(
 // ─── Pesan reminder bervariasi ────────────────────────────────────────────────
 // Dikelompokkan per durasi gap agar relevan
 const MESSAGES_2_DAYS = [
-  (name: string) =>
+  (name: string, _days: number) =>
     `👋 Halo *${name}!*\n\nKelihatannya kamu belum catat transaksi 2 hari ini.\n\nLangsung ketik aja — _"Makan siang 35rb"_ atau _"Bensin 100rb"_ — selesai dalam 5 detik! ⚡`,
-  (name: string) =>
+  (name: string, _days: number) =>
     `📝 *${name},* jangan sampai lupa ya!\n\nData 2 hari ini belum tercatat. Semakin lama ditunda, semakin susah ingat detailnya.\n\nKetik transaksimu sekarang 👇`,
-  (name: string) =>
+  (name: string, _days: number) =>
     `💡 *Reminder kecil untuk ${name}:*\n\nBelum ada catatan 2 hari terakhir. Konsistensi adalah kunci — 5 detik input sekarang lebih baik dari lupa selamanya! 🎯`,
 ];
 
 const MESSAGES_3_DAYS = [
-  (name: string) =>
+  (name: string, _days: number) =>
     `⚠️ *${name},* sudah 3 hari nih!\n\nData keuangan 3 hari terakhir kosong. Coba ingat-ingat tadi beli apa aja dan ketik sekarang — boleh beberapa sekaligus!\n\n_Contoh: "Makan siang 40rb, bensin 100rb, indomaret 25rb"_`,
-  (name: string) =>
+  (name: string, _days: number) =>
     `🔔 *Ceplas-ceplos reminder untuk ${name}:*\n\n3 hari kosong = data keuangan tidak akurat = keputusan finansial kurang tepat.\n\nYuk mulai lagi dari sekarang — tidak perlu input semua yang terlewat, cukup dari hari ini! 💪`,
 ];
 
@@ -50,7 +50,7 @@ function getRandomMessage(
   name: string,
   gapDays: number
 ): string {
-  let pool: ((name: string, days?: number) => string)[];
+  let pool: ((name: string, days: number) => string)[];
 
   if (gapDays >= 5) {
     pool = MESSAGES_5_PLUS_DAYS;
