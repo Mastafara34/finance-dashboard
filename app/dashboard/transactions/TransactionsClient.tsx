@@ -201,7 +201,7 @@ export default function TransactionsClient({ transactions, categories, userId }:
         ) : filtered.map((t, i) => (
           <div key={t.id}>
             {editingId !== t.id ? (
-              // ── Desktop row ─────────────────────────────────────────────
+              <>
               <div className="tx-row-desktop" style={{
                 borderBottom: i < filtered.length-1 ? '1px solid #1a1a24' : 'none',
               }}>
@@ -244,8 +244,8 @@ export default function TransactionsClient({ transactions, categories, userId }:
                   </div>
                 </div>
               </div>
+              </>
             ) : (
-              // ── Edit row ─────────────────────────────────────────────────
               <div style={{ padding:'14px', borderBottom: i<filtered.length-1?'1px solid #1a1a24':'none', background:'#16161f' }}>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'10px' }}>
                   <div>
