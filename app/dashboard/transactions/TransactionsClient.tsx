@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import ConfirmModal from '@/components/ConfirmModal';
 import { createClient } from '@/lib/supabase/client';
 
 interface Category { id: string; name: string; type: string; icon: string }
@@ -27,6 +28,7 @@ export default function TransactionsClient({ transactions, categories, userId }:
   const [saving,     setSaving]     = useState(false);
   const [deletingId, setDeletingId] = useState<string|null>(null);
   const [toast,      setToast]      = useState<{msg:string;ok:boolean}|null>(null);
+  const [confirmId,  setConfirmId]  = useState<string|null>(null);
   const [amountDisplay, setAmountDisplay] = useState('');
 
   function showToast(msg: string, ok = true) {
@@ -244,7 +246,7 @@ export default function TransactionsClient({ transactions, categories, userId }:
                       border:'1px solid #1f1f2e', borderRadius:'5px',
                       color:'#9ca3af', fontSize:'11px', cursor:'pointer',
                     }}>Edit</button>
-                    <button onClick={() => { if(confirm('Hapus?')) deleteTransaction(t.id); }}
+                    <button onClick={() => setConfirmId(t.id)}
                       disabled={deletingId===t.id} style={{
                       padding:'3px 7px', background:'transparent',
                       border:'1px solid #1f1f2e', borderRadius:'5px',
@@ -315,6 +317,15 @@ export default function TransactionsClient({ transactions, categories, userId }:
           </div>
         ))}
       </div>
+
+      <ConfirmModal
+        open={!!confirmId}
+        title="Hapus Transaksi"
+        message="Transaksi ini akan dihapus. Data tidak akan hilang permanen dan masih bisa dipulihkan dari database."
+        confirmLabel="Ya, hapus"
+        onConfirm={() => { if(confirmId) { deleteTransaction(confirmId); setConfirmId(null); } }}
+        onCancel={() => setConfirmId(null)}
+      />
 
       {filtered.length > 0 && (
         <div style={{ textAlign:'center', color:'#374151', fontSize:'12px', marginTop:'12px' }}>

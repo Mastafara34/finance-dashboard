@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import BottomNav from '@/components/BottomNav';
 import MobileHeader from '@/components/MobileHeader';
+import QuickAdd from '@/components/QuickAdd';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -12,13 +13,22 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { data: profile } = await supabase
     .from('users')
-    .select('display_name, telegram_chat_id')
+    .select('id, display_name, telegram_chat_id')
     .eq('email', user.email!)
     .maybeSingle();
 
+  if (!profile) redirect('/login');
+
+  // Fetch kategori untuk QuickAdd
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('id, name, icon, type')
+    .or(`user_id.eq.${profile.id},user_id.is.null`)
+    .order('type', { ascending: true })
+    .order('sort_order', { ascending: true });
+
   return (
     <>
-      {/* Responsive layout CSS */}
       <style>{`
         .fintrack-layout {
           display: flex;
@@ -39,30 +49,30 @@ export default async function DashboardLayout({ children }: { children: React.Re
           }
         }
         @media (min-width: 769px) and (max-width: 1024px) {
-          .fintrack-content {
-            padding: 24px;
-          }
+          .fintrack-content { padding: 24px; }
         }
       `}</style>
 
       <div className="fintrack-layout">
-        {/* Sidebar — hidden on mobile via CSS in component */}
         <DashboardSidebar
           userName={profile?.display_name ?? user.email ?? 'User'}
           userEmail={user.email ?? ''}
           hasTelegram={!!profile?.telegram_chat_id}
         />
 
-        {/* Main content */}
         <main className="fintrack-content">
-          {/* Header mobile — hanya tampil di HP */}
           <MobileHeader />
           {children}
         </main>
 
-        {/* Bottom nav — hanya tampil di HP via CSS in component */}
         <BottomNav />
       </div>
+
+      {/* QuickAdd FAB — tampil di semua halaman dashboard */}
+      <QuickAdd
+        userId={profile.id}
+        categories={(categories ?? []) as any[]}
+      />
     </>
   );
 }
