@@ -10,6 +10,7 @@ interface Profile {
   display_name: string | null;
   email: string | null;
   telegram_chat_id: number | null;
+  role: string;
   monthly_income: number | null;
   timezone: string;
   currency: string;
@@ -323,6 +324,37 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
           {savingProfile ? 'Menyimpan...' : 'Simpan Profil'}
         </button>
       </Section>
+
+
+      {/* ── User Management Link (owner/admin only) ───────────────────── */}
+      {(profile.role === 'owner' || profile.role === 'admin') && (
+        <a href="/dashboard/settings/users" style={{ textDecoration: 'none' }}>
+          <div style={{
+            background: '#111118', border: '1px solid #1f1f2e',
+            borderRadius: '14px', padding: '16px 20px', marginBottom: '16px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            transition: 'border-color .15s', cursor: 'pointer',
+          }}
+            onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = '#2a2a3a'}
+            onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = '#1f1f2e'}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{
+                width: '38px', height: '38px', borderRadius: '10px',
+                background: '#0c1f3a', border: '1px solid #1e3a5f',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px',
+              }}>👥</div>
+              <div>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: '#f0f0f5' }}>Kelola User</div>
+                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '1px' }}>
+                  Tambah user, ubah role, kelola akses bot
+                </div>
+              </div>
+            </div>
+            <span style={{ color: '#374151', fontSize: '16px' }}>→</span>
+          </div>
+        </a>
+      )}
 
       {/* ── 2. Koneksi Telegram ────────────────────────────────────────────── */}
       <Section

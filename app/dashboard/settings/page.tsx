@@ -10,7 +10,7 @@ export default async function SettingsPage() {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('*')
+    .select('id, display_name, email, telegram_chat_id, monthly_income, timezone, currency, role')
     .eq('email', user.email!)
     .maybeSingle();
 
@@ -19,7 +19,7 @@ export default async function SettingsPage() {
   // Fetch kategori milik user + sistem
   const { data: categories } = await supabase
     .from('categories')
-    .select('*')
+    .select('id, display_name, email, telegram_chat_id, monthly_income, timezone, currency, role')
     .or(`user_id.eq.${profile.id},user_id.is.null`)
     .order('type', { ascending: true })
     .order('sort_order', { ascending: true });
