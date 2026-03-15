@@ -79,9 +79,9 @@ export default async function DashboardPage() {
     supabase.from('assets').select('value, is_liability').eq('user_id', userId),
   ]);
 
-  const txs     = (txMonth.data ?? []) as Transaction[];
-  const prevTxs = (txPrevMonth.data ?? []) as Transaction[];
-  const last30  = (txLast30.data ?? []) as Transaction[];
+  const txs     = (txMonth.data ?? []) as unknown as Transaction[];
+  const prevTxs = (txPrevMonth.data ?? []) as unknown as Transaction[];
+  const last30  = (txLast30.data ?? []) as unknown as Transaction[];
   const goalList = (goals.data ?? []) as Goal[];
   const assetList = (assets.data ?? []) as Asset[];
 
