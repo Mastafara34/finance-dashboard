@@ -191,7 +191,7 @@ function DonutChart({ data }: { data: { name: string; icon: string; value: numbe
 
       {/* Legend */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        {data.slice(0, 7).map((d, i) => (
+        {arcs.slice(0, 7).map((d, i) => (
           <div key={i}
             style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'default',
               opacity: hovered !== null && hovered !== i ? 0.4 : 1, transition: 'opacity .15s' }}
