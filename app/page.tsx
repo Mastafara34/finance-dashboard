@@ -1,4 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
+import { redirect } from 'next/navigation';
+
+export default function RootPage() {
+  redirect('/dashboard');
+}
 
 // Inisialisasi Supabase (Gunakan Anon Key untuk frontend/public read)
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
