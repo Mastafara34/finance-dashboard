@@ -1,7 +1,7 @@
 /**
  * app/api/telegram/route.ts
  * ==========================
- * Sprint 2 — User Management + Goals Tracker
+ * Sprint 3 — Anomaly Detection + Forecast + Smart Reminder
  *
  * New in this version:
  *   - Auto-register user saat pertama chat (upsert ke tabel users)
@@ -228,7 +228,8 @@ async function cmdHelp(chatId: number): Promise<void> {
     `*📊 Laporan*\n` +
     `/status — Cashflow bulan ini\n` +
     `/networth — Total aset & net worth\n` +
-    `/laporan — Weekly summary sekarang\n\n` +
+    `/laporan — Weekly summary sekarang\n` +
+    `/forecast — Prediksi saldo akhir bulan\n\n` +
     `*🎯 Goals*\n` +
     `/goals — Lihat semua goals\n` +
     `/goals tambah — Tambah goal baru\n` +
@@ -784,6 +785,70 @@ async function handleTransaction(
   );
 }
 
+// ─── Command: /forecast ──────────────────────────────────────────────────────
+async function cmdForecast(chatId: number, userId: string): Promise<void> {
+  const now         = new Date();
+  const monthStart  = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const daysPassed  = now.getDate();
+  const daysLeft    = daysInMonth - daysPassed;
+
+  const { data: txs } = await supabase
+    .from('transactions')
+    .select('amount, type')
+    .eq('user_id', userId)
+    .eq('is_deleted', false)
+    .gte('date', monthStart);
+
+  const rows    = txs ?? [];
+  const income  = rows.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + t.amount, 0);
+  const expense = rows.filter((t: any) => t.type === 'expense').reduce((s: number, t: any) => s + t.amount, 0);
+  const dailyAvg = daysPassed > 0 ? expense / daysPassed : 0;
+  const projExtra   = dailyAvg * daysLeft;
+  const projTotal   = expense + projExtra;
+  const projBalance = income - projTotal;
+
+  // Historis 3 bulan untuk konteks
+  const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1).toISOString().split('T')[0];
+  const { data: hist } = await supabase
+    .from('transactions')
+    .select('amount')
+    .eq('user_id', userId)
+    .eq('type', 'expense')
+    .eq('is_deleted', false)
+    .gte('date', threeMonthsAgo)
+    .lt('date', monthStart);
+
+  const histAvg = (hist ?? []).reduce((s: number, t: any) => s + t.amount, 0) / 3;
+
+  let trendNote = '';
+  if (histAvg > 0) {
+    const diff = ((projTotal - histAvg) / histAvg) * 100;
+    if      (diff >  15) trendNote = `\n⚠️ _Proyeksi ${Math.round(diff)}% lebih tinggi dari rata-rata 3 bulan lalu_`;
+    else if (diff < -15) trendNote = `\n✨ _Proyeksi ${Math.round(Math.abs(diff))}% lebih hemat dari rata-rata 3 bulan lalu_`;
+    else                 trendNote = `\n✅ _Sesuai pola rata-rata 3 bulan lalu_`;
+  }
+
+  const monthName = now.toLocaleString('id-ID', { month: 'long', year: 'numeric' });
+
+  await sendMessage(
+    chatId,
+    `🔮 *Forecast ${monthName}*\n\n` +
+    `*Aktual hari ini (H-${daysPassed}/${daysInMonth}):*\n` +
+    `💚 Pemasukan      : ${fmt(income)}\n` +
+    `🔴 Pengeluaran    : ${fmt(expense)}\n` +
+    `📊 Rata-rata/hari : ${fmt(Math.round(dailyAvg))}\n\n` +
+    `*Proyeksi ${daysLeft} hari ke depan:*\n` +
+    `📈 Est. tambahan  : ${fmt(Math.round(projExtra))}\n` +
+    `📉 Est. total keluar : ${fmt(Math.round(projTotal))}\n` +
+    `${projBalance >= 0 ? '💰' : '🔴'} *Est. saldo akhir : ${fmt(Math.abs(Math.round(projBalance)))}*` +
+    (projBalance < 0 ? ' _(defisit)_' : '') +
+    trendNote +
+    (histAvg > 0 ? `\n\n_Rata-rata 3 bln lalu: ${fmt(Math.round(histAvg))}/bulan_` : '') +
+    `\n\n_/status untuk data aktual bulan ini_`
+  );
+}
+
 // ─── Command router ───────────────────────────────────────────────────────────
 async function routeCommand(
   chatId: number,
@@ -798,6 +863,7 @@ async function routeCommand(
   if (lower === '/status')         { await cmdStatus(chatId, userId); return true; }
   if (lower === '/networth')       { await cmdNetWorth(chatId, userId); return true; }
   if (lower === '/laporan')        { await cmdLaporan(chatId, userId); return true; }
+  if (lower === '/forecast')       { await cmdForecast(chatId, userId); return true; }
 
   if (lower === '/goals') {
     await cmdGoals(chatId, userId);
