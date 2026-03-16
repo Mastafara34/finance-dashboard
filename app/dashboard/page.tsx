@@ -78,15 +78,43 @@ export default async function DashboardPage() {
   const totalLiab  = assetList.filter(a => a.is_liability).reduce((s, a) => s + a.value, 0);
   const netWorth   = totalAsset - totalLiab;
 
+  // Investment calculation (assuming 'investment' type assets)
+  const investments = assetList.filter(a => !a.is_liability && a.type === 'investment').reduce((s, a) => s + a.value, 0);
+  const investmentRatio = income > 0 ? (investments / (income * 12)) * 100 : 0; 
+  const monthlyInvRatio = income > 0 ? (txs.filter(t => t.type === 'expense' && t.categories?.name?.toLowerCase().includes('invest')).reduce((s, t) => s + t.amount, 0) / income) * 100 : 0;
+
   // Emergency Fund Calculation
-  // Cash & Bank assets are considered liquid for emergency fund
   const liquidAssets = assetList.filter(a => !a.is_liability && a.type === 'cash').reduce((s, a) => s + a.value, 0);
-  // Monthly expense based on last month if available, else current month
   const monthlyExpBase = prevExp > 0 ? prevExp : expense;
   const efTargetMin = monthlyExpBase * 6;
   const efTargetMax = monthlyExpBase * 12;
   const efProgress = efTargetMin > 0 ? Math.min(pct(liquidAssets, efTargetMin), 100) : 0;
-  const monthsCovered = monthlyExpBase > 0 ? (liquidAssets / monthlyExpBase).toFixed(1) : '0';
+  const monthsCovered = monthlyExpBase > 0 ? (liquidAssets / monthlyExpBase) : 0;
+
+  // Financial Health Score Calculation (/100)
+  // 1. Saving Rate (>20%) - 20 pts
+  const s1 = Math.min((savingRate / 20) * 20, 20);
+  // 2. Emergency Fund (6-12 months) - 20 pts
+  const s2 = Math.min((monthsCovered / 6) * 20, 20);
+  // 3. Debt Ratio (<30% of income) - 20 pts
+  const monthlyDebt = txs.filter(t => t.type === 'expense' && t.categories?.name?.toLowerCase().includes('cicilan')).reduce((s, t) => s + t.amount, 0);
+  const debtRatio = income > 0 ? (monthlyDebt / income) * 100 : 0;
+  const s3 = debtRatio <= 30 ? 20 : Math.max(0, 20 - ((debtRatio - 30) / 2));
+  // 4. Investment Ratio (>15%) - 20 pts
+  const s4 = Math.min((monthlyInvRatio / 15) * 20, 20);
+  // 5. Cashflow Surplus (Positive) - 20 pts
+  const s5 = balance > 0 ? 20 : 0;
+
+  const healthScore = Math.round(s1 + s2 + s3 + s4 + s5);
+  const healthLabel = healthScore >= 80 ? 'Sangat Sehat' : healthScore >= 60 ? 'Sehat' : healthScore >= 40 ? 'Cukup' : 'Perlu Perhatian';
+  const healthColor = healthScore >= 80 ? '#4ade80' : healthScore >= 60 ? '#60a5fa' : healthScore >= 40 ? '#f59e0b' : '#f87171';
+
+  // Burn Rate & Survival Time
+  // Burn Rate is the monthly expense base we already calculated
+  const burnRate = monthlyExpBase;
+  const survivalTime = burnRate > 0 ? (liquidAssets / burnRate) : 0;
+  const survivalLabel = survivalTime >= 12 ? 'Sangat Aman' : survivalTime >= 6 ? 'Aman' : survivalTime >= 3 ? 'Waspada' : 'Kritis';
+  const survivalColor = survivalTime >= 12 ? '#4ade80' : survivalTime >= 6 ? '#60a5fa' : survivalTime >= 3 ? '#f59e0b' : '#f87171';
 
   // Chart 30 hari
   const chartMap: Record<string, { income: number; expense: number }> = {};
@@ -105,13 +133,19 @@ export default async function DashboardPage() {
   return (
     <div style={{ color: '#f0f0f5', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
       <style>{`
-        .ov-grid4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 12px; }
+        .ov-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 16px; }
+        .ov-grid6 { display: grid; grid-template-columns: repeat(6,1fr); gap: 12px; margin-bottom: 12px; }
         .ov-grid2 { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; margin-bottom: 12px; }
-        @media (max-width: 1024px) {
-          .ov-grid4 { grid-template-columns: repeat(2,1fr); }
+        
+        @media (max-width: 1400px) {
+          .ov-grid6 { grid-template-columns: repeat(3,1fr); }
+        }
+        @media (max-width: 900px) {
+          .ov-grid6 { grid-template-columns: repeat(2,1fr); }
         }
         @media (max-width: 768px) {
-          .ov-grid4 { grid-template-columns: 1fr; gap: 8px; }
+          .ov-header { flex-direction: column; align-items: stretch; }
+          .ov-grid6 { grid-template-columns: 1fr; gap: 8px; }
           .ov-grid2 { grid-template-columns: 1fr; gap: 8px; }
         }
         .ov-card { background:#111118; border:1px solid #1f1f2e; border-radius:12px; padding:16px; }
@@ -119,23 +153,37 @@ export default async function DashboardPage() {
       `}</style>
 
       {/* Header */}
-      <div style={{ marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '20px', fontWeight: '600', margin: '0 0 4px', letterSpacing: '-0.4px' }}>
-          Selamat datang, {firstName} 👋
-        </h1>
-        <p style={{ color: '#6b7280', fontSize: '13px', margin: 0 }}>{dateLabel}</p>
+      <div className="ov-header">
+        <div>
+          <h1 style={{ fontSize: '20px', fontWeight: '600', margin: '0 0 4px', letterSpacing: '-0.4px' }}>
+            Selamat datang, {firstName} 👋
+          </h1>
+          <p style={{ color: '#6b7280', fontSize: '13px', margin: 0 }}>{dateLabel}</p>
+        </div>
+        <div style={{ 
+          background: '#111118', border: '1px solid #1f1f2e', borderRadius: '12px', 
+          padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '14px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+        }}>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '2px' }}>Financial Health</div>
+            <div style={{ fontSize: '13px', fontWeight: '700', color: healthColor }}>{healthLabel}</div>
+          </div>
+          <div style={{ 
+            width: '44px', height: '44px', borderRadius: '50%', border: `3px solid ${healthColor}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: '800',
+            color: '#f0f0f5', background: 'rgba(255,255,255,0.02)'
+          }}>
+            {healthScore}
+          </div>
+        </div>
       </div>
 
-      {/* Row 1: 5 kartu KPI */}
-      <style>{`
-        .ov-grid5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; margin-bottom: 12px; }
-        @media (max-width: 1200px) { .ov-grid5 { grid-template-columns: repeat(3,1fr); } }
-        @media (max-width: 768px) { .ov-grid5 { grid-template-columns: 1fr; gap: 8px; } }
-      `}</style>
-      <div className="ov-grid5">
+      {/* Row 1: 6 kartu KPI */}
+      <div className="ov-grid6">
         <div className="ov-card">
           <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>Net Worth</div>
-          <div style={{ fontSize: '22px', fontWeight: '700', color: netWorth >= 0 ? '#4ade80' : '#f87171', letterSpacing: '-0.5px' }}>
+          <div style={{ fontSize: '20px', fontWeight: '700', color: netWorth >= 0 ? '#4ade80' : '#f87171', letterSpacing: '-0.5px' }}>
             {fmt(Math.abs(netWorth))}
           </div>
           <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
@@ -144,33 +192,40 @@ export default async function DashboardPage() {
         </div>
         <div className="ov-card">
           <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>Pemasukan</div>
-          <div style={{ fontSize: '22px', fontWeight: '700', color: '#4ade80', letterSpacing: '-0.5px' }}>{fmt(income)}</div>
+          <div style={{ fontSize: '20px', fontWeight: '700', color: '#4ade80', letterSpacing: '-0.5px' }}>{fmt(income)}</div>
           <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>{monthLabel}</div>
         </div>
         <div className="ov-card">
           <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>Pengeluaran</div>
-          <div style={{ fontSize: '22px', fontWeight: '700', color: '#f87171', letterSpacing: '-0.5px' }}>{fmt(expense)}</div>
+          <div style={{ fontSize: '20px', fontWeight: '700', color: '#f87171', letterSpacing: '-0.5px' }}>{fmt(expense)}</div>
           <div style={{ fontSize: '11px', marginTop: '4px', color: Math.abs(expTrend) > 5 ? (expTrend > 0 ? '#f87171' : '#4ade80') : '#6b7280' }}>
-            {prevExp > 0 ? `${expTrend > 0 ? '↑' : '↓'} ${Math.abs(expTrend).toFixed(0)}% vs bln lalu` : monthLabel}
+            {prevExp > 0 ? `${expTrend > 0 ? '↑' : '↓'} ${Math.abs(expTrend).toFixed(0)}%` : monthLabel}
           </div>
         </div>
         <div className="ov-card">
           <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>Saving Rate</div>
-          <div style={{ fontSize: '22px', fontWeight: '700', color: savingRate > 20 ? '#4ade80' : savingRate > 10 ? '#f59e0b' : '#f87171', letterSpacing: '-0.5px' }}>
+          <div style={{ fontSize: '20px', fontWeight: '700', color: savingRate > 20 ? '#4ade80' : savingRate > 10 ? '#f59e0b' : '#f87171', letterSpacing: '-0.5px' }}>
             {savingRate.toFixed(1)}%
           </div>
           <div style={{ fontSize: '11px', marginTop: '4px', color: Math.abs(savRateTrend) > 2 ? (savRateTrend > 0 ? '#4ade80' : '#f87171') : '#6b7280' }}>
-            {prevInc > 0 ? `${savRateTrend > 0 ? '↑' : '↓'} ${Math.abs(savRateTrend).toFixed(1)}% vs bln lalu` : monthLabel}
+            {prevInc > 0 ? `${savRateTrend > 0 ? '↑' : '↓'} ${Math.abs(savRateTrend).toFixed(1)}%` : 'vs bln lalu'}
           </div>
         </div>
         <div className="ov-card">
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>Dana Darurat</div>
-          <div style={{ fontSize: '22px', fontWeight: '700', color: efProgress >= 100 ? '#4ade80' : efProgress >= 50 ? '#f59e0b' : '#f87171', letterSpacing: '-0.5px' }}>
-            {monthsCovered} <span style={{ fontSize: '12px', fontWeight: '400', color: '#6b7280' }}>bln</span>
+          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>Survival Time</div>
+          <div style={{ fontSize: '20px', fontWeight: '700', color: survivalColor, letterSpacing: '-0.5px' }}>
+            {survivalTime.toFixed(1)} <span style={{ fontSize: '12px', fontWeight: '400', color: '#6b7280' }}>bln</span>
           </div>
-          <div style={{ fontSize: '11px', marginTop: '4px', color: '#6b7280' }}>
-            {efProgress}% dari target 6 bln
+          <div style={{ fontSize: '11px', marginTop: '4px', color: survivalColor }}>
+            {survivalLabel}
           </div>
+        </div>
+        <div className="ov-card">
+          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>Burn Rate</div>
+          <div style={{ fontSize: '20px', fontWeight: '700', color: '#f87171', letterSpacing: '-0.5px' }}>
+            {fmt(burnRate)}
+          </div>
+          <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>Avg. per bulan</div>
         </div>
       </div>
 
