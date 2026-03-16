@@ -13,7 +13,7 @@ interface Goal {
   target_amount: number; current_amount: number;
   monthly_allocation: number | null; deadline: string | null;
 }
-interface Asset { value: number; is_liability: boolean }
+interface Asset { id: string; name: string; value: number; is_liability: boolean; type: string }
 
 const fmt = (n: number) => `Rp ${Math.round(n).toLocaleString('id-ID')}`;
 const pct = (v: number, t: number) => t > 0 ? Math.round((v / t) * 100) : 0;
@@ -46,7 +46,7 @@ export default async function DashboardPage() {
       .order('date', { ascending: true }),
     supabase.from('goals').select('*').eq('user_id', userId).eq('status', 'active')
       .order('priority', { ascending: true }).limit(3),
-    supabase.from('assets').select('value, is_liability').eq('user_id', userId),
+    supabase.from('assets').select('id, name, value, is_liability, type').eq('user_id', userId),
   ]);
 
   const txs      = (txMonth.data ?? []) as unknown as Transaction[];
@@ -77,6 +77,16 @@ export default async function DashboardPage() {
   const totalAsset = assetList.filter(a => !a.is_liability).reduce((s, a) => s + a.value, 0);
   const totalLiab  = assetList.filter(a => a.is_liability).reduce((s, a) => s + a.value, 0);
   const netWorth   = totalAsset - totalLiab;
+
+  // Emergency Fund Calculation
+  // Cash & Bank assets are considered liquid for emergency fund
+  const liquidAssets = assetList.filter(a => !a.is_liability && a.type === 'cash').reduce((s, a) => s + a.value, 0);
+  // Monthly expense based on last month if available, else current month
+  const monthlyExpBase = prevExp > 0 ? prevExp : expense;
+  const efTargetMin = monthlyExpBase * 6;
+  const efTargetMax = monthlyExpBase * 12;
+  const efProgress = efTargetMin > 0 ? Math.min(pct(liquidAssets, efTargetMin), 100) : 0;
+  const monthsCovered = monthlyExpBase > 0 ? (liquidAssets / monthlyExpBase).toFixed(1) : '0';
 
   // Chart 30 hari
   const chartMap: Record<string, { income: number; expense: number }> = {};
@@ -116,8 +126,13 @@ export default async function DashboardPage() {
         <p style={{ color: '#6b7280', fontSize: '13px', margin: 0 }}>{dateLabel}</p>
       </div>
 
-      {/* Row 1: 4 kartu KPI */}
-      <div className="ov-grid4">
+      {/* Row 1: 5 kartu KPI */}
+      <style>{`
+        .ov-grid5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; margin-bottom: 12px; }
+        @media (max-width: 1200px) { .ov-grid5 { grid-template-columns: repeat(3,1fr); } }
+        @media (max-width: 768px) { .ov-grid5 { grid-template-columns: 1fr; gap: 8px; } }
+      `}</style>
+      <div className="ov-grid5">
         <div className="ov-card">
           <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>Net Worth</div>
           <div style={{ fontSize: '22px', fontWeight: '700', color: netWorth >= 0 ? '#4ade80' : '#f87171', letterSpacing: '-0.5px' }}>
@@ -148,30 +163,61 @@ export default async function DashboardPage() {
             {prevInc > 0 ? `${savRateTrend > 0 ? '↑' : '↓'} ${Math.abs(savRateTrend).toFixed(1)}% vs bln lalu` : monthLabel}
           </div>
         </div>
+        <div className="ov-card">
+          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>Dana Darurat</div>
+          <div style={{ fontSize: '22px', fontWeight: '700', color: efProgress >= 100 ? '#4ade80' : efProgress >= 50 ? '#f59e0b' : '#f87171', letterSpacing: '-0.5px' }}>
+            {monthsCovered} <span style={{ fontSize: '12px', fontWeight: '400', color: '#6b7280' }}>bln</span>
+          </div>
+          <div style={{ fontSize: '11px', marginTop: '4px', color: '#6b7280' }}>
+            {efProgress}% dari target 6 bln
+          </div>
+        </div>
       </div>
 
-      {/* Saldo bar */}
-      <div className="ov-card" style={{ marginBottom: '12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Saldo Bersih {monthLabel}</span>
-          <span style={{ fontSize: '15px', fontWeight: '700', color: balance >= 0 ? '#4ade80' : '#f87171' }}>
-            {balance >= 0 ? '+' : '-'}{fmt(Math.abs(balance))}
-          </span>
+      {/* Row 2: Saldo Bar & Emergency Fund Detail */}
+      <div className="ov-grid2">
+        <div className="ov-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Saldo Bersih {monthLabel}</span>
+            <span style={{ fontSize: '15px', fontWeight: '700', color: balance >= 0 ? '#4ade80' : '#f87171' }}>
+              {balance >= 0 ? '+' : '-'}{fmt(Math.abs(balance))}
+            </span>
+          </div>
+          {income > 0 && (
+            <div style={{ height: '6px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
+              <div style={{
+                height: '100%', borderRadius: '99px',
+                width: `${Math.min(pct(expense, income), 100)}%`,
+                background: pct(expense, income) > 90 ? '#ef4444' : pct(expense, income) > 70 ? '#f59e0b' : '#2563eb',
+              }}/>
+            </div>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
+            <span style={{ fontSize: '11px', color: '#374151' }}>
+              {income > 0 ? `${pct(expense, income)}% pemasukan terpakai` : 'Belum ada pemasukan'}
+            </span>
+            <span style={{ fontSize: '11px', color: '#374151' }}>{txs.length} transaksi</span>
+          </div>
         </div>
-        {income > 0 && (
+
+        <div className="ov-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Tracker Dana Darurat</span>
+            <span style={{ fontSize: '11px', color: '#6b7280' }}>{fmt(liquidAssets)} / {fmt(efTargetMin)}</span>
+          </div>
           <div style={{ height: '6px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
             <div style={{
               height: '100%', borderRadius: '99px',
-              width: `${Math.min(pct(expense, income), 100)}%`,
-              background: pct(expense, income) > 90 ? '#ef4444' : pct(expense, income) > 70 ? '#f59e0b' : '#2563eb',
+              width: `${efProgress}%`,
+              background: efProgress >= 100 ? '#4ade80' : efProgress >= 50 ? '#f59e0b' : '#f87171',
             }}/>
           </div>
-        )}
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-          <span style={{ fontSize: '11px', color: '#374151' }}>
-            {income > 0 ? `${pct(expense, income)}% pemasukan terpakai` : 'Belum ada pemasukan'}
-          </span>
-          <span style={{ fontSize: '11px', color: '#374151' }}>{txs.length} transaksi</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
+            <span style={{ fontSize: '11px', color: '#374151' }}>Target: 6x Pengeluaran</span>
+            <span style={{ fontSize: '11px', color: efProgress >= 100 ? '#4ade80' : '#6b7280' }}>
+              {efProgress >= 100 ? 'Aman ✅' : `${fmt(efTargetMin - liquidAssets)} lagi`}
+            </span>
+          </div>
         </div>
       </div>
 
