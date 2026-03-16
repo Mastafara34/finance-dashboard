@@ -116,6 +116,13 @@ export default async function DashboardPage() {
   const survivalLabel = survivalTime >= 12 ? 'Sangat Aman' : survivalTime >= 6 ? 'Aman' : survivalTime >= 3 ? 'Waspada' : 'Kritis';
   const survivalColor = survivalTime >= 12 ? '#4ade80' : survivalTime >= 6 ? '#60a5fa' : survivalTime >= 3 ? '#f59e0b' : '#f87171';
 
+  // Net Worth Growth & Wealth Velocity
+  const nwGrowth = balance; // This month's surplus
+  const prevMonthSurplus = prevInc - prevExp;
+  const wealthVelocity = nwGrowth - prevMonthSurplus;
+  const wealthVelocityStatus = wealthVelocity > 0 ? 'Accelerating 🚀' : wealthVelocity < 0 ? 'Decelerating 📉' : 'Stable ⚖️';
+  const velocityColor = wealthVelocity > 0 ? '#4ade80' : wealthVelocity < 0 ? '#f87171' : '#6b7280';
+
   // Chart 30 hari
   const chartMap: Record<string, { income: number; expense: number }> = {};
   for (let i = 29; i >= 0; i--) {
@@ -272,6 +279,34 @@ export default async function DashboardPage() {
             <span style={{ fontSize: '11px', color: efProgress >= 100 ? '#4ade80' : '#6b7280' }}>
               {efProgress >= 100 ? 'Aman ✅' : `${fmt(efTargetMin - liquidAssets)} lagi`}
             </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 3: Growth & Velocity */}
+      <div className="ov-grid2" style={{ marginBottom: '12px' }}>
+        <div className="ov-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Net Worth Growth Tracker</span>
+            <span style={{ fontSize: '14px', fontWeight: '700', color: nwGrowth >= 0 ? '#4ade80' : '#f87171' }}>
+              {nwGrowth >= 0 ? '↑' : '↓'} {fmt(Math.abs(nwGrowth))}
+            </span>
+          </div>
+          <div style={{ fontSize: '11px', color: '#6b7280' }}>
+            Pertumbuhan kekayaan bersih dari surplus bulan ini
+          </div>
+        </div>
+        <div className="ov-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Wealth Velocity</span>
+            <span style={{ fontSize: '14px', fontWeight: '700', color: velocityColor }}>
+              {wealthVelocityStatus}
+            </span>
+          </div>
+          <div style={{ fontSize: '11px', color: '#6b7280' }}>
+            {wealthVelocity > 0 ? `Surplus naik ${fmt(Math.abs(wealthVelocity))} vs bln lalu` : 
+             wealthVelocity < 0 ? `Surplus turun ${fmt(Math.abs(wealthVelocity))} vs bln lalu` : 
+             'Surplus sama dengan bulan lalu'}
           </div>
         </div>
       </div>
