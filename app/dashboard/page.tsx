@@ -58,8 +58,14 @@ export default async function DashboardPage() {
   const income   = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
   const expense  = txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
   const balance  = income - expense;
+  const savingRate = income > 0 ? ((income - expense) / income) * 100 : 0;
+
   const prevExp  = prevTxs.filter((t: any) => t.type === 'expense').reduce((s: number, t: any) => s + t.amount, 0);
+  const prevInc  = prevTxs.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + t.amount, 0);
+  const prevSavRate = prevInc > 0 ? ((prevInc - prevExp) / prevInc) * 100 : 0;
+  
   const expTrend = prevExp > 0 ? ((expense - prevExp) / prevExp) * 100 : 0;
+  const savRateTrend = savingRate - prevSavRate;
 
   const catMap: Record<string, number> = {};
   txs.filter(t => t.type === 'expense').forEach(t => {
@@ -89,10 +95,13 @@ export default async function DashboardPage() {
   return (
     <div style={{ color: '#f0f0f5', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
       <style>{`
-        .ov-grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 12px; }
+        .ov-grid4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 12px; }
         .ov-grid2 { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; margin-bottom: 12px; }
+        @media (max-width: 1024px) {
+          .ov-grid4 { grid-template-columns: repeat(2,1fr); }
+        }
         @media (max-width: 768px) {
-          .ov-grid3 { grid-template-columns: 1fr; gap: 8px; }
+          .ov-grid4 { grid-template-columns: 1fr; gap: 8px; }
           .ov-grid2 { grid-template-columns: 1fr; gap: 8px; }
         }
         .ov-card { background:#111118; border:1px solid #1f1f2e; border-radius:12px; padding:16px; }
@@ -107,8 +116,8 @@ export default async function DashboardPage() {
         <p style={{ color: '#6b7280', fontSize: '13px', margin: 0 }}>{dateLabel}</p>
       </div>
 
-      {/* Row 1: 3 kartu KPI */}
-      <div className="ov-grid3">
+      {/* Row 1: 4 kartu KPI */}
+      <div className="ov-grid4">
         <div className="ov-card">
           <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>Net Worth</div>
           <div style={{ fontSize: '22px', fontWeight: '700', color: netWorth >= 0 ? '#4ade80' : '#f87171', letterSpacing: '-0.5px' }}>
@@ -128,6 +137,15 @@ export default async function DashboardPage() {
           <div style={{ fontSize: '22px', fontWeight: '700', color: '#f87171', letterSpacing: '-0.5px' }}>{fmt(expense)}</div>
           <div style={{ fontSize: '11px', marginTop: '4px', color: Math.abs(expTrend) > 5 ? (expTrend > 0 ? '#f87171' : '#4ade80') : '#6b7280' }}>
             {prevExp > 0 ? `${expTrend > 0 ? '↑' : '↓'} ${Math.abs(expTrend).toFixed(0)}% vs bln lalu` : monthLabel}
+          </div>
+        </div>
+        <div className="ov-card">
+          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>Saving Rate</div>
+          <div style={{ fontSize: '22px', fontWeight: '700', color: savingRate > 20 ? '#4ade80' : savingRate > 10 ? '#f59e0b' : '#f87171', letterSpacing: '-0.5px' }}>
+            {savingRate.toFixed(1)}%
+          </div>
+          <div style={{ fontSize: '11px', marginTop: '4px', color: Math.abs(savRateTrend) > 2 ? (savRateTrend > 0 ? '#4ade80' : '#f87171') : '#6b7280' }}>
+            {prevInc > 0 ? `${savRateTrend > 0 ? '↑' : '↓'} ${Math.abs(savRateTrend).toFixed(1)}% vs bln lalu` : monthLabel}
           </div>
         </div>
       </div>
