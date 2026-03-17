@@ -26,6 +26,22 @@ export default function ReportsClient({ initialReports, userId }: { initialRepor
 
   const supabase = createClient();
 
+  const handleGenerateReport = async (type: 'weekly' | 'monthly') => {
+    setIsLazy(true);
+    // Call API to generate report
+    const res = await fetch('/api/reports/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type })
+    });
+    
+    if (res.ok) {
+      const newReport = await res.json();
+      setReports(prev => [newReport, ...prev]);
+    }
+    setIsLazy(false);
+  };
+
   const handleSaveEvaluation = async () => {
     if (!selectedReport) return;
     setIsLazy(true);
@@ -81,9 +97,27 @@ Dicetak pada: ${new Date().toLocaleString('id-ID')}
 
   return (
     <div style={{ color: '#f0f0f5', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
-      <header style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px' }}>Laporan & Evaluasi</h1>
-        <p style={{ color: '#6b7280' }}>Pusat pertanggungjawaban finansial dan history performa.</p>
+      <header style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div>
+          <h1 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px' }}>Laporan & Evaluasi</h1>
+          <p style={{ color: '#6b7280' }}>Pusat pertanggungjawaban finansial dan history performa.</p>
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            disabled={isSaving}
+            onClick={() => handleGenerateReport('weekly')}
+            style={{ padding: '8px 16px', background: '#1e1b4b', color: '#818cf8', border: '1px solid #312e81', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+          >
+            + Mingguan
+          </button>
+          <button 
+            disabled={isSaving}
+            onClick={() => handleGenerateReport('monthly')}
+            style={{ padding: '8px 16px', background: '#1e293b', color: '#94a3b8', border: '1px solid #334155', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+          >
+            + Bulanan
+          </button>
+        </div>
       </header>
 
       <div style={{ display: 'grid', gridTemplateColumns: selectedReport ? '1fr 1fr' : '1fr', gap: '20px' }}>
