@@ -21,6 +21,7 @@ interface Budget {
 
 interface Props {
   initialBudgets: Budget[];
+  prevMonthBudgets: { category_id: string, limit_amount: number }[];
   categories: Category[];
   spendMap: Record<string, number>;
   userId: string;
@@ -303,7 +304,7 @@ function BudgetFormModal({
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function BudgetsClient({
-  initialBudgets, categories, spendMap, userId, month, userRole, initialTargets
+  initialBudgets, prevMonthBudgets, categories, spendMap, userId, month, userRole, initialTargets
 }: Props) {
   const supabase = createClient();
 
@@ -311,6 +312,7 @@ export default function BudgetsClient({
   const [showForm,   setShowForm]   = useState(false);
   const [editBudget, setEditBudget] = useState<Budget | null>(null);
   const [toast,      setToast]      = useState<{ msg: string; ok: boolean } | null>(null);
+  const [isCopying,  setIsCopying]  = useState(false);
 
   // Targets state
   const [targets, setTargets] = useState(initialTargets);
@@ -321,6 +323,43 @@ export default function BudgetsClient({
   const [isSavingTargets, setIsSavingTargets] = useState(false);
 
   const canEditTargets = userRole === 'owner' || userRole === 'admin';
+
+  async function handleCopyLastMonth() {
+    if (prevMonthBudgets.length === 0) {
+      showToast('Tidak ada data budget bulan lalu', false);
+      return;
+    }
+    
+    setIsCopying(true);
+    const existingIds = budgets.map(b => b.categories?.id);
+    const toCopy = prevMonthBudgets.filter(pb => !existingIds.includes(pb.category_id));
+
+    if (toCopy.length === 0) {
+      showToast('Semua budget sudah ada', false);
+      setIsCopying(false);
+      return;
+    }
+
+    const newEntries = toCopy.map(pb => ({
+      user_id: userId,
+      category_id: pb.category_id,
+      month,
+      limit_amount: pb.limit_amount
+    }));
+
+    const { data: inserted, error } = await supabase
+      .from('monthly_budgets')
+      .insert(newEntries)
+      .select('id, limit_amount, month, categories(id, name, icon, type)');
+
+    if (error) {
+      showToast('Gagal menyalin budget', false);
+    } else {
+      setBudgets(prev => [...prev, ...(inserted as unknown as Budget[])]);
+      showToast(`Berhasil menyalin ${inserted.length} budget`);
+    }
+    setIsCopying(false);
+  }
 
   async function handleSaveTargets() {
     if (!canEditTargets) return;
@@ -456,6 +495,18 @@ export default function BudgetsClient({
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
+          {budgets.length === 0 && prevMonthBudgets.length > 0 && (
+            <button 
+              onClick={handleCopyLastMonth} 
+              disabled={isCopying}
+              style={{
+                padding: '9px 18px', background: '#1f1f2e', border: '1px solid #2a2a3a',
+                borderRadius: '9px', color: '#4ade80', fontSize: '13px', fontWeight: '600', cursor: 'pointer'
+              }}
+            >
+              {isCopying ? 'Menyalin...' : '📋 Salin Bulan Lalu'}
+            </button>
+          )}
           {canEditTargets && (
             <button onClick={() => setIsEditingTargets(true)} style={{
               padding: '9px 18px', background: 'transparent', border: '1px solid #2a2a3a',

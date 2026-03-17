@@ -21,12 +21,16 @@ export default async function BudgetsPage() {
   const month   = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const monthStart = `${month}-01`;
 
-  // Fetch budgets bulan ini
-  const { data: budgets } = await supabase
-    .from('monthly_budgets')
-    .select('id, limit_amount, month, categories(id, name, icon, type)')
-    .eq('user_id', userId)
-    .eq('month', month);
+  const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const prevMonthStr = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;
+
+  // Fetch budgets bulan ini & bulan lalu
+  const [{ data: budgets }, { data: prevBudgets }] = await Promise.all([
+    supabase.from('monthly_budgets').select('id, limit_amount, month, categories(id, name, icon, type)')
+      .eq('user_id', userId).eq('month', month),
+    supabase.from('monthly_budgets').select('limit_amount, category_id')
+      .eq('user_id', userId).eq('month', prevMonthStr),
+  ]);
 
   // Fetch pengeluaran bulan ini per kategori
   const { data: transactions } = await supabase
@@ -52,38 +56,45 @@ export default async function BudgetsPage() {
     if (catId) spendMap[catId] = (spendMap[catId] ?? 0) + t.amount;
   });
 
-  // Fetch user targets
+  // Fetch user targets (dengan fallback jika kolom belum ada)
   const { data: userTargets, error: targetError } = await supabase
     .from('users')
     .select('role, saving_target, wants_target, needs_target')
     .eq('id', userId)
     .maybeSingle();
 
-  // Safe fallback jika kolom belum ada di DB
-  const safeTargets = targetError ? {
-    role: 'user',
-    saving_target: 20,
-    wants_target: 30,
-    needs_target: 50
-  } : {
-    role: userTargets?.role || 'user',
-    saving_target: userTargets?.saving_target ?? 20,
-    wants_target: userTargets?.wants_target ?? 30,
-    needs_target: userTargets?.needs_target ?? 50
+  let finalRole = userTargets?.role || 'user';
+  
+  // Jika targetError terjadi (kemungkinan kolom belum ada), ambil role saja
+  if (targetError) {
+    const { data: roleOnly } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle();
+    if (roleOnly) finalRole = roleOnly.role;
+  }
+
+  const safeTargets = {
+    role: finalRole,
+    saving: userTargets?.saving_target ?? 20,
+    wants: userTargets?.wants_target ?? 30,
+    needs: userTargets?.needs_target ?? 50
   };
 
   return (
     <BudgetsClient
       initialBudgets={(budgets ?? []) as unknown as any[]}
+      prevMonthBudgets={(prevBudgets ?? []) as any[]}
       categories={(categories ?? []) as unknown as any[]}
       spendMap={spendMap}
       userId={userId}
       month={month}
       userRole={safeTargets.role}
       initialTargets={{
-        saving: safeTargets.saving_target,
-        wants: safeTargets.wants_target,
-        needs: safeTargets.needs_target,
+        saving: safeTargets.saving,
+        wants: safeTargets.wants,
+        needs: safeTargets.needs,
       }}
     />
   );
