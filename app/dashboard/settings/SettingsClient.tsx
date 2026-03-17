@@ -116,7 +116,12 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
   const [savingPass,     setSavingPass]     = useState(false);
 
   // ── Theme state ───────────────────────────────────────────────────────────
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('app-theme') as 'dark' | 'light') || 'dark';
+    }
+    return 'dark';
+  });
 
   // ── Toast ─────────────────────────────────────────────────────────────────
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
@@ -129,6 +134,10 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
   // ── Save profile ──────────────────────────────────────────────────────────
   async function saveProfile() {
     setSavingProfile(true);
+    
+    // Save theme to localStorage
+    localStorage.setItem('app-theme', theme);
+    
     const { error } = await supabase
       .from('users')
       .update({
@@ -141,7 +150,12 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
 
     setSavingProfile(false);
     if (error) { showToast('Gagal menyimpan: ' + error.message, false); return; }
-    showToast('Profil berhasil disimpan');
+    showToast('Profil & Tema berhasil disimpan. Silakan refresh untuk melihat perubahan.');
+    
+    // Optional: Refresh the page to apply theme immediately if not using a theme provider
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
   }
 
   // ── Change password ───────────────────────────────────────────────────────

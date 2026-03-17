@@ -246,6 +246,26 @@ export default async function DashboardPage() {
   const dateLabel  = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const firstName  = safeProfile.display_name?.split(' ')[0] ?? 'Kamu';
 
+  // CSS Variables for Theme
+  const themeStyles = `
+    :root {
+      --bg-primary: #111118;
+      --bg-secondary: #0a0a0f;
+      --border-color: #1f1f2e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --card-bg: #111118;
+    }
+    [data-theme='light'] {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --border-color: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --card-bg: #ffffff;
+    }
+  `;
+
   // Spending Efficiency Logic Replacement for Ratio Visualization
   const spendingEfficiency = expense > 0 ? (needsSum / expense) * 100 : 0;
   const efficiencyLabel = spendingEfficiency <= 50 ? 'Sangat Efisien' : spendingEfficiency <= 70 ? 'Wajar' : 'Banyak Keinginan';
@@ -274,11 +294,13 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <div style={{ color: '#f0f0f5', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
+    <div className="dashboard-root" style={{ color: 'var(--text-main)', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
+      <style>{themeStyles}</style>
       <style>{`
+        .dashboard-root { background: var(--bg-secondary); min-height: 100vh; padding: 24px; }
         .ov-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; gap: 16px; }
-        .ov-section-title { font-size: 14px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.1em; margin: 24px 0 12px; display: flex; align-items: center; gap: 8px; }
-        .ov-section-title::after { content: ""; flex: 1; height: 1px; background: #1f1f2e; }
+        .ov-section-title { font-size: 14px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 24px 0 12px; display: flex; align-items: center; gap: 8px; }
+        .ov-section-title::after { content: ""; flex: 1; height: 1px; background: var(--border-color); }
         .ov-grid6 { display: grid; grid-template-columns: repeat(6,1fr); gap: 12px; margin-bottom: 12px; }
         .ov-grid2 { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; margin-bottom: 12px; }
         .ov-grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 12px; }
@@ -291,37 +313,47 @@ export default async function DashboardPage() {
           .ov-grid3 { grid-template-columns: 1fr; }
         }
         @media (max-width: 768px) {
-          .ov-header { flex-direction: column; align-items: stretch; }
+          .ov-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+          .ov-header > div:last-child { width: 100%; justify-content: space-between; }
+          .ov-section-title { font-size: 12px; margin: 32px 0 16px; }
           .ov-grid6 { grid-template-columns: 1fr; gap: 8px; }
           .ov-grid2 { grid-template-columns: 1fr; gap: 8px; }
           .ov-grid3 { grid-template-columns: 1fr; gap: 8px; }
+          .ov-grid-inner { grid-template-columns: 1fr !important; }
         }
-        .ov-card { background:#111118; border:1px solid #1f1f2e; border-radius:12px; padding:16px; }
-        @media (max-width: 768px) { .ov-card { padding:14px; border-radius:10px; } }
+        .ov-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; }
+        @media (max-width: 768px) { .ov-card { padding: 14px; border-radius: 10px; } }
       `}</style>
+
+      <script dangerouslySetInnerHTML={{ __html: `
+        (function() {
+          const theme = localStorage.getItem('app-theme') || 'dark';
+          document.querySelector('.dashboard-root').setAttribute('data-theme', theme);
+        })()
+      `}} />
 
       {/* Header */}
       <div className="ov-header">
         <div>
-          <h1 style={{ fontSize: '20px', fontWeight: '600', margin: '0 0 4px', letterSpacing: '-0.4px', color: '#f8fafc' }}>
+          <h1 style={{ fontSize: '20px', fontWeight: '600', margin: '0 0 4px', letterSpacing: '-0.4px', color: 'var(--text-main)' }}>
             Selamat datang, {firstName} 👋
           </h1>
-          <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0 }}>{dateLabel}</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>{dateLabel}</p>
         </div>
         <div style={{ 
-          background: '#111118', border: '1px solid #1f1f2e', borderRadius: '12px', 
+          background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', 
           padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '14px',
           boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
         }}>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '9px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '2px' }}>Archetype: {archetype}</div>
-            <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '2px' }}>Financial Health</div>
+            <div style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '2px' }}>Archetype: {archetype}</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '2px' }}>Financial Health</div>
             <div style={{ fontSize: '13px', fontWeight: '700', color: healthColor }}>{healthLabel}</div>
           </div>
           <div style={{ 
             width: '44px', height: '44px', borderRadius: '50%', border: `3px solid ${healthColor}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: '800',
-            color: '#f0f0f5', background: 'rgba(255,255,255,0.02)'
+            color: 'var(--text-main)', background: 'rgba(255,255,255,0.02)'
           }}>
             {healthScore}
           </div>
@@ -408,7 +440,7 @@ export default async function DashboardPage() {
       <div className="ov-grid2">
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Realisasi Saldo {monthLabel}</span>
+            <span style={{ fontSize: '13px', color: '#e2e8f0', fontWeight: '500' }}>Realisasi Saldo {monthLabel}</span>
             <span style={{ fontSize: '15px', fontWeight: '700', color: balance >= 0 ? '#4ade80' : '#f87171' }}>{balance >= 0 ? '+' : '-'}{fmt(Math.abs(balance))}</span>
           </div>
           {income > 0 && (
@@ -417,17 +449,17 @@ export default async function DashboardPage() {
             </div>
           )}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-            <span style={{ fontSize: '11px', color: '#374151' }}>{income > 0 ? `${pct(expense, income)}% terpakai` : 'Belum ada pemasukan'}</span>
-            <span style={{ fontSize: '11px', color: '#374151' }}>{txs.length} transaksi</span>
+            <span style={{ fontSize: '11px', color: '#94a3b8' }}>{income > 0 ? `${pct(expense, income)}% terpakai` : 'Belum ada pemasukan'}</span>
+            <span style={{ fontSize: '11px', color: '#94a3b8' }}>{txs.length} transaksi</span>
           </div>
         </Card>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div className="ov-grid-inner" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <Card>
-            <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '4px' }}>Inflasi Gaya Hidup</div>
+            <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>Inflasi Gaya Hidup</div>
             <div style={{ fontSize: '14px', fontWeight: '700', color: lifestyleColor }}>{lifestyleStatus}</div>
           </Card>
           <Card style={{ border: suspectedSubs.length > 0 ? '1px solid #f59e0b' : '1px solid #1f1f2e' }}>
-            <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '4px' }}>Langganan</div>
+            <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>Langganan</div>
             <div style={{ fontSize: '14px', fontWeight: '700', color: suspectedSubs.length > 0 ? '#f59e0b' : '#4ade80' }}>
               {suspectedSubs.length} Aktif
             </div>
@@ -517,18 +549,18 @@ export default async function DashboardPage() {
       {/* SECTION 4: THE LAB (Simulators) */}
       <div className="ov-section-title">The Lab (Simulasi & Eksperimen) 🧠</div>
       <div className="ov-grid2">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div className="ov-grid-inner" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <Card style={{ border: '1px solid #3b82f6', background: 'rgba(59,130,246,0.05)' }}>
             <div style={{ fontSize: '13px', fontWeight: '600', color: '#60a5fa', marginBottom: '8px' }}>Biaya Peluang ☕</div>
-            <div style={{ fontSize: '11px', color: '#9ca3af' }}>Jika {fmt(dailyCoffee)}/hari diinvestasikan:</div>
+            <div style={{ fontSize: '11px', color: '#94a3b8' }}>Jika {fmt(dailyCoffee)}/hari diinvestasikan:</div>
             <div style={{ marginTop: '8px' }}>
               <div style={{ fontSize: '14px', fontWeight: '700', color: '#4ade80' }}>~{fmt(invested20Y)}</div>
-              <div style={{ fontSize: '9px', color: '#6b7280' }}>Dalam 20 Tahun (ROI 7%)</div>
+              <div style={{ fontSize: '9px', color: '#64748b' }}>Dalam 20 Tahun (ROI 7%)</div>
             </div>
           </Card>
           <Card style={{ border: '1px solid #ec4899', background: 'rgba(236,72,153,0.05)' }}>
             <div style={{ fontSize: '13px', fontWeight: '600', color: '#f472b6', marginBottom: '8px' }}>Efek Belanja Besar 🛍️</div>
-            <div style={{ fontSize: '11px', color: '#9ca3af' }}>Beli {fmt(bigPurchaseSample)} tunai:</div>
+            <div style={{ fontSize: '11px', color: '#94a3b8' }}>Beli {fmt(bigPurchaseSample)} tunai:</div>
             <div style={{ marginTop: '8px' }}>
               <div style={{ fontSize: '14px', fontWeight: '700', color: '#f87171' }}>+{delayInYears.toFixed(1)} Thn Kerja ⏳</div>
             </div>
@@ -536,14 +568,14 @@ export default async function DashboardPage() {
         </div>
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>Prioritas Hutang</span>
+            <span style={{ fontSize: '13px', fontWeight: '500', color: '#94a3b8' }}>Prioritas Hutang</span>
             <span style={{ fontSize: '12px', fontWeight: '700', color: '#f87171' }}>{fmt(totalLiabVal)}</span>
           </div>
           {liabilities.length === 0 ? <div style={{ textAlign: 'center', color: '#4ade80', fontSize: '11px' }}>Bebas Hutang ✅</div> : (
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
               {liabilities.map((l, i) => (
                 <div key={l.id} style={{ flexShrink: 0, padding: '6px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px', border: '1px solid #1f1f2e' }}>
-                  <div style={{ fontSize: '10px', color: '#6b7280' }}>{l.name}</div>
+                  <div style={{ fontSize: '10px', color: '#94a3b8' }}>{l.name}</div>
                   <div style={{ fontSize: '11px', fontWeight: '600' }}>{fmt(l.value)}</div>
                 </div>
               ))}
