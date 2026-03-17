@@ -144,6 +144,19 @@ export default async function DashboardPage() {
   const fiNumber = annualExpense * 25;
   const fiProgress = fiNumber > 0 ? Math.min(pct(netWorth, fiNumber), 100) : 0;
   
+  // FI Countdown (How many years/months left?)
+  const remainingFI = Math.max(0, fiNumber - netWorth);
+  const monthlySurplus = balance > 0 ? balance : 0;
+  const monthsToFI = monthlySurplus > 0 ? Math.ceil(remainingFI / monthlySurplus) : Infinity;
+  const yearsToFI = monthsToFI !== Infinity ? (monthsToFI / 12).toFixed(1) : '∞';
+
+  // Debt Paydown Intelligence (Snowball Method: Smallest Balance First)
+  const liabilities = assetList
+    .filter(a => a.is_liability)
+    .sort((a, b) => a.value - b.value); // Smallest first
+  
+  const totalLiabVal = liabilities.reduce((s, a) => s + a.value, 0);
+
   // Passive Income Coverage (Assuming 5% annual return on investments)
   const estimatedAnnualPassiveIncome = investments * 0.05;
   const monthlyPassiveIncome = estimatedAnnualPassiveIncome / 12;
@@ -359,8 +372,61 @@ export default async function DashboardPage() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
             <span style={{ fontSize: '11px', color: '#374151' }}>FI Number: {fmt(fiNumber)}</span>
-            <span style={{ fontSize: '11px', color: '#8b5cf6', fontWeight: '600' }}>
-              {fiProgress}% Terpenuhi
+            <div style={{ textAlign: 'right' }}>
+              <span style={{ fontSize: '11px', color: '#8b5cf6', fontWeight: '600', display: 'block' }}>
+                {fiProgress}% Terpenuhi
+              </span>
+              <span style={{ fontSize: '10px', color: '#6b7280' }}>
+                Est. {yearsToFI} tahun lagi (surplus {fmt(monthlySurplus)}/bln)
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 4: Debt & Emergency Fund */}
+      <div className="ov-grid2" style={{ marginBottom: '12px' }}>
+        <div className="ov-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Debt Paydown Intelligence (Snowball)</span>
+            <span style={{ fontSize: '14px', fontWeight: '700', color: '#f87171' }}>{fmt(totalLiabVal)}</span>
+          </div>
+          {liabilities.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '12px 0', color: '#4ade80', fontSize: '12px' }}>
+              ✅ Tidak ada hutang aktif!
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '4px' }}>Prioritas pelunasan (saldo terkecil ke terbesar):</div>
+              {liabilities.map((l, i) => (
+                <div key={l.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', background: i === 0 ? 'rgba(239,68,68,0.05)' : 'rgba(255,255,255,0.02)', borderRadius: '8px', border: i === 0 ? '1px solid rgba(239,68,68,0.2)' : '1px solid transparent' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: '600', color: i === 0 ? '#f87171' : '#f0f0f5' }}>{i + 1}. {l.name}</span>
+                    {i === 0 && <span style={{ fontSize: '9px', background: '#f87171', color: '#fff', padding: '1px 4px', borderRadius: '4px', fontWeight: '700' }}>UTAMAKAN</span>}
+                  </div>
+                  <span style={{ fontSize: '12px', fontWeight: '600' }}>{fmt(l.value)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="ov-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Dana Darurat (Emergency Fund)</span>
+            <span style={{ fontSize: '11px', color: '#6b7280' }}>{fmt(liquidAssets)} / {fmt(efTargetMin)}</span>
+          </div>
+          <div style={{ height: '6px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
+            <div style={{
+              height: '100%', borderRadius: '99px',
+              width: `${efProgress}%`,
+              background: efProgress >= 100 ? '#4ade80' : efProgress >= 50 ? '#f59e0b' : '#f87171',
+            }}/>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
+            <span style={{ fontSize: '11px', color: '#374151' }}>Target: 6x Pengeluaran ({fmt(efTargetMin)})</span>
+            <span style={{ fontSize: '11px', color: efProgress >= 100 ? '#4ade80' : '#6b7280' }}>
+              {efProgress >= 100 ? 'Aman ✅' : `${fmt(efTargetMin - liquidAssets)} lagi`}
             </span>
           </div>
         </div>
@@ -416,27 +482,6 @@ export default async function DashboardPage() {
           <div style={{ fontSize: '11px', color: '#6b7280' }}>
             {expChange > 0 ? `Pengeluaran naik ${expChange.toFixed(0)}%` : 'Pengeluaran terkendali'} vs bln lalu
           </div>
-        </div>
-      </div>
-
-      {/* Row 4: Emergency Fund Detail */}
-      <div className="ov-card" style={{ marginBottom: '12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Dana Darurat (Emergency Fund)</span>
-          <span style={{ fontSize: '11px', color: '#6b7280' }}>{fmt(liquidAssets)} / {fmt(efTargetMin)}</span>
-        </div>
-        <div style={{ height: '6px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
-          <div style={{
-            height: '100%', borderRadius: '99px',
-            width: `${efProgress}%`,
-            background: efProgress >= 100 ? '#4ade80' : efProgress >= 50 ? '#f59e0b' : '#f87171',
-          }}/>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-          <span style={{ fontSize: '11px', color: '#374151' }}>Target: 6x Pengeluaran ({fmt(efTargetMin)})</span>
-          <span style={{ fontSize: '11px', color: efProgress >= 100 ? '#4ade80' : '#6b7280' }}>
-            {efProgress >= 100 ? 'Aman ✅' : `${fmt(efTargetMin - liquidAssets)} lagi`}
-          </span>
         </div>
       </div>
 
