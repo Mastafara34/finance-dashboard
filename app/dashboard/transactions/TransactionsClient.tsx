@@ -30,6 +30,8 @@ export default function TransactionsClient({ transactions, categories, userId }:
   const [toast,      setToast]      = useState<{msg:string;ok:boolean}|null>(null);
   const [confirmId,  setConfirmId]  = useState<string|null>(null);
   const [amountDisplay, setAmountDisplay] = useState('');
+  const [sortField,  setSortField]  = useState<'date'|'amount'|'note'>('date');
+  const [sortOrder,  setSortOrder]  = useState<'asc'|'desc'>('desc');
 
   function showToast(msg: string, ok = true) {
     setToast({ msg, ok });
@@ -41,17 +43,33 @@ export default function TransactionsClient({ transactions, categories, userId }:
     return Array.from(set).sort().reverse();
   }, [data]);
 
-  const filtered = useMemo(() => data.filter(t => {
-    if (filterType !== 'all' && t.type !== filterType) return false;
-    if (filterMonth !== 'all' && !t.date.startsWith(filterMonth)) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      return (t.note?.toLowerCase().includes(q) ?? false) ||
-             (t.categories?.name.toLowerCase().includes(q) ?? false) ||
-             t.amount.toString().includes(q);
-    }
-    return true;
-  }), [data, filterType, filterMonth, search]);
+  const filtered = useMemo(() => {
+    const filteredData = data.filter(t => {
+      if (filterType !== 'all' && t.type !== filterType) return false;
+      if (filterMonth !== 'all' && !t.date.startsWith(filterMonth)) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        return (t.note?.toLowerCase().includes(q) ?? false) ||
+               (t.categories?.name.toLowerCase().includes(q) ?? false) ||
+               t.amount.toString().includes(q);
+      }
+      return true;
+    });
+
+    return filteredData.sort((a, b) => {
+      let valA: any = a[sortField];
+      let valB: any = b[sortField];
+
+      if (sortField === 'note') {
+        valA = (a.note || '').toLowerCase();
+        valB = (b.note || '').toLowerCase();
+      }
+
+      if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+      if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [data, filterType, filterMonth, search, sortField, sortOrder]);
 
   const summary = useMemo(() => ({
     income:  filtered.filter(t => t.type==='income').reduce((s,t) => s+t.amount, 0),
@@ -188,9 +206,33 @@ export default function TransactionsClient({ transactions, categories, userId }:
           padding:'10px 14px', borderBottom:'1px solid #1f1f2e',
           fontSize:'11px', color:'#6b7280', fontWeight:'500', textTransform:'uppercase',
         }}>
-          <span>Catatan / Kategori</span>
-          <span>Nominal</span>
-          <span>Tanggal</span>
+          <span 
+            onClick={() => {
+              if (sortField === 'note') setSortOrder(p => p === 'asc' ? 'desc' : 'asc');
+              else { setSortField('note'); setSortOrder('asc'); }
+            }} 
+            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+          >
+            Catatan / Kategori {sortField === 'note' && (sortOrder === 'asc' ? '↑' : '↓')}
+          </span>
+          <span 
+            onClick={() => {
+              if (sortField === 'amount') setSortOrder(p => p === 'asc' ? 'desc' : 'asc');
+              else { setSortField('amount'); setSortOrder('desc'); }
+            }} 
+            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+          >
+            Nominal {sortField === 'amount' && (sortOrder === 'asc' ? '↑' : '↓')}
+          </span>
+          <span 
+            onClick={() => {
+              if (sortField === 'date') setSortOrder(p => p === 'asc' ? 'desc' : 'asc');
+              else { setSortField('date'); setSortOrder('desc'); }
+            }} 
+            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+          >
+            Tanggal {sortField === 'date' && (sortOrder === 'asc' ? '↑' : '↓')}
+          </span>
           <span style={{ textAlign:'right' }}>Aksi</span>
         </div>
 

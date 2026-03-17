@@ -118,10 +118,10 @@ export function detectArchetype(params: {
   debtRatio: number;
 }) {
   const { savingRate, investmentRatio, monthsCovered, debtRatio } = params;
-  if (savingRate > 40 && investmentRatio > 30) return 'The Wealth Accelerator 🚀';
-  if (monthsCovered > 12 && debtRatio === 0) return 'The Fortress 🏰';
-  if (savingRate < 10 && debtRatio > 30) return 'The Overstretched ⚠️';
-  if (investmentRatio > 50) return 'The Aggressive Builder 🏗️';
-  if (savingRate > 20 && monthsCovered < 3) return 'The Vulnerable Earner 🛡️';
-  return 'The Balanced Strategist';
+  if (savingRate > 40 && investmentRatio > 30) return 'Akselerator Kekayaan 🚀';
+  if (monthsCovered > 12 && debtRatio === 0) return 'Benteng Keamanan 🏰';
+  if (savingRate < 10 && debtRatio > 30) return 'Terlalu Ekspansif ⚠️';
+  if (investmentRatio > 50) return 'Pembangun Agresif 🏗️';
+  if (savingRate > 20 && monthsCovered < 3) return 'Penghasil Rentan 🛡️';
+  return 'Strategis Seimbang';
 }
