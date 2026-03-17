@@ -2,6 +2,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Card, KpiCard, ProgressCard } from './components/DashboardComponents';
+import { KpiGridClient } from './components/KpiGridClient';
 import { 
   fmt, pct, 
   calculateMonthlyExpBase, 
@@ -67,12 +68,13 @@ export default async function DashboardPage() {
   const userRole = safeProfile.role || 'user';
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  const yearStart = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
   const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
   const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
   const olderMonthStart = new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString().split('T')[0];
   const olderMonthEnd = new Date(now.getFullYear(), now.getMonth() - 1, 0).toISOString().split('T')[0];
 
-  const [txMonth, txPrev, txOlder, txLast30, goals, assets, history] = await Promise.all([
+  const [txMonth, txPrev, txOlder, txLast30, txYear, goals, assets, history] = await Promise.all([
     supabase.from('transactions').select('amount, type, date, categories(name)')
       .eq('user_id', userId).eq('is_deleted', false).gte('date', monthStart),
     supabase.from('transactions').select('amount, type')
@@ -85,6 +87,8 @@ export default async function DashboardPage() {
       .eq('user_id', userId).eq('is_deleted', false)
       .gte('date', new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0])
       .order('date', { ascending: true }),
+    supabase.from('transactions').select('amount, type')
+      .eq('user_id', userId).eq('is_deleted', false).gte('date', yearStart),
     supabase.from('goals').select('*').eq('user_id', userId).eq('status', 'active')
       .order('priority', { ascending: true }).limit(3),
     supabase.from('assets').select('id, name, value, is_liability, type').eq('user_id', userId),
@@ -96,6 +100,7 @@ export default async function DashboardPage() {
   const prevTxs  = (txPrev.data ?? []) as unknown as Transaction[];
   const olderTxs = (txOlder.data ?? []) as unknown as Transaction[];
   const last30   = (txLast30.data ?? []) as unknown as Transaction[];
+  const yearTxs  = (txYear.data ?? []) as unknown as Transaction[];
   const goalList = (goals.data ?? []) as Goal[];
   const assetList = (assets.data ?? []) as Asset[];
   const nwHistory = (history.data ?? []) as { date: string; net_worth: number }[];
@@ -245,6 +250,29 @@ export default async function DashboardPage() {
   const spendingEfficiency = expense > 0 ? (needsSum / expense) * 100 : 0;
   const efficiencyLabel = spendingEfficiency <= 50 ? 'Sangat Efisien' : spendingEfficiency <= 70 ? 'Wajar' : 'Banyak Keinginan';
 
+  // KPI Grid Data (Monthly vs Yearly)
+  const incomeYear = yearTxs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const expenseYear = yearTxs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const savingRateYear = incomeYear > 0 ? ((incomeYear - expenseYear) / incomeYear) * 100 : 0;
+
+  const monthlyKpis = [
+    { label: "Kekayaan Bersih", value: fmt(Math.abs(netWorth)), subValue: `Aset: ${fmt(totalAsset)}`, valueColor: netWorth >= 0 ? '#4ade80' : '#f87171' },
+    { label: "Pemasukan", value: fmt(income), subValue: `Bulan ${monthLabel}`, valueColor: "#4ade80" },
+    { label: "Pengeluaran", value: fmt(expense), subValue: prevExp > 0 ? `${expTrend > 0 ? '↑' : '↓'} ${Math.abs(expTrend).toFixed(0)}%` : `Bulan ${monthLabel}`, valueColor: "#f87171", subColor: Math.abs(expTrend) > 5 ? (expTrend > 0 ? '#f87171' : '#4ade80') : '#6b7280' },
+    { label: "Saving Rate", value: `${savingRate.toFixed(1)}%`, subValue: prevInc > 0 ? `${savRateTrend > 0 ? '↑' : '↓'} ${Math.abs(savRateTrend).toFixed(1)}%` : 'Target > 20%', valueColor: savingRate > 20 ? '#4ade80' : savingRate > 10 ? '#f59e0b' : '#f87171', subColor: Math.abs(savRateTrend) > 2 ? (savRateTrend > 0 ? '#4ade80' : '#f87171') : '#6b7280' },
+    { label: "Survival Time", value: `${survivalTime.toFixed(1)} bln`, subValue: survivalLabel, valueColor: survivalColor, subColor: survivalColor },
+    { label: "Burn Rate", value: fmt(burnRate), subValue: "Rata-rata 3 bln", valueColor: "#f87171" }
+  ];
+
+  const yearlyKpis = [
+    { label: "Kekayaan Bersih", value: fmt(Math.abs(netWorth)), subValue: `Liabilitas: ${fmt(totalLiab)}`, valueColor: netWorth >= 0 ? '#4ade80' : '#f87171' },
+    { label: "Total Pemasukan", value: fmt(incomeYear), subValue: `Tahun ${now.getFullYear()}`, valueColor: "#4ade80" },
+    { label: "Total Pengeluaran", value: fmt(expenseYear), subValue: `Tahun ${now.getFullYear()}`, valueColor: "#f87171" },
+    { label: "Avg Saving Rate", value: `${savingRateYear.toFixed(1)}%`, subValue: "YTD (Year to Date)", valueColor: savingRateYear > 20 ? '#4ade80' : '#f87171' },
+    { label: "Survival Time", value: `${survivalTime.toFixed(1)} bln`, subValue: survivalLabel, valueColor: survivalColor, subColor: survivalColor },
+    { label: "Avg Burn Rate", value: fmt(incomeYear > 0 ? expenseYear / (now.getMonth() + 1) : 0), subValue: "Rerata per bulan", valueColor: "#f87171" }
+  ];
+
   return (
     <div style={{ color: '#f0f0f5', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
       <style>{`
@@ -375,14 +403,7 @@ export default async function DashboardPage() {
 
       {/* SECTION 2: THE REALITY (Current Status) */}
       <div className="ov-section-title">The Reality (Kondisi Saat Ini) 📊</div>
-      <div className="ov-grid6">
-        <KpiCard label="Kekayaan Bersih" value={fmt(Math.abs(netWorth))} subValue={`Total Aset ${fmt(totalAsset)}`} valueColor={netWorth >= 0 ? '#4ade80' : '#f87171'} />
-        <KpiCard label="Pemasukan" value={fmt(income)} subValue={`Bulan ${monthLabel}`} valueColor="#4ade80" />
-        <KpiCard label="Pengeluaran" value={fmt(expense)} subValue={prevExp > 0 ? `${expTrend > 0 ? '↑' : '↓'} ${Math.abs(expTrend).toFixed(0)}%` : `Bulan ${monthLabel}`} valueColor="#f87171" subColor={Math.abs(expTrend) > 5 ? (expTrend > 0 ? '#f87171' : '#4ade80') : '#6b7280'} />
-        <KpiCard label="Saving Rate" value={`${savingRate.toFixed(1)}%`} subValue={prevInc > 0 ? `${savRateTrend > 0 ? '↑' : '↓'} ${Math.abs(savRateTrend).toFixed(1)}%` : 'Target > 20%'} valueColor={savingRate > 20 ? '#4ade80' : savingRate > 10 ? '#f59e0b' : '#f87171'} subColor={Math.abs(savRateTrend) > 2 ? (savRateTrend > 0 ? '#4ade80' : '#f87171') : '#6b7280'} />
-        <KpiCard label="Survival Time" value={`${survivalTime.toFixed(1)} bln`} subValue={`${survivalLabel}`} valueColor={survivalColor} subColor={survivalColor} />
-        <KpiCard label="Burn Rate" value={fmt(burnRate)} subValue="Rata-rata 3 bln" valueColor="#f87171" />
-      </div>
+      <KpiGridClient monthly={monthlyKpis} yearly={yearlyKpis} />
       
       <div className="ov-grid2">
         <Card>
