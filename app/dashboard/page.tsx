@@ -112,6 +112,13 @@ export default async function DashboardPage() {
   const healthLabel = healthScore >= 80 ? 'Sangat Sehat' : healthScore >= 60 ? 'Sehat' : healthScore >= 40 ? 'Cukup' : 'Perlu Perhatian';
   const healthColor = healthScore >= 80 ? '#4ade80' : healthScore >= 60 ? '#60a5fa' : healthScore >= 40 ? '#f59e0b' : '#f87171';
 
+  // Burn Rate & Survival Time
+  // Burn Rate is the monthly expense base we already calculated
+  const burnRate = monthlyExpBase;
+  const survivalTime = burnRate > 0 ? (liquidAssets / burnRate) : 0;
+  const survivalLabel = survivalTime >= 12 ? 'Sangat Aman' : survivalTime >= 6 ? 'Aman' : survivalTime >= 3 ? 'Waspada' : 'Kritis';
+  const survivalColor = survivalTime >= 12 ? '#4ade80' : survivalTime >= 6 ? '#60a5fa' : survivalTime >= 3 ? '#f59e0b' : '#f87171';
+
   // Financial Archetype
   let archetype = 'The Balanced Strategist';
   if (savingRate > 40 && investmentRatio > 30) archetype = 'The Wealth Accelerator 🚀';
@@ -172,13 +179,6 @@ export default async function DashboardPage() {
   const estimatedAnnualPassiveIncome = investments * 0.05;
   const monthlyPassiveIncome = estimatedAnnualPassiveIncome / 12;
   const passiveIncomeCoverage = monthlyExpBase > 0 ? Math.min(pct(monthlyPassiveIncome, monthlyExpBase), 100) : 0;
-
-  // Burn Rate & Survival Time
-  // Burn Rate is the monthly expense base we already calculated
-  const burnRate = monthlyExpBase;
-  const survivalTime = burnRate > 0 ? (liquidAssets / burnRate) : 0;
-  const survivalLabel = survivalTime >= 12 ? 'Sangat Aman' : survivalTime >= 6 ? 'Aman' : survivalTime >= 3 ? 'Waspada' : 'Kritis';
-  const survivalColor = survivalTime >= 12 ? '#4ade80' : survivalTime >= 6 ? '#60a5fa' : survivalTime >= 3 ? '#f59e0b' : '#f87171';
 
   // Net Worth Growth & Wealth Velocity
   const nwGrowth = balance; // This month's surplus
