@@ -7,7 +7,9 @@ import {
   calculateMonthlyExpBase, 
   calculateYearsToFI, 
   calculateHealthScore, 
-  detectArchetype 
+  detectArchetype,
+  calculateWorkHourCost,
+  detectSubscriptions
 } from '@/lib/finance-logic';
 
 interface Transaction {
@@ -194,6 +196,13 @@ export default async function DashboardPage() {
 
   const liabilities = assetList.filter(a => a.is_liability);
   const totalLiabVal = totalLiab;
+
+  // New: Psikologi & Subscription
+  const hourlyRate = income > 0 ? (income / 160) : 0;
+  const avgExpenseWorkHours = calculateWorkHourCost(expense, income);
+  const subs = detectSubscriptions(txs);
+  const totalSubs = subs.reduce((s, b) => s + b.amount, 0);
+
   const dailyCoffee = 40000;
   const invested10Y = dailyCoffee * 30 * 155.2; // 10 years at 7% compound approx
   const invested20Y = dailyCoffee * 30 * 520.9; // 20 years at 7% compound approx

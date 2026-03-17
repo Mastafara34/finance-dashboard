@@ -114,6 +114,38 @@ export function analyzeSpendingRatio(income: number, needs: number, wants: numbe
 }
 
 /**
+ * Menghitung biaya per jam kerja (berasumsi 160 jam kerja per bulan).
+ * Membantu memberikan perspektif psikologis terhadap pengeluaran.
+ */
+export function calculateWorkHourCost(amount: number, monthlyIncome: number): number {
+  if (monthlyIncome <= 0) return 0;
+  const hourlyRate = monthlyIncome / 160; // 40 jam/minggu * 4 minggu
+  return Math.round((amount / hourlyRate) * 10) / 10; // 1 desimal
+}
+
+/**
+ * Mendeteksi transaksi yang berulang (Subscription)
+ * Mencari transaksi dengan nama yang sama di bulan yang berbeda.
+ */
+export function detectSubscriptions(txs: any[]) {
+  const recurring: Record<string, { count: number; total: number; lastAmount: number }> = {};
+  
+  // Sederhananya: grupkan berdasarkan kategori/nama yang mirip (minimalis untuk saat ini)
+  txs.filter(t => t.type === 'expense').forEach(t => {
+    const key = t.categories?.name?.toLowerCase() || 'umum';
+    if (!recurring[key]) recurring[key] = { count: 0, total: 0, lastAmount: 0 };
+    recurring[key].count++;
+    recurring[key].total += t.amount;
+    recurring[key].lastAmount = t.amount;
+  });
+
+  // Filter yang muncul lebih dari sekali (asumsi subs)
+  return Object.entries(recurring)
+    .filter(([_, data]) => data.count >= 2)
+    .map(([name, data]) => ({ name, amount: data.lastAmount }));
+}
+
+/**
  * Deteksi Arketipe (Profil) Finansial
  * Mengubah istilah teknis menjadi istilah umum yang mudah dipahami.
  */
