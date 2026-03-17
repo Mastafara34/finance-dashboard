@@ -114,7 +114,8 @@ export function analyzeSpendingRatio(income: number, needs: number, wants: numbe
 }
 
 /**
- * Deteksi Arketipe Finansial
+ * Deteksi Arketipe (Profil) Finansial
+ * Mengubah istilah teknis menjadi istilah umum yang mudah dipahami.
  */
 export function detectArchetype(params: {
   savingRate: number;
@@ -123,10 +124,22 @@ export function detectArchetype(params: {
   debtRatio: number;
 }) {
   const { savingRate, investmentRatio, monthsCovered, debtRatio } = params;
-  if (savingRate > 40 && investmentRatio > 30) return 'Akselerator Kekayaan 🚀';
-  if (monthsCovered > 12 && debtRatio === 0) return 'Benteng Keamanan 🏰';
-  if (savingRate < 10 && debtRatio > 30) return 'Terlalu Ekspansif ⚠️';
-  if (investmentRatio > 50) return 'Pembangun Agresif 🏗️';
-  if (savingRate > 20 && monthsCovered < 3) return 'Penghasil Rentan 🛡️';
-  return 'Strategis Seimbang';
+  
+  // High saving & high investment
+  if (savingRate > 40 && investmentRatio > 30) return 'Si Pengejar Kebebasan 🚀'; 
+  
+  // High security & no debt
+  if (monthsCovered > 12 && debtRatio === 0) return 'Si Paling Aman 🏰';
+  
+  // Low saving & high debt
+  if (savingRate < 10 && debtRatio > 30) return 'Gaya Hidup Berisiko ⚠️';
+  
+  // Very high investment ratio
+  if (investmentRatio > 50) return 'Investor Agresif 🏗️';
+  
+  // High income/saving but no emergency fund (the "Penghasil Rentan")
+  if (savingRate > 20 && monthsCovered < 3) return 'Gaji Besar tapi Rapuh 🛡️';
+  
+  // Default stable state
+  return 'Pengelola Bijak';
 }
