@@ -112,6 +112,33 @@ export default async function DashboardPage() {
   const healthLabel = healthScore >= 80 ? 'Sangat Sehat' : healthScore >= 60 ? 'Sehat' : healthScore >= 40 ? 'Cukup' : 'Perlu Perhatian';
   const healthColor = healthScore >= 80 ? '#4ade80' : healthScore >= 60 ? '#60a5fa' : healthScore >= 40 ? '#f59e0b' : '#f87171';
 
+  // Health Recommendations
+  const healthRecs = [];
+  if (savingRate < 20) healthRecs.push('Tingkatkan saving rate ke 20% dengan memangkas pengeluaran tersier.');
+  if (monthsCovered < 6) healthRecs.push('Prioritaskan pengisian Dana Darurat hingga minimal 6x pengeluaran.');
+  if (debtRatio > 30) healthRecs.push('Waspada debt ratio tinggi! Batasi cicilan baru dan percepat pelunasan hutang.');
+  if (monthlyInvRatio < 15) healthRecs.push('Alokasikan minimal 15% pendapatan ke instrumen investasi produktif.');
+  if (balance < 0) healthRecs.push('Cashflow negatif! Segera evaluasi pengeluaran bulan ini.');
+  if (healthRecs.length === 0) healthRecs.push('Kondisi keuangan Anda luar biasa! Pertahankan gaya hidup saat ini.');
+
+  // Lifestyle Inflation Detector
+  const incChange = prevInc > 0 ? ((income - prevInc) / prevInc) * 100 : 0;
+  const expChange = prevExp > 0 ? ((expense - prevExp) / prevExp) * 100 : 0;
+  // Inflation is "Detected" if expense increases significantly faster than income
+  const lifestyleInflationDetected = expChange > incChange + 5 && expChange > 10; 
+  const lifestyleStatus = lifestyleInflationDetected ? '⚠️ Terdeteksi' : '✅ Terkendali';
+  const lifestyleColor = lifestyleInflationDetected ? '#f87171' : '#4ade80';
+
+  // Asset Allocation Analysis
+  const totalAssetsVal = assetList.filter(a => !a.is_liability).reduce((s, a) => s + a.value, 0);
+  const cashVal = assetList.filter(a => !a.is_liability && a.type === 'cash').reduce((s, a) => s + a.value, 0);
+  const invVal = assetList.filter(a => !a.is_liability && a.type === 'investment').reduce((s, a) => s + a.value, 0);
+  const otherVal = totalAssetsVal - cashVal - invVal;
+
+  const cashPct = totalAssetsVal > 0 ? Math.round((cashVal / totalAssetsVal) * 100) : 0;
+  const invPct = totalAssetsVal > 0 ? Math.round((invVal / totalAssetsVal) * 100) : 0;
+  const otherPct = totalAssetsVal > 0 ? Math.round((otherVal / totalAssetsVal) * 100) : 0;
+
   // Financial Independence (FI) Calculation
   const annualExpense = monthlyExpBase * 12;
   const fiNumber = annualExpense * 25;
@@ -227,6 +254,21 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* Financial Consultant Recommendations */}
+      <div className="ov-card" style={{ marginBottom: '12px', background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+          <div style={{ fontSize: '20px' }}>💡</div>
+          <div>
+            <div style={{ fontSize: '13px', fontWeight: '600', color: '#f59e0b', marginBottom: '4px' }}>Rekomendasi Konsultan Finansial</div>
+            <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#9ca3af', lineHeight: '1.6' }}>
+              {healthRecs.map((rec, i) => (
+                <li key={i} style={{ marginBottom: '2px' }}>{rec}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+
       {/* Row 1: 6 kartu KPI */}
       <div className="ov-grid6">
         <div className="ov-card">
@@ -324,9 +366,9 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Row 3: Growth & FI Progress */}
-      <div className="ov-grid2" style={{ marginBottom: '12px' }}>
-        <div className="ov-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+      {/* Row 3: Growth, Passive Income, Lifestyle Inflation */}
+      <div className="ov-grid6" style={{ marginBottom: '12px' }}>
+        <div className="ov-card" style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
           {/* Sparkline background */}
           {nwHistory.length > 2 && (
             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '40px', opacity: 0.1, pointerEvents: 'none' }}>
@@ -340,9 +382,8 @@ export default async function DashboardPage() {
               </svg>
             </div>
           )}
-          
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', position: 'relative' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Net Worth Growth Tracker</span>
+            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Net Worth Growth</span>
             <span style={{ fontSize: '14px', fontWeight: '700', color: nwGrowth >= 0 ? '#4ade80' : '#f87171' }}>
               {nwGrowth >= 0 ? '↑' : '↓'} {fmt(Math.abs(nwGrowth))}
             </span>
@@ -352,7 +393,8 @@ export default async function DashboardPage() {
             <span style={{ fontSize: '11px', color: velocityColor, fontWeight: '500' }}>{wealthVelocityStatus}</span>
           </div>
         </div>
-        <div className="ov-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+
+        <div className="ov-card" style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Passive Income Coverage</span>
             <span style={{ fontSize: '14px', fontWeight: '700', color: passiveIncomeCoverage >= 100 ? '#4ade80' : '#f59e0b' }}>
@@ -361,6 +403,18 @@ export default async function DashboardPage() {
           </div>
           <div style={{ fontSize: '11px', color: '#6b7280' }}>
             Estimasi pasif income ({fmt(monthlyPassiveIncome)}/bln) menutup {passiveIncomeCoverage}% biaya hidup
+          </div>
+        </div>
+
+        <div className="ov-card" style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Lifestyle Inflation Detector</span>
+            <span style={{ fontSize: '14px', fontWeight: '700', color: lifestyleColor }}>
+              {lifestyleStatus}
+            </span>
+          </div>
+          <div style={{ fontSize: '11px', color: '#6b7280' }}>
+            {expChange > 0 ? `Pengeluaran naik ${expChange.toFixed(0)}%` : 'Pengeluaran terkendali'} vs bln lalu
           </div>
         </div>
       </div>
@@ -494,26 +548,54 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Row 6: Money Decision Intelligence */}
-      <div className="ov-card" style={{ marginBottom: '12px', border: '1px solid #3b82f6', background: 'rgba(59,130,246,0.05)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <span style={{ fontSize: '13px', fontWeight: '600', color: '#60a5fa' }}>🧠 Opportunity Cost Engine</span>
-          <span style={{ fontSize: '11px', color: '#60a5fa' }}>Decision Support</span>
-        </div>
-        <div style={{ fontSize: '12px', color: '#9ca3af', lineHeight: '1.6' }}>
-          Jika Anda menyisihkan <span style={{ color: '#f0f0f5', fontWeight: '600' }}>{fmt(dailyCoffee)}</span> per hari (setara harga kopi premium) dan menginvestasikannya dengan imbal hasil moderat:
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '10px' }}>
-            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px' }}>
-              <div style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase' }}>Setelah 10 Tahun</div>
-              <div style={{ fontSize: '15px', fontWeight: '700', color: '#4ade80' }}>~{fmt(invested10Y)}</div>
-            </div>
-            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px' }}>
-              <div style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase' }}>Setelah 20 Tahun</div>
-              <div style={{ fontSize: '15px', fontWeight: '700', color: '#4ade80' }}>~{fmt(invested20Y)}</div>
+      {/* Row 6: Money Decision Intelligence & Asset Allocation */}
+      <div className="ov-grid2" style={{ marginBottom: '12px' }}>
+        <div className="ov-card" style={{ border: '1px solid #3b82f6', background: 'rgba(59,130,246,0.05)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <span style={{ fontSize: '13px', fontWeight: '600', color: '#60a5fa' }}>🧠 Opportunity Cost Engine</span>
+            <span style={{ fontSize: '11px', color: '#60a5fa' }}>Decision Support</span>
+          </div>
+          <div style={{ fontSize: '12px', color: '#9ca3af', lineHeight: '1.6' }}>
+            Jika Anda menyisihkan <span style={{ color: '#f0f0f5', fontWeight: '600' }}>{fmt(dailyCoffee)}</span> per hari dan menginvestasikannya:
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '10px' }}>
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px' }}>
+                <div style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase' }}>10 Tahun</div>
+                <div style={{ fontSize: '15px', fontWeight: '700', color: '#4ade80' }}>~{fmt(invested10Y)}</div>
+              </div>
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px' }}>
+                <div style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase' }}>20 Tahun</div>
+                <div style={{ fontSize: '15px', fontWeight: '700', color: '#4ade80' }}>~{fmt(invested20Y)}</div>
+              </div>
             </div>
           </div>
-          <div style={{ marginTop: '10px', fontSize: '11px', fontStyle: 'italic', color: '#6b7280' }}>
-            *Ini adalah simulasi nilai masa depan untuk membantu Anda melihat potensi pertumbuhan aset dari pengeluaran kecil rutin.
+        </div>
+
+        <div className="ov-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>Asset Allocation</span>
+            <span style={{ fontSize: '11px', color: '#6b7280' }}>Komposisi Portofolio</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80' }}/>
+              <span style={{ fontSize: '12px', color: '#9ca3af', flex: 1 }}>Kas & Setara Kas</span>
+              <span style={{ fontSize: '12px', fontWeight: '600' }}>{cashPct}%</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2563eb' }}/>
+              <span style={{ fontSize: '12px', color: '#9ca3af', flex: 1 }}>Investasi</span>
+              <span style={{ fontSize: '12px', fontWeight: '600' }}>{invPct}%</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#6b7280' }}/>
+              <span style={{ fontSize: '12px', color: '#9ca3af', flex: 1 }}>Aset Lainnya</span>
+              <span style={{ fontSize: '12px', fontWeight: '600' }}>{otherPct}%</span>
+            </div>
+            <div style={{ height: '8px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden', display: 'flex', marginTop: '4px' }}>
+              <div style={{ height: '100%', width: `${cashPct}%`, background: '#4ade80' }}/>
+              <div style={{ height: '100%', width: `${invPct}%`, background: '#2563eb' }}/>
+              <div style={{ height: '100%', width: `${otherPct}%`, background: '#6b7280' }}/>
+            </div>
           </div>
         </div>
       </div>
