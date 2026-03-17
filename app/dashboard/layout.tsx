@@ -14,9 +14,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { data: profile } = await supabase
     .from('users')
-    .select('id, display_name, telegram_chat_id')
+    .select('id, display_name, telegram_chat_id, theme')
     .eq('email', user.email!)
     .maybeSingle();
+
+  // Theme logic
+  const theme = profile?.theme || 'dark';
 
   // Jika profile tidak ditemukan tapi user ada, ini anomali (mungkin row belum dibuat)
   // Untuk mencegah loop redirect, kita tampilkan pesan error atau fallback
@@ -43,12 +46,29 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .order('sort_order', { ascending: true });
 
   return (
-    <>
+    <div data-theme={theme}>
       <style>{`
+        :root {
+          --bg-primary: #111118;
+          --bg-secondary: #0a0a0f;
+          --border-color: #1f1f2e;
+          --text-main: #f8fafc;
+          --text-muted: #94a3b8;
+          --card-bg: #111118;
+        }
+        [data-theme='light'] {
+          --bg-primary: #f8fafc;
+          --bg-secondary: #ffffff;
+          --border-color: #e2e8f0;
+          --text-main: #0f172a;
+          --text-muted: #64748b;
+          --card-bg: #ffffff;
+        }
         .fintrack-layout {
           display: flex;
           min-height: 100vh;
-          background: #0a0a0f;
+          background: var(--bg-secondary);
+          color: var(--text-main);
         }
         .fintrack-content {
           margin-left: 240px;
@@ -89,6 +109,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
         userId={profile.id}
         categories={(categories ?? []) as any[]}
       />
-    </>
+    </div>
   );
 }

@@ -14,6 +14,7 @@ interface Profile {
   monthly_income: number | null;
   timezone: string;
   currency: string;
+  theme: 'dark' | 'light';
 }
 
 interface Category {
@@ -116,12 +117,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
   const [savingPass,     setSavingPass]     = useState(false);
 
   // ── Theme state ───────────────────────────────────────────────────────────
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem('app-theme') as 'dark' | 'light') || 'dark';
-    }
-    return 'dark';
-  });
+  const [theme, setTheme] = useState<'dark' | 'light'>(profile.theme ?? 'dark');
 
   // ── Toast ─────────────────────────────────────────────────────────────────
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
@@ -135,27 +131,25 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
   async function saveProfile() {
     setSavingProfile(true);
     
-    // Save theme to localStorage
-    localStorage.setItem('app-theme', theme);
-    
     const { error } = await supabase
       .from('users')
       .update({
         display_name:   displayName.trim() || null,
         monthly_income: monthlyIncome || null,
         timezone,
+        theme,
         updated_at:     new Date().toISOString(),
       })
       .eq('id', profile.id);
 
     setSavingProfile(false);
     if (error) { showToast('Gagal menyimpan: ' + error.message, false); return; }
-    showToast('Profil & Tema berhasil disimpan. Silakan refresh untuk melihat perubahan.');
+    showToast('Profil & Tema berhasil disimpan.');
     
-    // Optional: Refresh the page to apply theme immediately if not using a theme provider
+    // Refresh to apply theme from DB
     setTimeout(() => {
       window.location.reload();
-    }, 1500);
+    }, 1000);
   }
 
   // ── Change password ───────────────────────────────────────────────────────

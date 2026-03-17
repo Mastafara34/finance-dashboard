@@ -295,9 +295,8 @@ export default async function DashboardPage() {
 
   return (
     <div className="dashboard-root" style={{ color: 'var(--text-main)', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
-      <style>{themeStyles}</style>
       <style>{`
-        .dashboard-root { background: var(--bg-secondary); min-height: 100vh; padding: 24px; }
+        .dashboard-root { padding: 0; }
         .ov-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; gap: 16px; }
         .ov-section-title { font-size: 14px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 24px 0 12px; display: flex; align-items: center; gap: 8px; }
         .ov-section-title::after { content: ""; flex: 1; height: 1px; background: var(--border-color); }
@@ -324,13 +323,6 @@ export default async function DashboardPage() {
         .ov-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; }
         @media (max-width: 768px) { .ov-card { padding: 14px; border-radius: 10px; } }
       `}</style>
-
-      <script dangerouslySetInnerHTML={{ __html: `
-        (function() {
-          const theme = localStorage.getItem('app-theme') || 'dark';
-          document.querySelector('.dashboard-root').setAttribute('data-theme', theme);
-        })()
-      `}} />
 
       {/* Header */}
       <div className="ov-header">
@@ -395,13 +387,13 @@ export default async function DashboardPage() {
       <div className="ov-section-title">The Protector (Keamanan) 🛡️</div>
       <div className="ov-grid3">
         <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#e2e8f0', fontWeight: '500' }}>Cashflow Forecast (Est. Akhir Bulan)</span>
-            <span style={{ fontSize: '15px', fontWeight: '700', color: forecast.isNegative ? '#f87171' : '#4ade80' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '12px' }}>
+            <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500', flex: 1 }}>Cashflow Forecast (Est. Akhir Bulan)</span>
+            <span style={{ fontSize: '15px', fontWeight: '700', color: forecast.isNegative ? '#f87171' : '#4ade80', textAlign: 'right' }}>
               {forecast.isNegative ? 'Defisit' : 'Surplus'} {fmt(Math.abs(forecast.predictedBalance))}
             </span>
           </div>
-          <div style={{ height: '6px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
+          <div style={{ height: '6px', background: 'var(--border-color)', borderRadius: '99px', overflow: 'hidden' }}>
             <div style={{ 
               height: '100%', borderRadius: '99px', 
               width: `${Math.min(pct(forecast.predictedTotalExp, income), 100)}%`, 
