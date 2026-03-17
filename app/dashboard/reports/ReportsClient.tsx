@@ -34,7 +34,7 @@ export default function ReportsClient({ initialReports, userId }: { initialRepor
       .update({
         manual_evaluation: evalText,
         improvement_plan: planText,
-        status: (evalText && planText) ? 'achieved' : 'missed' // Or keep logic as needed
+        status: (evalText && planText) ? 'achieved' : 'missed'
       })
       .eq('id', selectedReport.id);
 
@@ -43,6 +43,40 @@ export default function ReportsClient({ initialReports, userId }: { initialRepor
       setSelectedReport(null);
     }
     setIsLazy(false);
+  };
+
+  const downloadReport = (report: Report) => {
+    const content = `
+LAPORAN KECERDASAN FINANSIAL
+---------------------------
+Periode: ${new Date(report.period_start).toLocaleDateString('id-ID')} s/d ${new Date(report.period_end).toLocaleDateString('id-ID')}
+Tipe: ${report.type === 'weekly' ? 'Mingguan' : 'Bulanan'}
+Status: ${report.status === 'achieved' ? 'TERCAPAI' : 'BUTUH EVALUASI'}
+
+RINGKASAN ANGKA:
+- Pemasukan: ${fmt(report.data.income)}
+- Pengeluaran: ${fmt(report.data.expense)}
+- Saving Rate: ${report.data.saving_rate.toFixed(1)}%
+- Surplus: ${fmt(report.data.income - report.data.expense)}
+
+EVALUASI MANUAL:
+${report.manual_evaluation || 'Belum ada catatan evaluasi.'}
+
+RENCANA PERBAIKAN:
+${report.improvement_plan || 'Belum ada rencana perbaikan.'}
+
+Dicetak pada: ${new Date().toLocaleString('id-ID')}
+    `.trim();
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Laporan_Finansial_${report.period_start}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -151,10 +185,20 @@ export default function ReportsClient({ initialReports, userId }: { initialRepor
                 style={{ 
                   width: '100%', padding: '12px', background: '#2563eb', color: '#fff', 
                   border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer',
-                  opacity: isSaving ? 0.5 : 1
+                  opacity: isSaving ? 0.5 : 1, marginBottom: '10px'
                 }}
               >
                 {isSaving ? 'Menyimpan...' : 'Simpan Evaluasi'}
+              </button>
+
+              <button 
+                onClick={() => downloadReport(selectedReport)}
+                style={{ 
+                  width: '100%', padding: '12px', background: 'rgba(255,255,255,0.05)', color: '#f0f0f5', 
+                  border: '1px solid #1f1f2e', borderRadius: '8px', fontWeight: '600', cursor: 'pointer'
+                }}
+              >
+                📥 Unduh Laporan (.txt)
               </button>
             </Card>
           </div>
