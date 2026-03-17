@@ -112,11 +112,37 @@ export default async function DashboardPage() {
     isSurplus: balance > 0
   });
 
+  // NEW: Lazy Cash & Spending Ratio Detection
+  const lazyCash = (liquidAssets > (monthlyExpBase * 12)) ? { 
+    isLazy: true, 
+    amount: liquidAssets - (monthlyExpBase * 12) 
+  } : { isLazy: false, amount: 0 };
+
+  const needsKeywords = ['makan', 'transport', 'sewa', 'utilitas', 'listrik', 'air', 'internet', 'cicilan', 'sekolah', 'asuransi', 'kesehatan'];
+  const needsSum = txs.filter(t => t.type === 'expense' && needsKeywords.some(k => (t.categories?.name ?? '').toLowerCase().includes(k))).reduce((s, t) => s + t.amount, 0);
+  const wantsSum = expense - needsSum;
+  const savingsSum = balance > 0 ? balance : 0;
+  
+  const spendingRatio = income > 0 ? {
+    needs: Math.round((needsSum / income) * 100),
+    wants: Math.round((wantsSum / income) * 100),
+    savings: Math.round((savingsSum / income) * 100)
+  } : { needs: 0, wants: 0, savings: 0 };
+
   const archetype = detectArchetype({ savingRate, investmentRatio, monthsCovered, debtRatio: 0 }); // Simplifying debtRatio for archetype
   const totalRunway = burnRate > 0 ? (totalAsset / burnRate) : 0;
   const survivalTime = burnRate > 0 ? (liquidAssets / burnRate) : 0;
   const survivalLabel = survivalTime >= 12 ? 'Sangat Aman' : survivalTime >= 6 ? 'Aman' : survivalTime >= 3 ? 'Waspada' : 'Kritis';
   const survivalColor = survivalTime >= 12 ? '#4ade80' : survivalTime >= 6 ? '#60a5fa' : survivalTime >= 3 ? '#f59e0b' : '#f87171';
+
+  // Health Recommendations
+  const healthRecs = [];
+  if (lazyCash.isLazy) healthRecs.push(`Uang Anda 'mengendap' berlebihan (${fmt(lazyCash.amount)}). Segera investasikan agar produktif!`);
+  if (spendingRatio.wants > 30) healthRecs.push(`Peringatan: Pengeluaran 'Keinginan' (${spendingRatio.wants}%) melebihi batas ideal 30%.`);
+  if (savingRate < 20) healthRecs.push('Tingkatkan saving rate ke 20% dengan memangkas pengeluaran tersier.');
+  if (monthsCovered < 6) healthRecs.push('Prioritaskan pengisian Dana Darurat hingga minimal 6x pengeluaran.');
+  if (balance < 0) healthRecs.push('Cashflow negatif! Segera evaluasi pengeluaran bulan ini.');
+  if (healthRecs.length === 0) healthRecs.push('Kondisi keuangan Anda luar biasa! Pertahankan gaya hidup saat ini.');
 
   // FI Calculation using Utility (Compound Interest)
   const annualExpense = monthlyExpBase * 12;
@@ -124,13 +150,6 @@ export default async function DashboardPage() {
   const fiProgress = fiNumber > 0 ? Math.min(pct(netWorth, fiNumber), 100) : 0;
   const monthlySurplus = balance > 0 ? balance : 0;
   const yearsToFI = calculateYearsToFI(netWorth, fiNumber, monthlySurplus);
-
-  // Recommendations
-  const healthRecs = [];
-  if (savingRate < 20) healthRecs.push('Tingkatkan saving rate ke 20% dengan memangkas pengeluaran tersier.');
-  if (monthsCovered < 6) healthRecs.push('Prioritaskan pengisian Dana Darurat hingga minimal 6x pengeluaran.');
-  if (balance < 0) healthRecs.push('Cashflow negatif! Segera evaluasi pengeluaran bulan ini.');
-  if (healthRecs.length === 0) healthRecs.push('Kondisi keuangan Anda luar biasa! Pertahankan gaya hidup saat ini.');
 
   // Other Logic (Lifestyle, Milestones, Subs, etc. - can be refactored further if needed)
   const expChange = prevExp > 0 ? ((expense - prevExp) / prevExp) * 100 : 0;
@@ -162,6 +181,10 @@ export default async function DashboardPage() {
   const monthLabel = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
   const dateLabel  = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const firstName  = profile.display_name?.split(' ')[0] ?? 'Kamu';
+
+  // Spending Efficiency Logic Replacement for Ratio Visualization
+  const spendingEfficiency = expense > 0 ? (needsSum / expense) * 100 : 0;
+  const efficiencyLabel = spendingEfficiency <= 50 ? 'Sangat Efisien' : spendingEfficiency <= 70 ? 'Wajar' : 'Banyak Keinginan';
 
   return (
     <div style={{ color: '#f0f0f5', fontFamily: '"DM Sans", system-ui, sans-serif' }}>

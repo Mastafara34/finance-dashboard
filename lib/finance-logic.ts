@@ -80,6 +80,35 @@ export function calculateHealthScore(params: {
 }
 
 /**
+ * Mendeteksi uang yang mengendap (Lazy Cash)
+ * Jika Kas > 12x Pengeluaran Bulanan, sarankan investasi
+ */
+export function detectLazyCash(liquidAssets: number, monthlyExp: number) {
+  const threshold = monthlyExp * 12;
+  if (liquidAssets > threshold && monthlyExp > 0) {
+    return {
+      isLazy: true,
+      amount: liquidAssets - threshold,
+      message: `Ada ${fmt(liquidAssets - threshold)} uang mengendap yang tidak produktif. Pertimbangkan investasi!`
+    };
+  }
+  return { isLazy: false, amount: 0, message: '' };
+}
+
+/**
+ * Menganalisis rasio 50/30/20 (Needs/Wants/Savings)
+ */
+export function analyzeSpendingRatio(income: number, needs: number, wants: number, savings: number) {
+  if (income <= 0) return null;
+  return {
+    needsPct: Math.round((needs / income) * 100),
+    wantsPct: Math.round((wants / income) * 100),
+    savingsPct: Math.round((savings / income) * 100),
+    isHealthy: (needs/income <= 0.55) && (wants/income <= 0.35)
+  };
+}
+
+/**
  * Deteksi Arketipe Finansial
  */
 export function detectArchetype(params: {
