@@ -62,6 +62,13 @@ export default function IntelligencePage() {
         />
 
         <FormulaCard 
+          title="Custom Budget Targets (Personalized)"
+          formula="Saving > S%, Wants < W%, Needs < N%"
+          explanation="Target ini tidak lagi statis. Anda bisa mengaturnya di halaman Budget. Sistem akan menyesuaikan skor kesehatan dan rekomendasi berdasarkan target personal yang Anda tetapkan sendiri."
+          example="Jika Anda set target Saving 40%, maka skor kesehatan akan maksimal hanya jika tabungan Anda mencapai 40%."
+        />
+
+        <FormulaCard 
           title="Opportunity Cost (Kopi Premium)"
           formula="Future Value of Annuity (Daily Savings × Days × Rate)"
           explanation="Menunjukkan kekuatan uang kecil jika diinvestasikan dalam jangka panjang. Kami menggunakan asumsi imbal hasil moderat untuk memotivasi Anda mengurangi pengeluaran impulsif."

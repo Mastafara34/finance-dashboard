@@ -52,6 +52,13 @@ export default async function BudgetsPage() {
     if (catId) spendMap[catId] = (spendMap[catId] ?? 0) + t.amount;
   });
 
+  // Fetch user targets
+  const { data: userTargets } = await supabase
+    .from('users')
+    .select('role, saving_target, wants_target, needs_target')
+    .eq('id', userId)
+    .single();
+
   return (
     <BudgetsClient
       initialBudgets={(budgets ?? []) as unknown as any[]}
@@ -59,6 +66,12 @@ export default async function BudgetsPage() {
       spendMap={spendMap}
       userId={userId}
       month={month}
+      userRole={userTargets?.role || 'user'}
+      initialTargets={{
+        saving: userTargets?.saving_target ?? 20,
+        wants: userTargets?.wants_target ?? 30,
+        needs: userTargets?.needs_target ?? 50,
+      }}
     />
   );
 }

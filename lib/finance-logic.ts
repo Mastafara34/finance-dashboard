@@ -62,10 +62,15 @@ export function calculateHealthScore(params: {
   debtRatio: number;
   monthlyInvRatio: number;
   isSurplus: boolean;
+  targets: {
+    saving: number;
+    wants: number;
+    needs: number;
+  };
 }) {
-  const { savingRate, monthsCovered, debtRatio, monthlyInvRatio, isSurplus } = params;
+  const { savingRate, monthsCovered, debtRatio, monthlyInvRatio, isSurplus, targets } = params;
   
-  const s1 = Math.min((savingRate / 20) * 20, 20); // Save > 20%
+  const s1 = Math.min((savingRate / targets.saving) * 20, 20); // Save > Target Saving
   const s2 = Math.min((monthsCovered / 6) * 20, 20); // EF > 6 months
   const s3 = debtRatio <= 30 ? 20 : Math.max(0, 20 - ((debtRatio - 30) / 2)); // Debt < 30%
   const s4 = Math.min((monthlyInvRatio / 15) * 20, 20); // Invest > 15%

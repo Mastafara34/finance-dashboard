@@ -40,6 +40,14 @@ export async function POST(request: Request) {
     transaction_count: txs?.length || 0
   };
 
+  const { data: profile } = await supabase
+    .from('users')
+    .select('saving_target')
+    .eq('id', user.id)
+    .single();
+
+  const savingTarget = profile?.saving_target || 20;
+
   const { data: newReport, error } = await supabase
     .from('financial_reports')
     .insert({
@@ -48,7 +56,7 @@ export async function POST(request: Request) {
       period_start: startDate,
       period_end: endDate,
       data: reportData,
-      status: saving_rate >= 20 ? 'achieved' : 'missed'
+      status: saving_rate >= savingTarget ? 'achieved' : 'missed'
     })
     .select()
     .single();

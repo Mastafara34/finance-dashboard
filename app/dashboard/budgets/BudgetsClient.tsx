@@ -25,6 +25,12 @@ interface Props {
   spendMap: Record<string, number>;
   userId: string;
   month: string;
+  userRole: string;
+  initialTargets: {
+    saving: number;
+    wants: number;
+    needs: number;
+  };
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -297,7 +303,7 @@ function BudgetFormModal({
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function BudgetsClient({
-  initialBudgets, categories, spendMap, userId, month,
+  initialBudgets, categories, spendMap, userId, month, userRole, initialTargets
 }: Props) {
   const supabase = createClient();
 
@@ -305,6 +311,38 @@ export default function BudgetsClient({
   const [showForm,   setShowForm]   = useState(false);
   const [editBudget, setEditBudget] = useState<Budget | null>(null);
   const [toast,      setToast]      = useState<{ msg: string; ok: boolean } | null>(null);
+
+  // Targets state
+  const [targets, setTargets] = useState(initialTargets);
+  const [isEditingTargets, setIsEditingTargets] = useState(false);
+  const [targetSaving, setTargetSaving] = useState(initialTargets.saving);
+  const [targetWants, setTargetWants] = useState(initialTargets.wants);
+  const [targetNeeds, setTargetNeeds] = useState(initialTargets.needs);
+  const [isSavingTargets, setIsSavingTargets] = useState(false);
+
+  const canEditTargets = userRole === 'owner' || userRole === 'admin';
+
+  async function handleSaveTargets() {
+    if (!canEditTargets) return;
+    setIsSavingTargets(true);
+    const { error } = await supabase
+      .from('users')
+      .update({
+        saving_target: targetSaving,
+        wants_target: targetWants,
+        needs_target: targetNeeds,
+      })
+      .eq('id', userId);
+
+    if (error) {
+      showToast('Gagal update target', false);
+    } else {
+      setTargets({ saving: targetSaving, wants: targetWants, needs: targetNeeds });
+      setIsEditingTargets(false);
+      showToast('Target finansial diperbarui');
+    }
+    setIsSavingTargets(false);
+  }
 
   function showToast(msg: string, ok = true) {
     setToast({ msg, ok });
@@ -377,6 +415,9 @@ export default function BudgetsClient({
   }
 
   // ─────────────────────────────────────────────────────────────────────────
+  const lbl = { display: 'block', fontSize: '12px', color: '#9ca3af', marginBottom: '6px' };
+  const inp = { width: '100%', padding: '10px', background: '#0a0a0f', border: '1px solid #1f1f2e', borderRadius: '8px', color: '#f0f0f5', outline: 'none' };
+
   return (
     <div style={{ color: '#f0f0f5', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
 
@@ -414,18 +455,73 @@ export default function BudgetsClient({
             Amplop digital — {monthLabel}
           </p>
         </div>
-        <button onClick={() => setShowForm(true)}
-          disabled={categories.length === existingCatIds.length}
-          style={{
-            padding: '9px 18px', border: 'none', borderRadius: '9px',
-            color: '#fff', fontSize: '13px', fontWeight: '600',
-            background: categories.length === existingCatIds.length ? '#1f1f2e' : '#2563eb',
-            cursor: categories.length === existingCatIds.length ? 'not-allowed' : 'pointer',
-          }}
-          onMouseEnter={e => { if (categories.length !== existingCatIds.length) (e.currentTarget).style.background = '#1d4ed8'; }}
-          onMouseLeave={e => { if (categories.length !== existingCatIds.length) (e.currentTarget).style.background = '#2563eb'; }}
-        >+ Set Budget</button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {canEditTargets && (
+            <button onClick={() => setIsEditingTargets(true)} style={{
+              padding: '9px 18px', background: 'transparent', border: '1px solid #2a2a3a',
+              borderRadius: '9px', color: '#9ca3af', fontSize: '13px', fontWeight: '600', cursor: 'pointer'
+            }}>⚙️ Target</button>
+          )}
+          <button onClick={() => setShowForm(true)}
+            disabled={categories.length === existingCatIds.length}
+            style={{
+              padding: '9px 18px', border: 'none', borderRadius: '9px',
+              color: '#fff', fontSize: '13px', fontWeight: '600',
+              background: categories.length === existingCatIds.length ? '#1f1f2e' : '#2563eb',
+              cursor: categories.length === existingCatIds.length ? 'not-allowed' : 'pointer',
+            }}
+            onMouseEnter={e => { if (categories.length !== existingCatIds.length) (e.currentTarget).style.background = '#1d4ed8'; }}
+            onMouseLeave={e => { if (categories.length !== existingCatIds.length) (e.currentTarget).style.background = '#2563eb'; }}
+          >+ Set Budget</button>
+        </div>
       </div>
+
+      {/* Target Settings Modal */}
+      {isEditingTargets && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,.85)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 150, padding: '20px',
+        }}>
+          <div style={{
+            background: '#111118', border: '1px solid #1f1f2e', borderRadius: '16px',
+            width: '100%', maxWidth: '400px', padding: '24px',
+          }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '4px' }}>Target Finansial</h2>
+            <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '20px' }}>Atur persentase ideal untuk alokasi budget Anda.</p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
+              <div>
+                <label style={lbl}>Target Saving Rate (%)</label>
+                <input type="number" value={targetSaving} onChange={e => setTargetSaving(Number(e.target.value))} style={inp} />
+              </div>
+              <div>
+                <label style={lbl}>Batas Keinginan / Wants (%)</label>
+                <input type="number" value={targetWants} onChange={e => setTargetWants(Number(e.target.value))} style={inp} />
+              </div>
+              <div>
+                <label style={lbl}>Batas Kebutuhan / Needs (%)</label>
+                <input type="number" value={targetNeeds} onChange={e => setTargetNeeds(Number(e.target.value))} style={inp} />
+              </div>
+              <div style={{ padding: '10px', background: (targetSaving + targetWants + targetNeeds > 100) ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.1)', borderRadius: '8px', fontSize: '11px', color: (targetSaving + targetWants + targetNeeds > 100) ? '#f87171' : '#4ade80' }}>
+                Total Alokasi: {targetSaving + targetWants + targetNeeds}% {targetSaving + targetWants + targetNeeds > 100 && '(Melebihi 100%!)'}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={handleSaveTargets} disabled={isSavingTargets} style={{
+                flex: 1, padding: '11px', border: 'none', borderRadius: '9px',
+                color: '#fff', fontSize: '14px', fontWeight: '600',
+                background: '#2563eb', cursor: 'pointer',
+              }}>{isSavingTargets ? 'Menyimpan...' : 'Simpan'}</button>
+              <button onClick={() => setIsEditingTargets(false)} style={{
+                padding: '11px 18px', background: 'transparent', border: '1px solid #2a2a3a',
+                borderRadius: '9px', color: '#9ca3af', fontSize: '14px', cursor: 'pointer',
+              }}>Batal</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Alerts */}
       {overBudget.length > 0 && (

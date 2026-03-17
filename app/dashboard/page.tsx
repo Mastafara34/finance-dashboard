@@ -29,11 +29,12 @@ export default async function DashboardPage() {
   if (!user) redirect('/login');
 
   const { data: profile } = await supabase
-    .from('users').select('id, display_name, telegram_chat_id')
+    .from('users').select('id, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
     .eq('email', user.email!).maybeSingle();
   if (!profile) redirect('/login');
 
   const userId = profile.id;
+  const userRole = profile.role || 'user';
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
   const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
@@ -109,7 +110,12 @@ export default async function DashboardPage() {
     savingRate, monthsCovered, 
     debtRatio: income > 0 ? (txs.filter(t => t.type === 'expense' && t.categories?.name?.toLowerCase().includes('cicilan')).reduce((s, t) => s + t.amount, 0) / income) * 100 : 0,
     monthlyInvRatio,
-    isSurplus: balance > 0
+    isSurplus: balance > 0,
+    targets: {
+      saving: profile.saving_target || 20,
+      wants: profile.wants_target || 30,
+      needs: profile.needs_target || 50
+    }
   });
 
   // NEW: Lazy Cash & Spending Ratio Detection
