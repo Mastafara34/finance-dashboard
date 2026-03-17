@@ -62,10 +62,25 @@ function BarChart({ data, maxVal, showIncome, showExpense }: {
 }
 
 export default function AnalyticsClient({ transactions }: { transactions: Transaction[] }) {
-  const [view,     setView]     = useState<'daily'|'monthly'|'yearly'>('monthly');
+  const [view,     setView]     = useState<'daily'|'monthly'|'yearly'|'report'>('monthly');
   const [showType, setShowType] = useState<'both'|'income'|'expense'>('both');
   const [catType,  setCatType]  = useState<'expense'|'income'>('expense');
+  const [reportType, setReportType] = useState<'weekly'|'monthly'>('weekly');
   const now = new Date();
+
+  const weeklyStats = useMemo(() => {
+    const last7 = new Date(now.getTime() - 7 * 86400000).toISOString().split('T')[0];
+    const txs = transactions.filter(t => t.date >= last7);
+    const inc = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+    const exp = txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+    const map: Record<string, number> = {};
+    txs.filter(t => t.type === 'expense').forEach(t => {
+      const n = t.categories?.name ?? 'Lain-lain';
+      map[n] = (map[n] ?? 0) + t.amount;
+    });
+    const top = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    return { inc, exp, surplus: inc - exp, top, count: txs.length };
+  }, [transactions]);
 
   const dailyData = useMemo(() => {
     const map: Record<string,{income:number;expense:number}> = {};
@@ -173,29 +188,113 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
         ))}
       </div>
 
-      {/* Main chart */}
-      <div style={{ background:'#111118', border:'1px solid #1f1f2e', borderRadius:'12px', padding:'16px', marginBottom:'14px' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px', flexWrap:'wrap', gap:'8px' }}>
-          <div style={{ display:'flex', gap:'4px' }}>
-            {(['daily','monthly','yearly'] as const).map(v => (
-              <button key={v} onClick={()=>setView(v)} style={btnStyle(view===v)}>
-                {v==='daily'?'Harian':v==='monthly'?'Bulanan':'Tahunan'}
-              </button>
-            ))}
+      {/* Main chart or Report */}
+      {view === 'report' ? (
+        <div style={{ background:'#111118', border:'1px solid #1f1f2e', borderRadius:'12px', padding:'20px', marginBottom:'14px' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px' }}>
+            <h2 style={{ fontSize:'16px', fontWeight:'600', margin:0 }}>Laporan Kecerdasan Finansial</h2>
+            <div style={{ display:'flex', gap:'4px' }}>
+              {(['weekly','monthly'] as const).map(t => (
+                <button key={t} onClick={()=>setReportType(t)} style={btnStyle(reportType===t)}>
+                  {t==='weekly'?'Mingguan':'Bulanan'}
+                </button>
+              ))}
+            </div>
           </div>
-          <div style={{ display:'flex', gap:'4px' }}>
-            {(['both','income','expense'] as const).map(v => (
-              <button key={v} onClick={()=>setShowType(v)} style={btnStyle(showType===v)}>
-                {v==='both'?'Semua':v==='income'?'↑ Masuk':'↓ Keluar'}
-              </button>
-            ))}
-          </div>
+
+          {reportType === 'weekly' ? (
+            <div style={{ display:'flex', flexDirection:'column', gap:'20px' }}>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'12px' }}>
+                <div style={{ background:'rgba(255,255,255,0.02)', padding:'12px', borderRadius:'8px' }}>
+                  <div style={{ fontSize:'11px', color:'#6b7280', textTransform:'uppercase', marginBottom:'4px' }}>Pemasukan</div>
+                  <div style={{ fontSize:'16px', fontWeight:'700', color:'#4ade80' }}>{fmt(weeklyStats.inc)}</div>
+                </div>
+                <div style={{ background:'rgba(255,255,255,0.02)', padding:'12px', borderRadius:'8px' }}>
+                  <div style={{ fontSize:'11px', color:'#6b7280', textTransform:'uppercase', marginBottom:'4px' }}>Pengeluaran</div>
+                  <div style={{ fontSize:'16px', fontWeight:'700', color:'#f87171' }}>{fmt(weeklyStats.exp)}</div>
+                </div>
+                <div style={{ background:'rgba(255,255,255,0.02)', padding:'12px', borderRadius:'8px' }}>
+                  <div style={{ fontSize:'11px', color:'#6b7280', textTransform:'uppercase', marginBottom:'4px' }}>Surplus</div>
+                  <div style={{ fontSize:'16px', fontWeight:'700', color:weeklyStats.surplus>=0?'#4ade80':'#f87171' }}>{fmt(weeklyStats.surplus)}</div>
+                </div>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize:'13px', color:'#9ca3af', marginBottom:'10px' }}>3 Pengeluaran Terbesar Minggu Ini</h3>
+                <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
+                  {weeklyStats.top.map(([name, val], i) => (
+                    <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'8px 12px', background:'rgba(255,255,255,0.03)', borderRadius:6 }}>
+                      <span style={{ fontSize:'12px' }}>{i+1}. {name}</span>
+                      <span style={{ fontSize:'12px', fontWeight:'600' }}>{fmt(val)}</span>
+                    </div>
+                  ))}
+                  {weeklyStats.top.length === 0 && <div style={{ fontSize:'12px', color:'#6b7280', textAlign:'center' }}>Tidak ada pengeluaran</div>}
+                </div>
+              </div>
+
+              <div style={{ padding:'12px', background:'rgba(37,99,235,0.05)', border:'1px solid rgba(37,99,235,0.2)', borderRadius:'8px' }}>
+                <div style={{ fontSize:'12px', fontWeight:'600', color:'#60a5fa', marginBottom:4 }}>💡 Insight Konsultan</div>
+                <p style={{ fontSize:'12px', color:'#9ca3af', margin:0, lineHeight:'1.5' }}>
+                  {weeklyStats.surplus > 0 
+                    ? `Kerja bagus! Anda memiliki surplus ${fmt(weeklyStats.surplus)} minggu ini. Alokasikan ke dana darurat atau investasi.`
+                    : `Waspada! Pengeluaran melebihi pemasukan minggu ini. Cek kembali pengeluaran ${weeklyStats.top[0]?.[0] || ''} Anda.`}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column', gap:'20px' }}>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px' }}>
+                <div style={{ background:'rgba(255,255,255,0.02)', padding:'12px', borderRadius:'8px' }}>
+                  <div style={{ fontSize:'11px', color:'#6b7280', textTransform:'uppercase', marginBottom:'4px' }}>Saving Rate</div>
+                  <div style={{ fontSize:'18px', fontWeight:'700', color: (mIncome>0?((mIncome-mExpense)/mIncome)*100:0) > 20 ? '#4ade80' : '#f59e0b' }}>
+                    {(mIncome>0?((mIncome-mExpense)/mIncome)*100:0).toFixed(1)}%
+                  </div>
+                </div>
+                <div style={{ background:'rgba(255,255,255,0.02)', padding:'12px', borderRadius:'8px' }}>
+                  <div style={{ fontSize:'11px', color:'#6b7280', textTransform:'uppercase', marginBottom:'4px' }}>Budget Terpakai</div>
+                  <div style={{ fontSize:'18px', fontWeight:'700', color: (mIncome>0?(mExpense/mIncome)*100:0) > 90 ? '#f87171' : '#4ade80' }}>
+                    {(mIncome>0?(mExpense/mIncome)*100:0).toFixed(1)}%
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ padding:'12px', background:'rgba(139,92,246,0.05)', border:'1px solid rgba(139,92,246,0.2)', borderRadius:'8px' }}>
+                <div style={{ fontSize:'12px', fontWeight:'600', color:'#a78bfa', marginBottom:4 }}>📊 Evaluasi Bulanan</div>
+                <p style={{ fontSize:'12px', color:'#9ca3af', margin:0, lineHeight:'1.5' }}>
+                  {mExpense > avgExpense 
+                    ? `Pengeluaran bulan ini naik ${( (mExpense/avgExpense - 1) * 100 ).toFixed(0)}% dari rata-rata tahunan. Pastikan ini bukan inflasi gaya hidup.`
+                    : `Anda sangat disiplin! Pengeluaran bulan ini di bawah rata-rata tahunan. Teruskan performa ini.`}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
-        <BarChart data={chartData} maxVal={maxVal}
-          showIncome={showType==='both'||showType==='income'}
-          showExpense={showType==='both'||showType==='expense'}
-        />
-      </div>
+      ) : (
+        <div style={{ background:'#111118', border:'1px solid #1f1f2e', borderRadius:'12px', padding:'16px', marginBottom:'14px' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px', flexWrap:'wrap', gap:'8px' }}>
+          <div style={{ display:'flex', gap:'4px' }}>
+            {(['daily','monthly','yearly','report'] as const).map(v => (
+              <button key={v} onClick={()=>setView(v)} style={btnStyle(view===v)}>
+                {v==='daily'?'Harian':v==='monthly'?'Bulanan':v==='yearly'?'Tahunan':'📄 Laporan'}
+              </button>
+            ))}
+          </div>
+          {view !== 'report' && (
+            <div style={{ display:'flex', gap:'4px' }}>
+              {(['both','income','expense'] as const).map(v => (
+                <button key={v} onClick={()=>setShowType(v)} style={btnStyle(showType===v)}>
+                  {v==='both'?'Semua':v==='income'?'↑ Masuk':'↓ Keluar'}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+          <BarChart data={chartData} maxVal={maxVal}
+            showIncome={showType==='both'||showType==='income'}
+            showExpense={showType==='both'||showType==='expense'}
+          />
+        </div>
+      )}
 
       {/* Bottom: Donut + Table */}
       <div className="an-bottom">
