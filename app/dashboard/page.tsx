@@ -214,6 +214,15 @@ export default async function DashboardPage() {
   const invested10Y = dailyCoffee * 30 * 12 * 10 * 1.5; // Simple 50% growth over 10y for illustrative purposes
   const invested20Y = dailyCoffee * 30 * 12 * 20 * 3.0; // Illustrative
 
+  // Big Purchase Simulator (Interactive Logic for UI)
+  const bigPurchaseSample = 500000000; // Contoh: Mobil Rp 500jt
+  const newNetWorth = netWorth - bigPurchaseSample;
+  const newRemainingFI = Math.max(0, fiNumber - newNetWorth);
+  const newMonthsToFI = monthlySurplus > 0 ? Math.ceil(newRemainingFI / monthlySurplus) : Infinity;
+  const delayInYears = monthsToFI !== Infinity && newMonthsToFI !== Infinity 
+    ? ((newMonthsToFI - monthsToFI) / 12).toFixed(1) 
+    : '∞';
+
   const monthLabel = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
   const dateLabel  = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const firstName  = profile.display_name?.split(' ')[0] ?? 'Kamu';
@@ -615,11 +624,33 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="ov-card">
+        <div className="ov-card" style={{ border: '1px solid #ec4899', background: 'rgba(236,72,153,0.05)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>Asset Allocation</span>
-            <span style={{ fontSize: '11px', color: '#6b7280' }}>Komposisi Portofolio</span>
+            <span style={{ fontSize: '13px', fontWeight: '600', color: '#f472b6' }}>🛍️ Big Purchase Simulator</span>
+            <span style={{ fontSize: '11px', color: '#f472b6' }}>Impact Analysis</span>
           </div>
+          <div style={{ fontSize: '12px', color: '#9ca3af', lineHeight: '1.6' }}>
+            Jika Anda membeli barang seharga <span style={{ color: '#f0f0f5', fontWeight: '600' }}>{fmt(bigPurchaseSample)}</span> tunai hari ini:
+            <div style={{ marginTop: '10px', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid rgba(236,72,153,0.2)' }}>
+              <div style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase' }}>Dampak terhadap Kebebasan Finansial</div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#f87171', marginTop: '4px' }}>
+                Pensiun tertunda {delayInYears} tahun ⏳
+              </div>
+              <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '4px' }}>
+                *Berdasarkan sisa target FI dan surplus bulanan saat ini.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 7: Asset Allocation */}
+      <div className="ov-card" style={{ marginBottom: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>Asset Allocation</span>
+          <span style={{ fontSize: '11px', color: '#6b7280' }}>Komposisi Portofolio</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px', alignItems: 'center' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80' }}/>
@@ -636,11 +667,11 @@ export default async function DashboardPage() {
               <span style={{ fontSize: '12px', color: '#9ca3af', flex: 1 }}>Aset Lainnya</span>
               <span style={{ fontSize: '12px', fontWeight: '600' }}>{otherPct}%</span>
             </div>
-            <div style={{ height: '8px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden', display: 'flex', marginTop: '4px' }}>
-              <div style={{ height: '100%', width: `${cashPct}%`, background: '#4ade80' }}/>
-              <div style={{ height: '100%', width: `${invPct}%`, background: '#2563eb' }}/>
-              <div style={{ height: '100%', width: `${otherPct}%`, background: '#6b7280' }}/>
-            </div>
+          </div>
+          <div style={{ height: '24px', background: '#1f1f2e', borderRadius: '6px', overflow: 'hidden', display: 'flex' }}>
+            <div style={{ height: '100%', width: `${cashPct}%`, background: '#4ade80', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#000', fontWeight: '700' }}>{cashPct > 10 ? `${cashPct}%` : ''}</div>
+            <div style={{ height: '100%', width: `${invPct}%`, background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#fff', fontWeight: '700' }}>{invPct > 10 ? `${invPct}%` : ''}</div>
+            <div style={{ height: '100%', width: `${otherPct}%`, background: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#fff', fontWeight: '700' }}>{otherPct > 10 ? `${otherPct}%` : ''}</div>
           </div>
         </div>
       </div>
