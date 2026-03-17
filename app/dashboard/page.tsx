@@ -222,7 +222,7 @@ export default async function DashboardPage() {
 
   const monthLabel = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
   const dateLabel  = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  const firstName  = profile.display_name?.split(' ')[0] ?? 'Kamu';
+  const firstName  = safeProfile.display_name?.split(' ')[0] ?? 'Kamu';
 
   // Spending Efficiency Logic Replacement for Ratio Visualization
   const spendingEfficiency = expense > 0 ? (needsSum / expense) * 100 : 0;
