@@ -115,6 +115,9 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
   const [confirmPass,    setConfirmPass]    = useState('');
   const [savingPass,     setSavingPass]     = useState(false);
 
+  // ── Theme state ───────────────────────────────────────────────────────────
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
   // ── Toast ─────────────────────────────────────────────────────────────────
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
 
@@ -325,6 +328,47 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
         </button>
       </Section>
 
+      {/* ── 2. Tampilan ───────────────────────────────────────────────────── */}
+      <Section title="Tampilan" subtitle="Pilih tema aplikasi">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          <div 
+            onClick={() => setTheme('dark')}
+            style={{
+              padding: '16px', borderRadius: '12px', border: '2px solid',
+              cursor: 'pointer', transition: 'all 0.2s',
+              background: '#0a0a0f',
+              borderColor: theme === 'dark' ? '#2563eb' : '#1f1f2e',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+              <div style={{ fontSize: '18px' }}>🌙</div>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: '#f0f0f5' }}>Gelap</div>
+              {theme === 'dark' && <div style={{ marginLeft: 'auto', color: '#2563eb' }}>✓</div>}
+            </div>
+            <div style={{ height: '40px', background: '#111118', borderRadius: '6px', border: '1px solid #1f1f2e' }} />
+          </div>
+
+          <div 
+            onClick={() => setTheme('light')}
+            style={{
+              padding: '16px', borderRadius: '12px', border: '2px solid',
+              cursor: 'pointer', transition: 'all 0.2s',
+              background: '#f8fafc',
+              borderColor: theme === 'light' ? '#2563eb' : '#e2e8f0',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+              <div style={{ fontSize: '18px' }}>☀️</div>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: '#0f172a' }}>Terang</div>
+              {theme === 'light' && <div style={{ marginLeft: 'auto', color: '#2563eb' }}>✓</div>}
+            </div>
+            <div style={{ height: '40px', background: '#ffffff', borderRadius: '6px', border: '1px solid #e2e8f0' }} />
+          </div>
+        </div>
+        <div style={{ marginTop: '12px', fontSize: '12px', color: '#6b7280' }}>
+          * Fitur tema terang (Light Mode) saat ini sedang dalam pengembangan untuk seluruh halaman.
+        </div>
+      </Section>
 
       {/* ── User Management Link (owner/admin only) ───────────────────── */}
       {(profile.role === 'owner' || profile.role === 'admin') && (

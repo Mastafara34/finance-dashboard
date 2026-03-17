@@ -303,10 +303,10 @@ export default async function DashboardPage() {
       {/* Header */}
       <div className="ov-header">
         <div>
-          <h1 style={{ fontSize: '20px', fontWeight: '600', margin: '0 0 4px', letterSpacing: '-0.4px' }}>
+          <h1 style={{ fontSize: '20px', fontWeight: '600', margin: '0 0 4px', letterSpacing: '-0.4px', color: '#f8fafc' }}>
             Selamat datang, {firstName} 👋
           </h1>
-          <p style={{ color: '#6b7280', fontSize: '13px', margin: 0 }}>{dateLabel}</p>
+          <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0 }}>{dateLabel}</p>
         </div>
         <div style={{ 
           background: '#111118', border: '1px solid #1f1f2e', borderRadius: '12px', 
@@ -314,8 +314,8 @@ export default async function DashboardPage() {
           boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
         }}>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '9px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '2px' }}>Archetype: {archetype}</div>
-            <div style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '2px' }}>Financial Health</div>
+            <div style={{ fontSize: '9px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '2px' }}>Archetype: {archetype}</div>
+            <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '2px' }}>Financial Health</div>
             <div style={{ fontSize: '13px', fontWeight: '700', color: healthColor }}>{healthLabel}</div>
           </div>
           <div style={{ 
@@ -364,7 +364,7 @@ export default async function DashboardPage() {
       <div className="ov-grid3">
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Cashflow Forecast (Est. Akhir Bulan)</span>
+            <span style={{ fontSize: '13px', color: '#e2e8f0', fontWeight: '500' }}>Cashflow Forecast (Est. Akhir Bulan)</span>
             <span style={{ fontSize: '15px', fontWeight: '700', color: forecast.isNegative ? '#f87171' : '#4ade80' }}>
               {forecast.isNegative ? 'Defisit' : 'Surplus'} {fmt(Math.abs(forecast.predictedBalance))}
             </span>
@@ -377,8 +377,8 @@ export default async function DashboardPage() {
             }}/>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-            <span style={{ fontSize: '11px', color: '#6b7280' }}>Prediksi total: {fmt(forecast.predictedTotalExp)}</span>
-            <span style={{ fontSize: '10px', color: '#374151', fontStyle: 'italic' }}>Akurasi {forecast.confidence}</span>
+            <span style={{ fontSize: '11px', color: '#94a3b8' }}>Prediksi total: {fmt(forecast.predictedTotalExp)}</span>
+            <span style={{ fontSize: '10px', color: '#64748b', fontStyle: 'italic' }}>Akurasi {forecast.confidence}</span>
           </div>
         </Card>
         <ProgressCard 
