@@ -14,12 +14,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { data: profile } = await supabase
     .from('users')
-    .select('id, display_name, telegram_chat_id, theme')
+    .select('id, display_name, telegram_chat_id')
     .eq('email', user.email!)
     .maybeSingle();
 
-  // Theme logic
-  const theme = profile?.theme || 'dark';
+  // Theme logic (Standalone Client Script)
+  const themeInitScript = `
+    (function() {
+      try {
+        const theme = localStorage.getItem('app-theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {}
+    })()
+  `;
 
   // Jika profile tidak ditemukan tapi user ada, ini anomali (mungkin row belum dibuat)
   // Untuk mencegah loop redirect, kita tampilkan pesan error atau fallback
@@ -46,7 +53,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .order('sort_order', { ascending: true });
 
   return (
-    <div data-theme={theme}>
+    <div>
+      <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       <style>{`
         :root {
           --bg-primary: #111118;

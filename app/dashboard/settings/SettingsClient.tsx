@@ -14,7 +14,6 @@ interface Profile {
   monthly_income: number | null;
   timezone: string;
   currency: string;
-  theme: 'dark' | 'light';
 }
 
 interface Category {
@@ -117,7 +116,18 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
   const [savingPass,     setSavingPass]     = useState(false);
 
   // ── Theme state ───────────────────────────────────────────────────────────
-  const [theme, setTheme] = useState<'dark' | 'light'>(profile.theme ?? 'dark');
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('app-theme') as 'dark' | 'light') || 'dark';
+    }
+    return 'dark';
+  });
+
+  const applyTheme = (newTheme: 'dark' | 'light') => {
+    setTheme(newTheme);
+    localStorage.setItem('app-theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+  };
 
   // ── Toast ─────────────────────────────────────────────────────────────────
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
@@ -137,19 +147,13 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
         display_name:   displayName.trim() || null,
         monthly_income: monthlyIncome || null,
         timezone,
-        theme,
         updated_at:     new Date().toISOString(),
       })
       .eq('id', profile.id);
 
     setSavingProfile(false);
     if (error) { showToast('Gagal menyimpan: ' + error.message, false); return; }
-    showToast('Profil & Tema berhasil disimpan.');
-    
-    // Refresh to apply theme from DB
-    setTimeout(() => {
-      window.location.reload();
-    }, 1000);
+    showToast('Profil berhasil disimpan.');
   }
 
   // ── Change password ───────────────────────────────────────────────────────
@@ -340,7 +344,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
       <Section title="Tampilan" subtitle="Pilih tema aplikasi">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
           <div 
-            onClick={() => setTheme('dark')}
+            onClick={() => applyTheme('dark')}
             style={{
               padding: '16px', borderRadius: '12px', border: '2px solid',
               cursor: 'pointer', transition: 'all 0.2s',
@@ -357,7 +361,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
           </div>
 
           <div 
-            onClick={() => setTheme('light')}
+            onClick={() => applyTheme('light')}
             style={{
               padding: '16px', borderRadius: '12px', border: '2px solid',
               cursor: 'pointer', transition: 'all 0.2s',
@@ -372,9 +376,6 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
             </div>
             <div style={{ height: '40px', background: '#ffffff', borderRadius: '6px', border: '1px solid #e2e8f0' }} />
           </div>
-        </div>
-        <div style={{ marginTop: '12px', fontSize: '12px', color: '#6b7280' }}>
-          * Fitur tema terang (Light Mode) saat ini sedang dalam pengembangan untuk seluruh halaman.
         </div>
       </Section>
 
