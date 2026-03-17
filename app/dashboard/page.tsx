@@ -112,6 +112,17 @@ export default async function DashboardPage() {
   const healthLabel = healthScore >= 80 ? 'Sangat Sehat' : healthScore >= 60 ? 'Sehat' : healthScore >= 40 ? 'Cukup' : 'Perlu Perhatian';
   const healthColor = healthScore >= 80 ? '#4ade80' : healthScore >= 60 ? '#60a5fa' : healthScore >= 40 ? '#f59e0b' : '#f87171';
 
+  // Financial Archetype
+  let archetype = 'The Balanced Strategist';
+  if (savingRate > 40 && investmentRatio > 30) archetype = 'The Wealth Accelerator 🚀';
+  else if (monthsCovered > 12 && debtRatio === 0) archetype = 'The Fortress 🏰';
+  else if (savingRate < 10 && debtRatio > 30) archetype = 'The Overstretched ⚠️';
+  else if (investmentRatio > 50) archetype = 'The Aggressive Builder 🏗️';
+  else if (savingRate > 20 && monthsCovered < 3) archetype = 'The Vulnerable Earner 🛡️';
+
+  // Total Runway (All Assets / Monthly Burn)
+  const totalRunway = burnRate > 0 ? (totalAsset / burnRate) : 0;
+
   // Health Recommendations
   const healthRecs = [];
   if (savingRate < 20) healthRecs.push('Tingkatkan saving rate ke 20% dengan memangkas pengeluaran tersier.');
@@ -203,6 +214,35 @@ export default async function DashboardPage() {
   const nwMinVal = Math.min(...nwHistory.map(h => h.net_worth), netWorth, 0);
   const nwRange = nwMaxVal - nwMinVal;
 
+  // Spending Efficiency (Needs vs Wants)
+  const needsKeywords = ['makan', 'transport', 'sewa', 'utilitas', 'listrik', 'air', 'internet', 'cicilan', 'sekolah', 'asuransi', 'kesehatan'];
+  const expensesOnly = txs.filter(t => t.type === 'expense');
+  const needsSum = expensesOnly
+    .filter(t => {
+      const cat = (t.categories?.name ?? '').toLowerCase();
+      return needsKeywords.some(k => cat.includes(k));
+    })
+    .reduce((s, t) => s + t.amount, 0);
+  
+  const wantsSum = expense - needsSum;
+  const spendingEfficiency = expense > 0 ? (needsSum / expense) * 100 : 0; // High ratio of needs is good if budget is tight, but we want 50/30/20 rule
+  const efficiencyLabel = spendingEfficiency <= 50 ? 'Sangat Efisien' : spendingEfficiency <= 70 ? 'Wajar' : 'Banyak Keinginan';
+
+  // Net Worth Milestones (Gamification)
+  const milestones = [10000000, 50000000, 100000000, 500000000, 1000000000]; // 10jt, 50jt, 100jt, 500jt, 1M
+  const nextMilestone = milestones.find(m => m > netWorth) || milestones[milestones.length - 1];
+  const milestoneProgress = Math.min(pct(netWorth, nextMilestone), 100);
+
+  // Subscription Detector (Simple heuristic for recurring transactions in last 30 days)
+  const subMap: Record<string, number> = {};
+  last30.filter(t => t.type === 'expense').forEach(t => {
+    const key = `${t.categories?.name ?? 'Lain'}-${t.amount}`;
+    subMap[key] = (subMap[key] ?? 0) + 1;
+  });
+  const suspectedSubs = Object.entries(subMap)
+    .filter(([_, count]) => count >= 2) // Heuristic: appeared more than once in 30 days
+    .map(([key, _]) => ({ name: key.split('-')[0], amount: Number(key.split('-')[1]) }));
+
   // Future Cost Projections (Inflation: 5% per year)
   const inflationRate = 0.05;
   const costIn5Y = monthlyExpBase * Math.pow(1 + inflationRate, 5);
@@ -263,6 +303,7 @@ export default async function DashboardPage() {
           boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
         }}>
           <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '9px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '2px' }}>Archetype: {archetype}</div>
             <div style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '2px' }}>Financial Health</div>
             <div style={{ fontSize: '13px', fontWeight: '700', color: healthColor }}>{healthLabel}</div>
           </div>
@@ -329,7 +370,7 @@ export default async function DashboardPage() {
             {survivalTime.toFixed(1)} <span style={{ fontSize: '12px', fontWeight: '400', color: '#6b7280' }}>bln</span>
           </div>
           <div style={{ fontSize: '11px', marginTop: '4px', color: survivalColor }}>
-            {survivalLabel}
+            {survivalLabel} (Total Runway: {totalRunway.toFixed(1)} bln)
           </div>
         </div>
         <div className="ov-card">
@@ -673,6 +714,74 @@ export default async function DashboardPage() {
             <div style={{ height: '100%', width: `${invPct}%`, background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#fff', fontWeight: '700' }}>{invPct > 10 ? `${invPct}%` : ''}</div>
             <div style={{ height: '100%', width: `${otherPct}%`, background: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#fff', fontWeight: '700' }}>{otherPct > 10 ? `${otherPct}%` : ''}</div>
           </div>
+        </div>
+      </div>
+
+      {/* Row 8: Anomaly Detection & Spending Efficiency */}
+      <div className="ov-grid2" style={{ marginBottom: '12px' }}>
+        <div className="ov-card" style={{ border: suspectedSubs.length > 0 ? '1px solid #f59e0b' : '1px solid #1f1f2e' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <span style={{ fontSize: '13px', fontWeight: '600', color: suspectedSubs.length > 0 ? '#f59e0b' : '#9ca3af' }}>🕵️ Subscription Detector</span>
+            <span style={{ fontSize: '11px', color: '#6b7280' }}>Analisis 30 hari</span>
+          </div>
+          {suspectedSubs.length === 0 ? (
+            <div style={{ fontSize: '12px', color: '#6b7280', textAlign: 'center', padding: '10px 0' }}>
+              Tidak ada pengeluaran berulang yang mencurigakan.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ fontSize: '11px', color: '#f59e0b', marginBottom: '4px' }}>Ditemukan {suspectedSubs.length} transaksi berulang:</div>
+              {suspectedSubs.map((sub, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: 'rgba(245,158,11,0.05)', borderRadius: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '500' }}>{sub.name}</span>
+                  <span style={{ fontSize: '12px', fontWeight: '600' }}>{fmt(sub.amount)}</span>
+                </div>
+              ))}
+              <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '4px', fontStyle: 'italic' }}>
+                *Tinjau kembali apakah langganan ini masih diperlukan.
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="ov-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>Spending Efficiency (Needs vs Wants)</span>
+            <span style={{ fontSize: '12px', fontWeight: '600', color: spendingEfficiency <= 70 ? '#4ade80' : '#f87171' }}>{efficiencyLabel}</span>
+          </div>
+          <div style={{ display: 'flex', gap: '4px', height: '12px', background: '#1f1f2e', borderRadius: '4px', overflow: 'hidden', marginBottom: '10px' }}>
+            <div style={{ width: `${spendingEfficiency}%`, background: '#2563eb', transition: 'width 0.5s ease' }}/>
+            <div style={{ width: `${100 - spendingEfficiency}%`, background: '#f472b6', transition: 'width 0.5s ease' }}/>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#6b7280' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#2563eb' }}/>
+              Needs: {fmt(needsSum)} ({spendingEfficiency.toFixed(0)}%)
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#f472b6' }}/>
+              Wants: {fmt(wantsSum)} ({(100 - spendingEfficiency).toFixed(0)}%)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 9: Milestones (Gamification) */}
+      <div className="ov-card" style={{ marginBottom: '12px', background: 'linear-gradient(135deg, #111118 0%, #1a1a2e 100%)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+          <span style={{ fontSize: '13px', fontWeight: '600', color: '#8b5cf6' }}>🏆 Net Worth Milestones</span>
+          <span style={{ fontSize: '11px', color: '#9ca3af' }}>Target Berikutnya: {fmt(nextMilestone)}</span>
+        </div>
+        <div style={{ position: 'relative', height: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '99px', overflow: 'hidden', marginBottom: '8px' }}>
+          <div style={{ 
+            position: 'absolute', top: 0, left: 0, height: '100%', 
+            width: `${milestoneProgress}%`, background: 'linear-gradient(90deg, #8b5cf6 0%, #d946ef 100%)',
+            borderRadius: '99px', boxShadow: '0 0 10px rgba(139,92,246,0.5)'
+          }}/>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '11px', color: '#6b7280' }}>Saat ini: {fmt(netWorth)}</span>
+          <span style={{ fontSize: '12px', fontWeight: '700', color: '#d946ef' }}>{milestoneProgress}% Complete</span>
         </div>
       </div>
 
