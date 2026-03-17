@@ -138,9 +138,9 @@ export default async function DashboardPage() {
     monthlyInvRatio,
     isSurplus: balance > 0,
     targets: {
-      saving: profile.saving_target || 20,
-      wants: profile.wants_target || 30,
-      needs: profile.needs_target || 50
+      saving: safeProfile.saving_target || 20,
+      wants: safeProfile.wants_target || 30,
+      needs: safeProfile.needs_target || 50
     }
   });
 
