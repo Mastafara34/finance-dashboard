@@ -248,15 +248,25 @@ export default async function DashboardPage() {
   return (
     <div style={{ color: '#f0f0f5', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
       <style>{`
-        .ov-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 16px; }
+        .ov-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; gap: 16px; }
+        .ov-section-title { font-size: 14px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.1em; margin: 24px 0 12px; display: flex; align-items: center; gap: 8px; }
+        .ov-section-title::after { content: ""; flex: 1; height: 1px; background: #1f1f2e; }
         .ov-grid6 { display: grid; grid-template-columns: repeat(6,1fr); gap: 12px; margin-bottom: 12px; }
         .ov-grid2 { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; margin-bottom: 12px; }
-        @media (max-width: 1400px) { .ov-grid6 { grid-template-columns: repeat(3,1fr); } }
-        @media (max-width: 900px) { .ov-grid6 { grid-template-columns: repeat(2,1fr); } }
+        .ov-grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 12px; }
+        @media (max-width: 1400px) { 
+          .ov-grid6 { grid-template-columns: repeat(3,1fr); }
+          .ov-grid3 { grid-template-columns: repeat(2,1fr); }
+        }
+        @media (max-width: 900px) { 
+          .ov-grid6 { grid-template-columns: repeat(2,1fr); }
+          .ov-grid3 { grid-template-columns: 1fr; }
+        }
         @media (max-width: 768px) {
           .ov-header { flex-direction: column; align-items: stretch; }
           .ov-grid6 { grid-template-columns: 1fr; gap: 8px; }
           .ov-grid2 { grid-template-columns: 1fr; gap: 8px; }
+          .ov-grid3 { grid-template-columns: 1fr; gap: 8px; }
         }
         .ov-card { background:#111118; border:1px solid #1f1f2e; border-radius:12px; padding:16px; }
         @media (max-width: 768px) { .ov-card { padding:14px; border-radius:10px; } }
@@ -321,18 +331,9 @@ export default async function DashboardPage() {
         </div>
       </Card>
 
-      {/* Row 1: KPI Grid */}
-      <div className="ov-grid6">
-        <KpiCard label="Kekayaan Bersih" value={fmt(Math.abs(netWorth))} subValue={assetList.length === 0 ? 'Belum ada aset' : `Total Aset ${fmt(totalAsset)}`} valueColor={netWorth >= 0 ? '#4ade80' : '#f87171'} />
-        <KpiCard label="Pemasukan" value={fmt(income)} subValue={`Bulan ${monthLabel}`} valueColor="#4ade80" />
-        <KpiCard label="Pengeluaran" value={fmt(expense)} subValue={prevExp > 0 ? `${expTrend > 0 ? '↑' : '↓'} ${Math.abs(expTrend).toFixed(0)}% vs bln lalu` : `Bulan ${monthLabel}`} valueColor="#f87171" subColor={Math.abs(expTrend) > 5 ? (expTrend > 0 ? '#f87171' : '#4ade80') : '#6b7280'} />
-        <KpiCard label="Saving Rate" value={`${savingRate.toFixed(1)}%`} subValue={prevInc > 0 ? `${savRateTrend > 0 ? '↑' : '↓'} ${Math.abs(savRateTrend).toFixed(1)}%` : 'Target > 20%'} valueColor={savingRate > 20 ? '#4ade80' : savingRate > 10 ? '#f59e0b' : '#f87171'} subColor={Math.abs(savRateTrend) > 2 ? (savRateTrend > 0 ? '#4ade80' : '#f87171') : '#6b7280'} />
-        <KpiCard label="Survival Time" value={`${survivalTime.toFixed(1)} bln`} subValue={`${survivalLabel} (Total: ${totalRunway.toFixed(1)} bln)`} valueColor={survivalColor} subColor={survivalColor} />
-        <KpiCard label="Burn Rate" value={fmt(burnRate)} subValue="Rata-rata 3 bln" valueColor="#f87171" />
-      </div>
-
-      {/* Row 2: Status Bars */}
-      <div className="ov-grid2">
+      {/* SECTION 1: THE PROTECTOR (Safety First) */}
+      <div className="ov-section-title">The Protector (Keamanan) 🛡️</div>
+      <div className="ov-grid3">
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Cashflow Forecast (Est. Akhir Bulan)</span>
@@ -358,12 +359,31 @@ export default async function DashboardPage() {
           target={30} 
           progress={Math.min((debtRatio / 30) * 100, 100)} 
           color={debtRatio > 35 ? '#ef4444' : debtRatio > 30 ? '#f59e0b' : '#10b981'} 
-          footerLeft={`Rasio Hutang: ${debtRatio.toFixed(1)}%`} 
-          footerRight={<span style={{ fontSize: '10px', color: '#6b7280' }}>{debtRatio > 30 ? 'Bahaya: Segera kurangi utang!' : 'Hutang Terkendali'}</span>} 
+          footerLeft={`Rasio: ${debtRatio.toFixed(1)}%`} 
+          footerRight={<span style={{ fontSize: '10px', color: '#6b7280' }}>{debtRatio > 30 ? 'Bahaya!' : 'Terkendali'}</span>} 
+        />
+        <ProgressCard 
+          label="Dana Darurat (Safety Net)" 
+          current={liquidAssets} 
+          target={efTargetMin} 
+          progress={efProgress} 
+          color={efProgress >= 100 ? '#4ade80' : efProgress >= 50 ? '#f59e0b' : '#f87171'} 
+          footerLeft={`Target: 6x Exp`} 
+          footerRight={<span style={{ fontSize: '11px', color: '#6b7280' }}>{efProgress >= 100 ? 'Aman ✅' : `${fmt(efTargetMin - liquidAssets)} lagi`}</span>} 
         />
       </div>
 
-      {/* Row 3: Status Bars (Old Cashflow) */}
+      {/* SECTION 2: THE REALITY (Current Status) */}
+      <div className="ov-section-title">The Reality (Kondisi Saat Ini) 📊</div>
+      <div className="ov-grid6">
+        <KpiCard label="Kekayaan Bersih" value={fmt(Math.abs(netWorth))} subValue={`Total Aset ${fmt(totalAsset)}`} valueColor={netWorth >= 0 ? '#4ade80' : '#f87171'} />
+        <KpiCard label="Pemasukan" value={fmt(income)} subValue={`Bulan ${monthLabel}`} valueColor="#4ade80" />
+        <KpiCard label="Pengeluaran" value={fmt(expense)} subValue={prevExp > 0 ? `${expTrend > 0 ? '↑' : '↓'} ${Math.abs(expTrend).toFixed(0)}%` : `Bulan ${monthLabel}`} valueColor="#f87171" subColor={Math.abs(expTrend) > 5 ? (expTrend > 0 ? '#f87171' : '#4ade80') : '#6b7280'} />
+        <KpiCard label="Saving Rate" value={`${savingRate.toFixed(1)}%`} subValue={prevInc > 0 ? `${savRateTrend > 0 ? '↑' : '↓'} ${Math.abs(savRateTrend).toFixed(1)}%` : 'Target > 20%'} valueColor={savingRate > 20 ? '#4ade80' : savingRate > 10 ? '#f59e0b' : '#f87171'} subColor={Math.abs(savRateTrend) > 2 ? (savRateTrend > 0 ? '#4ade80' : '#f87171') : '#6b7280'} />
+        <KpiCard label="Survival Time" value={`${survivalTime.toFixed(1)} bln`} subValue={`${survivalLabel}`} valueColor={survivalColor} subColor={survivalColor} />
+        <KpiCard label="Burn Rate" value={fmt(burnRate)} subValue="Rata-rata 3 bln" valueColor="#f87171" />
+      </div>
+      
       <div className="ov-grid2">
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -376,24 +396,37 @@ export default async function DashboardPage() {
             </div>
           )}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-            <span style={{ fontSize: '11px', color: '#374151' }}>{income > 0 ? `${pct(expense, income)}% pemasukan terpakai` : 'Belum ada pemasukan'}</span>
+            <span style={{ fontSize: '11px', color: '#374151' }}>{income > 0 ? `${pct(expense, income)}% terpakai` : 'Belum ada pemasukan'}</span>
             <span style={{ fontSize: '11px', color: '#374151' }}>{txs.length} transaksi</span>
           </div>
         </Card>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <Card>
+            <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '4px' }}>Inflasi Gaya Hidup</div>
+            <div style={{ fontSize: '14px', fontWeight: '700', color: lifestyleColor }}>{lifestyleStatus}</div>
+          </Card>
+          <Card style={{ border: suspectedSubs.length > 0 ? '1px solid #f59e0b' : '1px solid #1f1f2e' }}>
+            <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '4px' }}>Langganan</div>
+            <div style={{ fontSize: '14px', fontWeight: '700', color: suspectedSubs.length > 0 ? '#f59e0b' : '#4ade80' }}>
+              {suspectedSubs.length} Aktif
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* SECTION 3: THE JOURNEY (Long-term Goals) */}
+      <div className="ov-section-title">The Journey (Masa Depan) 🚀</div>
+      <div className="ov-grid2">
         <ProgressCard 
-          label="Pelacak Kebebasan Finansial (FI)" 
+          label="Kebebasan Finansial (Financial Independence)" 
           current={netWorth} 
           target={fiNumber} 
           progress={fiProgress} 
           color="#8b5cf6" 
-          footerLeft={`Target FI: ${fmt(fiNumber)}`} 
-          footerRight={<span style={{ fontSize: '10px', color: '#6b7280' }}>Est. {yearsToFI} tahun lagi (asumsi ROI 7%)</span>} 
+          footerLeft={`Target: ${fmt(fiNumber)}`} 
+          footerRight={<span style={{ fontSize: '10px', color: '#6b7280' }}>Est. {yearsToFI} thn lagi</span>} 
         />
-      </div>
-
-      {/* Row 3: Intelligence Modules */}
-      <div className="ov-grid6">
-        <Card style={{ gridColumn: 'span 2', position: 'relative', overflow: 'hidden' }}>
+        <Card style={{ position: 'relative', overflow: 'hidden' }}>
           {nwHistory.length > 2 && (
             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '40px', opacity: 0.1, pointerEvents: 'none' }}>
               <svg width="100%" height="100%" preserveAspectRatio="none" viewBox={`0 0 ${nwHistory.length - 1} 100`}>
@@ -406,77 +439,19 @@ export default async function DashboardPage() {
             <span style={{ fontSize: '14px', fontWeight: '700', color: balance >= 0 ? '#4ade80' : '#f87171' }}>{balance >= 0 ? '↑' : '↓'} {fmt(Math.abs(balance))}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '11px', color: '#6b7280' }}>{nwHistory.length > 0 ? `Tren ${nwHistory.length} hari` : 'Bulan ini'}</span>
-            <span style={{ fontSize: '11px', color: balance >= 0 ? '#4ade80' : '#f87171', fontWeight: '500' }}>{balance >= 0 ? 'Akselerasi 🚀' : 'Deselerasi 📉'}</span>
+            <span style={{ fontSize: '11px', color: '#6b7280' }}>{balance >= 0 ? 'Akselerasi 🚀' : 'Deselerasi 📉'}</span>
           </div>
-        </Card>
-        <Card style={{ gridColumn: 'span 2' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Cakupan Pasif Income</span>
-            <span style={{ fontSize: '14px', fontWeight: '700', color: (investments * 0.05 / 12) / (monthlyExpBase || 1) * 100 >= 100 ? '#4ade80' : '#f59e0b' }}>{((investments * 0.05 / 12) / (monthlyExpBase || 1) * 100).toFixed(1)}%</span>
-          </div>
-          <div style={{ fontSize: '11px', color: '#6b7280' }}>Pasif income {fmt(investments * 0.05 / 12)}/bln</div>
-        </Card>
-        <Card style={{ gridColumn: 'span 2' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Inflasi Gaya Hidup</span>
-            <span style={{ fontSize: '14px', fontWeight: '700', color: lifestyleColor }}>{lifestyleStatus}</span>
-          </div>
-          <div style={{ fontSize: '11px', color: '#6b7280' }}>Pengeluaran {expChange > 0 ? `naik ${expChange.toFixed(0)}%` : 'stabil'}</div>
         </Card>
       </div>
 
-      {/* Row 4: Debt & EF */}
-      <div className="ov-grid2">
+      <div className="ov-grid3">
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Prioritas Pelunasan Hutang</span>
-            <span style={{ fontSize: '14px', fontWeight: '700', color: '#f87171' }}>{fmt(totalLiabVal)}</span>
-          </div>
-          {liabilities.length === 0 ? <div style={{ textAlign: 'center', padding: '12px 0', color: '#4ade80', fontSize: '12px' }}>✅ Bebas Hutang</div> : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {liabilities.map((l, i) => (
-                <div key={l.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px', background: i === 0 ? 'rgba(239,68,68,0.05)' : 'rgba(255,255,255,0.02)', borderRadius: '8px', border: i === 0 ? '1px solid rgba(239,68,68,0.2)' : '1px solid transparent' }}>
-                  <span style={{ fontSize: '12px', fontWeight: '600' }}>{i + 1}. {l.name}</span>
-                  <span style={{ fontSize: '12px', fontWeight: '600' }}>{fmt(l.value)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-        <ProgressCard label="Dana Darurat" current={liquidAssets} target={efTargetMin} progress={efProgress} color={efProgress >= 100 ? '#4ade80' : efProgress >= 50 ? '#f59e0b' : '#f87171'} footerLeft={`Target: 6x (${fmt(efTargetMin)})`} footerRight={<span style={{ fontSize: '11px', color: '#6b7280' }}>{efProgress >= 100 ? 'Aman ✅' : `${fmt(efTargetMin - liquidAssets)} lagi`}</span>} />
-      </div>
-
-      {/* Row 5: Analytics & Goals */}
-      <div className="ov-grid2">
-        <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>Tren 30 Hari Terakhir</span>
-            <div style={{ display: 'flex', gap: '10px', fontSize: '11px' }}>
-              <span style={{ color: '#4ade80' }}>● Masuk</span>
-              <span style={{ color: '#f87171' }}>● Keluar</span>
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', height: '80px' }}>
-            {chartData.map((d, i) => {
-              const incH = Math.round((d.income / maxVal) * 76);
-              const expH = Math.round((d.expense / maxVal) * 76);
-              return (
-                <div key={i} style={{ flex: 1, display: 'flex', gap: '1px', alignItems: 'flex-end', height: '80px' }}>
-                  {d.income > 0 && <div style={{ flex: 1, height: `${Math.max(incH, 2)}px`, background: '#166534', borderRadius: '1px 1px 0 0' }}/>}
-                   {d.expense > 0 && <div style={{ flex: 1, height: `${Math.max(expH, 2)}px`, background: '#7f1d1d', borderRadius: '1px 1px 0 0' }}/>}
-                 </div>
-               );
-             })}
-           </div>
-         </Card>
-        <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>Target Keuangan (Goals)</span>
-            <a href="/dashboard/goals" style={{ fontSize: '11px', color: '#60a5fa', textDecoration: 'none' }}>Semua →</a>
+            <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>Goals Utama</span>
+            <a href="/dashboard/goals" style={{ fontSize: '11px', color: '#60a5fa', textDecoration: 'none' }}>Lihat →</a>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {goalList.map(g => {
+            {goalList.slice(0, 2).map(g => {
               const p = pct(g.current_amount, g.target_amount);
               return (
                 <div key={g.id}>
@@ -490,71 +465,73 @@ export default async function DashboardPage() {
             })}
           </div>
         </Card>
-      </div>
-
-      {/* Row 6: Simulators */}
-      <div className="ov-grid2">
-        <Card style={{ border: '1px solid #3b82f6', background: 'rgba(59,130,246,0.05)' }}>
-          <div style={{ fontSize: '13px', fontWeight: '600', color: '#60a5fa', marginBottom: '12px' }}>🧠 Biaya Peluang (Opportunity Cost)</div>
-          <div style={{ fontSize: '12px', color: '#9ca3af', lineHeight: '1.6' }}>
-            Investasi {fmt(dailyCoffee)}/hari (kopi):
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '10px' }}>
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '10px', color: '#6b7280' }}>10 TAHUN</div>
-                <div style={{ fontSize: '15px', fontWeight: '700', color: '#4ade80' }}>~{fmt(invested10Y)}</div>
-              </div>
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '10px', color: '#6b7280' }}>20 TAHUN</div>
-                <div style={{ fontSize: '15px', fontWeight: '700', color: '#4ade80' }}>~{fmt(invested20Y)}</div>
-              </div>
-            </div>
+        <Card style={{ background: 'linear-gradient(135deg, #111118 0%, #1a1a2e 100%)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <span style={{ fontSize: '13px', fontWeight: '600', color: '#8b5cf6' }}>🏆 Milestone</span>
+            <span style={{ fontSize: '11px', color: '#9ca3af' }}>{fmt(nextMilestone)}</span>
           </div>
-        </Card>
-        <Card style={{ border: '1px solid #ec4899', background: 'rgba(236,72,153,0.05)' }}>
-          <div style={{ fontSize: '13px', fontWeight: '600', color: '#f472b6', marginBottom: '12px' }}>🛍️ Simulator Belanja Besar</div>
-          <div style={{ fontSize: '12px', color: '#9ca3af', lineHeight: '1.6' }}>
-            Beli {fmt(bigPurchaseSample)} tunai:
-            <div style={{ marginTop: '10px', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid rgba(236,72,153,0.2)' }}>
-              <div style={{ fontSize: '15px', fontWeight: '700', color: '#f87171' }}>Pensiun tertunda {delayInYears.toFixed(1)} thn ⏳</div>
-            </div>
+          <div style={{ height: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '99px', overflow: 'hidden', marginBottom: '8px' }}>
+            <div style={{ height: '100%', width: `${milestoneProgress}%`, background: 'linear-gradient(90deg, #8b5cf6 0%, #d946ef 100%)' }}/>
           </div>
-        </Card>
-      </div>
-
-      {/* Row 7: Efficiency & Assets */}
-      <div className="ov-grid2">
-        <Card style={{ border: suspectedSubs.length > 0 ? '1px solid #f59e0b' : '1px solid #1f1f2e' }}>
-          <div style={{ fontSize: '13px', fontWeight: '600', color: suspectedSubs.length > 0 ? '#f59e0b' : '#9ca3af', marginBottom: '12px' }}>🕵️ Detektor Langganan</div>
-          {suspectedSubs.length === 0 ? <div style={{ fontSize: '12px', color: '#6b7280', textAlign: 'center' }}>Tidak ada langganan terdeteksi</div> : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {suspectedSubs.map((sub, i) => <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px', background: 'rgba(245,158,11,0.05)', borderRadius: '6px' }}><span style={{ fontSize: '12px' }}>{sub.name}</span><span style={{ fontSize: '12px', fontWeight: '600' }}>{fmt(sub.amount)}</span></div>)}
-            </div>
-          )}
+          <div style={{ fontSize: '10px', color: '#6b7280', textAlign: 'center' }}>{milestoneProgress.toFixed(0)}% menuju target berikut</div>
         </Card>
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
             <span style={{ fontSize: '13px', color: '#9ca3af' }}>Alokasi Aset</span>
             <span style={{ fontSize: '12px', fontWeight: '600', color: '#4ade80' }}>{cashPct}% Kas</span>
           </div>
-          <div style={{ height: '24px', background: '#1f1f2e', borderRadius: '6px', overflow: 'hidden', display: 'flex' }}>
+          <div style={{ height: '12px', background: '#1f1f2e', borderRadius: '4px', overflow: 'hidden', display: 'flex', marginBottom: '8px' }}>
             <div style={{ width: `${cashPct}%`, background: '#4ade80' }}/>
              <div style={{ width: `${invPct}%`, background: '#2563eb' }}/>
              <div style={{ width: `${otherPct}%`, background: '#6b7280' }}/>
            </div>
-         </Card>
-       </div>
- 
-       {/* Row 8: Milestones */}
-       <Card style={{ marginBottom: '12px', background: 'linear-gradient(135deg, #111118 0%, #1a1a2e 100%)' }}>
-         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-           <span style={{ fontSize: '13px', fontWeight: '600', color: '#8b5cf6' }}>🏆 Pencapaian Kekayaan (Milestones)</span>
-           <span style={{ fontSize: '11px', color: '#9ca3af' }}>Target: {fmt(nextMilestone)}</span>
-         </div>
-         <div style={{ height: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '99px', overflow: 'hidden' }}>
-           <div style={{ height: '100%', width: `${milestoneProgress}%`, background: 'linear-gradient(90deg, #8b5cf6 0%, #d946ef 100%)' }}/>
-         </div>
-       </Card>
-      <div style={{ padding: '20px', textAlign: 'center' }}>
+           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+             <div style={{ fontSize: '9px', display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: '6px', height: '6px', background: '#4ade80' }}/> Kas</div>
+             <div style={{ fontSize: '9px', display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: '6px', height: '6px', background: '#2563eb' }}/> Invest</div>
+             <div style={{ fontSize: '9px', display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: '6px', height: '6px', background: '#6b7280' }}/> Lain</div>
+           </div>
+        </Card>
+      </div>
+
+      {/* SECTION 4: THE LAB (Simulators) */}
+      <div className="ov-section-title">The Lab (Simulasi & Eksperimen) 🧠</div>
+      <div className="ov-grid2">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <Card style={{ border: '1px solid #3b82f6', background: 'rgba(59,130,246,0.05)' }}>
+            <div style={{ fontSize: '13px', fontWeight: '600', color: '#60a5fa', marginBottom: '8px' }}>Biaya Peluang ☕</div>
+            <div style={{ fontSize: '11px', color: '#9ca3af' }}>Jika {fmt(dailyCoffee)}/hari diinvestasikan:</div>
+            <div style={{ marginTop: '8px' }}>
+              <div style={{ fontSize: '14px', fontWeight: '700', color: '#4ade80' }}>~{fmt(invested20Y)}</div>
+              <div style={{ fontSize: '9px', color: '#6b7280' }}>Dalam 20 Tahun (ROI 7%)</div>
+            </div>
+          </Card>
+          <Card style={{ border: '1px solid #ec4899', background: 'rgba(236,72,153,0.05)' }}>
+            <div style={{ fontSize: '13px', fontWeight: '600', color: '#f472b6', marginBottom: '8px' }}>Efek Belanja Besar 🛍️</div>
+            <div style={{ fontSize: '11px', color: '#9ca3af' }}>Beli {fmt(bigPurchaseSample)} tunai:</div>
+            <div style={{ marginTop: '8px' }}>
+              <div style={{ fontSize: '14px', fontWeight: '700', color: '#f87171' }}>+{delayInYears.toFixed(1)} Thn Kerja ⏳</div>
+            </div>
+          </Card>
+        </div>
+        <Card>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>Prioritas Hutang</span>
+            <span style={{ fontSize: '12px', fontWeight: '700', color: '#f87171' }}>{fmt(totalLiabVal)}</span>
+          </div>
+          {liabilities.length === 0 ? <div style={{ textAlign: 'center', color: '#4ade80', fontSize: '11px' }}>Bebas Hutang ✅</div> : (
+            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+              {liabilities.map((l, i) => (
+                <div key={l.id} style={{ flexShrink: 0, padding: '6px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px', border: '1px solid #1f1f2e' }}>
+                  <div style={{ fontSize: '10px', color: '#6b7280' }}>{l.name}</div>
+                  <div style={{ fontSize: '11px', fontWeight: '600' }}>{fmt(l.value)}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
+
+      <div style={{ padding: '40px 20px', textAlign: 'center' }}>
         <p style={{ color: '#6b7280', fontSize: '12px' }}>Dashboard ini menggunakan algoritma finansial profesional. <a href="/dashboard/intelligence" style={{ color: '#60a5fa' }}>Pelajari selengkapnya.</a></p>
       </div>
     </div>
