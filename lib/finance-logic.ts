@@ -146,6 +146,47 @@ export function detectSubscriptions(txs: any[]) {
 }
 
 /**
+ * Mendeteksi anomali pengeluaran harian yang tidak wajar.
+ */
+export function detectAnomalies(txs: any[], dailyLimit: number) {
+  const today = new Date().toISOString().split('T')[0];
+  const todayTxs = txs.filter(t => t.type === 'expense' && t.date === today);
+  const totalToday = todayTxs.reduce((s, t) => s + t.amount, 0);
+
+  if (totalToday > dailyLimit && dailyLimit > 0) {
+    return {
+      isAnomaly: true,
+      amount: totalToday,
+      limit: dailyLimit,
+      diff: totalToday - dailyLimit
+    };
+  }
+  return { isAnomaly: false, amount: 0, limit: 0, diff: 0 };
+}
+
+/**
+ * Memprediksi saldo akhir bulan berdasarkan rata-rata pengeluaran harian.
+ */
+export function forecastEndOfMonth(income: number, currentExpense: number) {
+  const now = new Date();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const currentDay = now.getDate();
+  const daysLeft = daysInMonth - currentDay;
+
+  const avgDailyExp = currentDay > 0 ? currentExpense / currentDay : 0;
+  const predictedAddExp = avgDailyExp * daysLeft;
+  const predictedTotalExp = currentExpense + predictedAddExp;
+  const predictedBalance = income - predictedTotalExp;
+
+  return {
+    predictedTotalExp,
+    predictedBalance,
+    isNegative: predictedBalance < 0,
+    confidence: currentDay > 10 ? 'Tinggi' : 'Rendah' // Akurasi meningkat setelah tgl 10
+  };
+}
+
+/**
  * Deteksi Arketipe (Profil) Finansial
  * Mengubah istilah teknis menjadi istilah umum yang mudah dipahami.
  */

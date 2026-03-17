@@ -9,7 +9,9 @@ import {
   calculateHealthScore, 
   detectArchetype,
   calculateWorkHourCost,
-  detectSubscriptions
+  detectSubscriptions,
+  detectAnomalies,
+  forecastEndOfMonth
 } from '@/lib/finance-logic';
 
 interface Transaction {
@@ -197,6 +199,12 @@ export default async function DashboardPage() {
   const liabilities = assetList.filter(a => a.is_liability);
   const totalLiabVal = totalLiab;
 
+  // New: Step A, B, C Analysis
+  const debtRatio = income > 0 ? (txs.filter(t => t.type === 'expense' && t.categories?.name?.toLowerCase().includes('cicilan')).reduce((s, t) => s + t.amount, 0) / income) * 100 : 0;
+  const dailyBudget = monthlyExpBase > 0 ? (monthlyExpBase / 30) : 0;
+  const anomaly = detectAnomalies(txs, dailyBudget * 1.5); // 50% di atas budget harian dianggap anomali
+  const forecast = forecastEndOfMonth(income, expense);
+
   // New: Psikologi & Subscription
   const hourlyRate = income > 0 ? (income / 160) : 0;
   const avgExpenseWorkHours = calculateWorkHourCost(expense, income);
@@ -282,6 +290,21 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* Step A: Anomaly Alert */}
+      {anomaly.isAnomaly && (
+        <Card style={{ marginBottom: '12px', background: 'rgba(239,68,68,0.1)', border: '1px solid #ef4444' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <div style={{ fontSize: '24px' }}>🚨</div>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: '700', color: '#f87171' }}>Peringatan: Pengeluaran Hari Ini Melonjak!</div>
+              <div style={{ fontSize: '12px', color: '#fca5a5' }}>
+                Total: <strong>{fmt(anomaly.amount)}</strong> (Melebihi budget harian <strong>{fmt(anomaly.limit)}</strong> sebesar <strong>{fmt(anomaly.diff)}</strong>).
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Recommendations */}
       <Card style={{ marginBottom: '12px', background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)' }}>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
@@ -312,7 +335,39 @@ export default async function DashboardPage() {
       <div className="ov-grid2">
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Saldo Bersih {monthLabel}</span>
+            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Cashflow Forecast (Est. Akhir Bulan)</span>
+            <span style={{ fontSize: '15px', fontWeight: '700', color: forecast.isNegative ? '#f87171' : '#4ade80' }}>
+              {forecast.isNegative ? 'Defisit' : 'Surplus'} {fmt(Math.abs(forecast.predictedBalance))}
+            </span>
+          </div>
+          <div style={{ height: '6px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
+            <div style={{ 
+              height: '100%', borderRadius: '99px', 
+              width: `${Math.min(pct(forecast.predictedTotalExp, income), 100)}%`, 
+              background: forecast.isNegative ? '#ef4444' : '#2563eb' 
+            }}/>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
+            <span style={{ fontSize: '11px', color: '#6b7280' }}>Prediksi total: {fmt(forecast.predictedTotalExp)}</span>
+            <span style={{ fontSize: '10px', color: '#374151', fontStyle: 'italic' }}>Akurasi {forecast.confidence}</span>
+          </div>
+        </Card>
+        <ProgressCard 
+          label="Debt-to-Income (Batas Aman 30%)" 
+          current={debtRatio} 
+          target={30} 
+          progress={Math.min((debtRatio / 30) * 100, 100)} 
+          color={debtRatio > 35 ? '#ef4444' : debtRatio > 30 ? '#f59e0b' : '#10b981'} 
+          footerLeft={`Rasio Hutang: ${debtRatio.toFixed(1)}%`} 
+          footerRight={<span style={{ fontSize: '10px', color: '#6b7280' }}>{debtRatio > 30 ? 'Bahaya: Segera kurangi utang!' : 'Hutang Terkendali'}</span>} 
+        />
+      </div>
+
+      {/* Row 3: Status Bars (Old Cashflow) */}
+      <div className="ov-grid2">
+        <Card>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Realisasi Saldo {monthLabel}</span>
             <span style={{ fontSize: '15px', fontWeight: '700', color: balance >= 0 ? '#4ade80' : '#f87171' }}>{balance >= 0 ? '+' : '-'}{fmt(Math.abs(balance))}</span>
           </div>
           {income > 0 && (
