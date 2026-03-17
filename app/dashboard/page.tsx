@@ -34,7 +34,7 @@ export default async function DashboardPage() {
   const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
   const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
 
-  const [txMonth, txPrev, txLast30, goals, assets] = await Promise.all([
+  const [txMonth, txPrev, txLast30, goals, assets, history] = await Promise.all([
     supabase.from('transactions').select('amount, type, date, categories(name)')
       .eq('user_id', userId).eq('is_deleted', false).gte('date', monthStart),
     supabase.from('transactions').select('amount, type')
@@ -47,6 +47,8 @@ export default async function DashboardPage() {
     supabase.from('goals').select('*').eq('user_id', userId).eq('status', 'active')
       .order('priority', { ascending: true }).limit(3),
     supabase.from('assets').select('id, name, value, is_liability, type').eq('user_id', userId),
+    supabase.from('net_worth_history').select('date, net_worth')
+      .eq('user_id', userId).order('date', { ascending: true }).limit(30),
   ]);
 
   const txs      = (txMonth.data ?? []) as unknown as Transaction[];
@@ -54,6 +56,7 @@ export default async function DashboardPage() {
   const last30   = (txLast30.data ?? []) as unknown as Transaction[];
   const goalList = (goals.data ?? []) as Goal[];
   const assetList = (assets.data ?? []) as Asset[];
+  const nwHistory = (history.data ?? []) as { date: string; net_worth: number }[];
 
   const income   = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
   const expense  = txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
@@ -129,11 +132,23 @@ export default async function DashboardPage() {
   // Net Worth Growth & Wealth Velocity
   const nwGrowth = balance; // This month's surplus
   const prevMonthSurplus = prevInc - prevExp;
-  const wealthVelocity = nwGrowth - prevMonthSurplus;
+  
+  // Wealth Velocity: Accelerating if current surplus > previous surplus
+  // OR if we have history, compare the rate of change
+  let wealthVelocity = nwGrowth - prevMonthSurplus;
+  
+  if (nwHistory.length >= 2) {
+    const latest = nwHistory[nwHistory.length - 1].net_worth;
+    const previous = nwHistory[nwHistory.length - 2].net_worth;
+    const currentDelta = netWorth - latest; // Growth since last snapshot
+    const previousDelta = latest - previous; // Growth between last two snapshots
+    wealthVelocity = currentDelta - previousDelta;
+  }
+
   const wealthVelocityStatus = wealthVelocity > 0 ? 'Accelerating 🚀' : wealthVelocity < 0 ? 'Decelerating 📉' : 'Stable ⚖️';
   const velocityColor = wealthVelocity > 0 ? '#4ade80' : wealthVelocity < 0 ? '#f87171' : '#6b7280';
 
-  // Chart 30 hari
+  // Chart 30 hari (Transactions)
   const chartMap: Record<string, { income: number; expense: number }> = {};
   for (let i = 29; i >= 0; i--) {
     const d = new Date(Date.now() - i * 86400000).toISOString().split('T')[0];
@@ -142,6 +157,22 @@ export default async function DashboardPage() {
   last30.forEach(t => { if (chartMap[t.date]) chartMap[t.date][t.type] += t.amount; });
   const chartData = Object.entries(chartMap).map(([date, v]) => ({ date, ...v }));
   const maxVal    = Math.max(...chartData.map(d => Math.max(d.income, d.expense)), 1);
+
+  // NW History Chart Data
+  const nwMaxVal = Math.max(...nwHistory.map(h => h.net_worth), netWorth, 1);
+  const nwMinVal = Math.min(...nwHistory.map(h => h.net_worth), netWorth, 0);
+  const nwRange = nwMaxVal - nwMinVal;
+
+  // Future Cost Projections (Inflation: 5% per year)
+  const inflationRate = 0.05;
+  const costIn5Y = monthlyExpBase * Math.pow(1 + inflationRate, 5);
+  const costIn10Y = monthlyExpBase * Math.pow(1 + inflationRate, 10);
+  const costIn20Y = monthlyExpBase * Math.pow(1 + inflationRate, 20);
+
+  // Opportunity Cost Calculation (Coffee Effect)
+  const dailyCoffee = 50000; // Rp 50k
+  const invested10Y = dailyCoffee * 30 * 12 * 10 * 1.5; // Simple 50% growth over 10y for illustrative purposes
+  const invested20Y = dailyCoffee * 30 * 12 * 20 * 3.0; // Illustrative
 
   const monthLabel = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
   const dateLabel  = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -295,15 +326,29 @@ export default async function DashboardPage() {
 
       {/* Row 3: Growth & FI Progress */}
       <div className="ov-grid2" style={{ marginBottom: '12px' }}>
-        <div className="ov-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <div className="ov-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+          {/* Sparkline background */}
+          {nwHistory.length > 2 && (
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '40px', opacity: 0.1, pointerEvents: 'none' }}>
+              <svg width="100%" height="100%" preserveAspectRatio="none" viewBox={`0 0 ${nwHistory.length - 1} 100`}>
+                <polyline
+                  fill="none"
+                  stroke={nwGrowth >= 0 ? '#4ade80' : '#f87171'}
+                  strokeWidth="4"
+                  points={nwHistory.map((h, i) => `${i},${100 - ((h.net_worth - nwMinVal) / (nwRange || 1)) * 100}`).join(' ')}
+                />
+              </svg>
+            </div>
+          )}
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', position: 'relative' }}>
             <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Net Worth Growth Tracker</span>
             <span style={{ fontSize: '14px', fontWeight: '700', color: nwGrowth >= 0 ? '#4ade80' : '#f87171' }}>
               {nwGrowth >= 0 ? '↑' : '↓'} {fmt(Math.abs(nwGrowth))}
             </span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '11px', color: '#6b7280' }}>Pertumbuhan dari surplus bulan ini</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative' }}>
+            <span style={{ fontSize: '11px', color: '#6b7280' }}>{nwHistory.length > 0 ? `Tren ${nwHistory.length} hari terakhir` : 'Pertumbuhan surplus bulan ini'}</span>
             <span style={{ fontSize: '11px', color: velocityColor, fontWeight: '500' }}>{wealthVelocityStatus}</span>
           </div>
         </div>
@@ -399,6 +444,77 @@ export default async function DashboardPage() {
               })}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Row 5: Life Event & Future Planning */}
+      <div className="ov-grid2" style={{ marginBottom: '12px' }}>
+        <div className="ov-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>Future Cost Projection (Inflasi 5%)</span>
+            <span style={{ fontSize: '11px', color: '#6b7280' }}>Berdasarkan pengeluaran bln ini</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '12px', color: '#9ca3af' }}>Biaya hidup 5 tahun lagi</span>
+              <span style={{ fontSize: '13px', fontWeight: '600' }}>{fmt(costIn5Y)}/bln</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '12px', color: '#9ca3af' }}>Biaya hidup 10 tahun lagi</span>
+              <span style={{ fontSize: '13px', fontWeight: '600' }}>{fmt(costIn10Y)}/bln</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '12px', color: '#9ca3af' }}>Biaya hidup 20 tahun lagi</span>
+              <span style={{ fontSize: '13px', fontWeight: '600', color: '#f87171' }}>{fmt(costIn20Y)}/bln</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="ov-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>Life Event Planner</span>
+            <span style={{ fontSize: '11px', color: '#6b7280' }}>Simulasi Dana</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ padding: '8px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <span style={{ fontSize: '12px', fontWeight: '500' }}>🎓 Dana Pendidikan (Anak)</span>
+                <span style={{ fontSize: '11px', color: '#6b7280' }}>Est. 15thn lagi</span>
+              </div>
+              <div style={{ fontSize: '11px', color: '#9ca3af' }}>Butuh: ~{fmt(monthlyExpBase * 100)} (asumsi 100x biaya hidup saat ini)</div>
+            </div>
+            <div style={{ padding: '8px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <span style={{ fontSize: '12px', fontWeight: '500' }}>🏝️ Pensiun Sederhana</span>
+                <span style={{ fontSize: '11px', color: '#6b7280' }}>FI Number</span>
+              </div>
+              <div style={{ fontSize: '11px', color: '#9ca3af' }}>Butuh: ~{fmt(fiNumber)} (4% Safe Withdrawal Rate)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 6: Money Decision Intelligence */}
+      <div className="ov-card" style={{ marginBottom: '12px', border: '1px solid #3b82f6', background: 'rgba(59,130,246,0.05)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <span style={{ fontSize: '13px', fontWeight: '600', color: '#60a5fa' }}>🧠 Opportunity Cost Engine</span>
+          <span style={{ fontSize: '11px', color: '#60a5fa' }}>Decision Support</span>
+        </div>
+        <div style={{ fontSize: '12px', color: '#9ca3af', lineHeight: '1.6' }}>
+          Jika Anda menyisihkan <span style={{ color: '#f0f0f5', fontWeight: '600' }}>{fmt(dailyCoffee)}</span> per hari (setara harga kopi premium) dan menginvestasikannya dengan imbal hasil moderat:
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '10px' }}>
+            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px' }}>
+              <div style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase' }}>Setelah 10 Tahun</div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#4ade80' }}>~{fmt(invested10Y)}</div>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px' }}>
+              <div style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase' }}>Setelah 20 Tahun</div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#4ade80' }}>~{fmt(invested20Y)}</div>
+            </div>
+          </div>
+          <div style={{ marginTop: '10px', fontSize: '11px', fontStyle: 'italic', color: '#6b7280' }}>
+            *Ini adalah simulasi nilai masa depan untuk membantu Anda melihat potensi pertumbuhan aset dari pengeluaran kecil rutin.
+          </div>
         </div>
       </div>
 
