@@ -109,6 +109,16 @@ export default async function DashboardPage() {
   const healthLabel = healthScore >= 80 ? 'Sangat Sehat' : healthScore >= 60 ? 'Sehat' : healthScore >= 40 ? 'Cukup' : 'Perlu Perhatian';
   const healthColor = healthScore >= 80 ? '#4ade80' : healthScore >= 60 ? '#60a5fa' : healthScore >= 40 ? '#f59e0b' : '#f87171';
 
+  // Financial Independence (FI) Calculation
+  const annualExpense = monthlyExpBase * 12;
+  const fiNumber = annualExpense * 25;
+  const fiProgress = fiNumber > 0 ? Math.min(pct(netWorth, fiNumber), 100) : 0;
+  
+  // Passive Income Coverage (Assuming 5% annual return on investments)
+  const estimatedAnnualPassiveIncome = investments * 0.05;
+  const monthlyPassiveIncome = estimatedAnnualPassiveIncome / 12;
+  const passiveIncomeCoverage = monthlyExpBase > 0 ? Math.min(pct(monthlyPassiveIncome, monthlyExpBase), 100) : 0;
+
   // Burn Rate & Survival Time
   // Burn Rate is the monthly expense base we already calculated
   const burnRate = monthlyExpBase;
@@ -264,26 +274,26 @@ export default async function DashboardPage() {
 
         <div className="ov-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Tracker Dana Darurat</span>
-            <span style={{ fontSize: '11px', color: '#6b7280' }}>{fmt(liquidAssets)} / {fmt(efTargetMin)}</span>
+            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Financial Independence Tracker</span>
+            <span style={{ fontSize: '11px', color: '#6b7280' }}>{fmt(netWorth)} / {fmt(fiNumber)}</span>
           </div>
           <div style={{ height: '6px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
             <div style={{
               height: '100%', borderRadius: '99px',
-              width: `${efProgress}%`,
-              background: efProgress >= 100 ? '#4ade80' : efProgress >= 50 ? '#f59e0b' : '#f87171',
+              width: `${fiProgress}%`,
+              background: '#8b5cf6',
             }}/>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-            <span style={{ fontSize: '11px', color: '#374151' }}>Target: 6x Pengeluaran</span>
-            <span style={{ fontSize: '11px', color: efProgress >= 100 ? '#4ade80' : '#6b7280' }}>
-              {efProgress >= 100 ? 'Aman ✅' : `${fmt(efTargetMin - liquidAssets)} lagi`}
+            <span style={{ fontSize: '11px', color: '#374151' }}>FI Number: {fmt(fiNumber)}</span>
+            <span style={{ fontSize: '11px', color: '#8b5cf6', fontWeight: '600' }}>
+              {fiProgress}% Terpenuhi
             </span>
           </div>
         </div>
       </div>
 
-      {/* Row 3: Growth & Velocity */}
+      {/* Row 3: Growth & FI Progress */}
       <div className="ov-grid2" style={{ marginBottom: '12px' }}>
         <div className="ov-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -292,22 +302,42 @@ export default async function DashboardPage() {
               {nwGrowth >= 0 ? '↑' : '↓'} {fmt(Math.abs(nwGrowth))}
             </span>
           </div>
-          <div style={{ fontSize: '11px', color: '#6b7280' }}>
-            Pertumbuhan kekayaan bersih dari surplus bulan ini
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '11px', color: '#6b7280' }}>Pertumbuhan dari surplus bulan ini</span>
+            <span style={{ fontSize: '11px', color: velocityColor, fontWeight: '500' }}>{wealthVelocityStatus}</span>
           </div>
         </div>
         <div className="ov-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Wealth Velocity</span>
-            <span style={{ fontSize: '14px', fontWeight: '700', color: velocityColor }}>
-              {wealthVelocityStatus}
+            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Passive Income Coverage</span>
+            <span style={{ fontSize: '14px', fontWeight: '700', color: passiveIncomeCoverage >= 100 ? '#4ade80' : '#f59e0b' }}>
+              {passiveIncomeCoverage}%
             </span>
           </div>
           <div style={{ fontSize: '11px', color: '#6b7280' }}>
-            {wealthVelocity > 0 ? `Surplus naik ${fmt(Math.abs(wealthVelocity))} vs bln lalu` : 
-             wealthVelocity < 0 ? `Surplus turun ${fmt(Math.abs(wealthVelocity))} vs bln lalu` : 
-             'Surplus sama dengan bulan lalu'}
+            Estimasi pasif income ({fmt(monthlyPassiveIncome)}/bln) menutup {passiveIncomeCoverage}% biaya hidup
           </div>
+        </div>
+      </div>
+
+      {/* Row 4: Emergency Fund Detail */}
+      <div className="ov-card" style={{ marginBottom: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Dana Darurat (Emergency Fund)</span>
+          <span style={{ fontSize: '11px', color: '#6b7280' }}>{fmt(liquidAssets)} / {fmt(efTargetMin)}</span>
+        </div>
+        <div style={{ height: '6px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
+          <div style={{
+            height: '100%', borderRadius: '99px',
+            width: `${efProgress}%`,
+            background: efProgress >= 100 ? '#4ade80' : efProgress >= 50 ? '#f59e0b' : '#f87171',
+          }}/>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
+          <span style={{ fontSize: '11px', color: '#374151' }}>Target: 6x Pengeluaran ({fmt(efTargetMin)})</span>
+          <span style={{ fontSize: '11px', color: efProgress >= 100 ? '#4ade80' : '#6b7280' }}>
+            {efProgress >= 100 ? 'Aman ✅' : `${fmt(efTargetMin - liquidAssets)} lagi`}
+          </span>
         </div>
       </div>
 
