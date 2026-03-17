@@ -1,6 +1,7 @@
 // app/dashboard/page.tsx
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { fmt, pct, Card, KpiCard, ProgressCard } from './components/DashboardComponents';
 
 interface Transaction {
   amount: number;
@@ -14,9 +15,6 @@ interface Goal {
   monthly_allocation: number | null; deadline: string | null;
 }
 interface Asset { id: string; name: string; value: number; is_liability: boolean; type: string }
-
-const fmt = (n: number) => `Rp ${Math.round(n).toLocaleString('id-ID')}`;
-const pct = (v: number, t: number) => t > 0 ? Math.round((v / t) * 100) : 0;
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -113,7 +111,6 @@ export default async function DashboardPage() {
   const healthColor = healthScore >= 80 ? '#4ade80' : healthScore >= 60 ? '#60a5fa' : healthScore >= 40 ? '#f59e0b' : '#f87171';
 
   // Burn Rate & Survival Time
-  // Burn Rate is the monthly expense base we already calculated
   const burnRate = monthlyExpBase;
   const survivalTime = burnRate > 0 ? (liquidAssets / burnRate) : 0;
   const survivalLabel = survivalTime >= 12 ? 'Sangat Aman' : survivalTime >= 6 ? 'Aman' : survivalTime >= 3 ? 'Waspada' : 'Kritis';
@@ -142,7 +139,6 @@ export default async function DashboardPage() {
   // Lifestyle Inflation Detector
   const incChange = prevInc > 0 ? ((income - prevInc) / prevInc) * 100 : 0;
   const expChange = prevExp > 0 ? ((expense - prevExp) / prevExp) * 100 : 0;
-  // Inflation is "Detected" if expense increases significantly faster than income
   const lifestyleInflationDetected = expChange > incChange + 5 && expChange > 10; 
   const lifestyleStatus = lifestyleInflationDetected ? '⚠️ Terdeteksi' : '✅ Terkendali';
   const lifestyleColor = lifestyleInflationDetected ? '#f87171' : '#4ade80';
@@ -152,7 +148,6 @@ export default async function DashboardPage() {
   const cashVal = assetList.filter(a => !a.is_liability && a.type === 'cash').reduce((s, a) => s + a.value, 0);
   const invVal = assetList.filter(a => !a.is_liability && a.type === 'investment').reduce((s, a) => s + a.value, 0);
   const otherVal = totalAssetsVal - cashVal - invVal;
-
   const cashPct = totalAssetsVal > 0 ? Math.round((cashVal / totalAssetsVal) * 100) : 0;
   const invPct = totalAssetsVal > 0 ? Math.round((invVal / totalAssetsVal) * 100) : 0;
   const otherPct = totalAssetsVal > 0 ? Math.round((otherVal / totalAssetsVal) * 100) : 0;
@@ -162,44 +157,31 @@ export default async function DashboardPage() {
   const fiNumber = annualExpense * 25;
   const fiProgress = fiNumber > 0 ? Math.min(pct(netWorth, fiNumber), 100) : 0;
   
-  // FI Countdown (How many years/months left?)
   const remainingFI = Math.max(0, fiNumber - netWorth);
   const monthlySurplus = balance > 0 ? balance : 0;
   const monthsToFI = monthlySurplus > 0 ? Math.ceil(remainingFI / monthlySurplus) : Infinity;
   const yearsToFI = monthsToFI !== Infinity ? (monthsToFI / 12).toFixed(1) : '∞';
 
-  // Debt Paydown Intelligence (Snowball Method: Smallest Balance First)
-  const liabilities = assetList
-    .filter(a => a.is_liability)
-    .sort((a, b) => a.value - b.value); // Smallest first
-  
+  const liabilities = assetList.filter(a => a.is_liability).sort((a, b) => a.value - b.value);
   const totalLiabVal = liabilities.reduce((s, a) => s + a.value, 0);
 
-  // Passive Income Coverage (Assuming 5% annual return on investments)
   const estimatedAnnualPassiveIncome = investments * 0.05;
   const monthlyPassiveIncome = estimatedAnnualPassiveIncome / 12;
   const passiveIncomeCoverage = monthlyExpBase > 0 ? Math.min(pct(monthlyPassiveIncome, monthlyExpBase), 100) : 0;
 
   // Net Worth Growth & Wealth Velocity
-  const nwGrowth = balance; // This month's surplus
+  const nwGrowth = balance;
   const prevMonthSurplus = prevInc - prevExp;
-  
-  // Wealth Velocity: Accelerating if current surplus > previous surplus
-  // OR if we have history, compare the rate of change
   let wealthVelocity = nwGrowth - prevMonthSurplus;
-  
   if (nwHistory.length >= 2) {
     const latest = nwHistory[nwHistory.length - 1].net_worth;
     const previous = nwHistory[nwHistory.length - 2].net_worth;
-    const currentDelta = netWorth - latest; // Growth since last snapshot
-    const previousDelta = latest - previous; // Growth between last two snapshots
-    wealthVelocity = currentDelta - previousDelta;
+    wealthVelocity = (netWorth - latest) - (latest - previous);
   }
-
   const wealthVelocityStatus = wealthVelocity > 0 ? 'Accelerating 🚀' : wealthVelocity < 0 ? 'Decelerating 📉' : 'Stable ⚖️';
   const velocityColor = wealthVelocity > 0 ? '#4ade80' : wealthVelocity < 0 ? '#f87171' : '#6b7280';
 
-  // Chart 30 hari (Transactions)
+  // Charts data
   const chartMap: Record<string, { income: number; expense: number }> = {};
   for (let i = 29; i >= 0; i--) {
     const d = new Date(Date.now() - i * 86400000).toISOString().split('T')[0];
@@ -209,59 +191,43 @@ export default async function DashboardPage() {
   const chartData = Object.entries(chartMap).map(([date, v]) => ({ date, ...v }));
   const maxVal    = Math.max(...chartData.map(d => Math.max(d.income, d.expense)), 1);
 
-  // NW History Chart Data
   const nwMaxVal = Math.max(...nwHistory.map(h => h.net_worth), netWorth, 1);
   const nwMinVal = Math.min(...nwHistory.map(h => h.net_worth), netWorth, 0);
   const nwRange = nwMaxVal - nwMinVal;
 
-  // Spending Efficiency (Needs vs Wants)
+  // Spending Efficiency
   const needsKeywords = ['makan', 'transport', 'sewa', 'utilitas', 'listrik', 'air', 'internet', 'cicilan', 'sekolah', 'asuransi', 'kesehatan'];
-  const expensesOnly = txs.filter(t => t.type === 'expense');
-  const needsSum = expensesOnly
-    .filter(t => {
-      const cat = (t.categories?.name ?? '').toLowerCase();
-      return needsKeywords.some(k => cat.includes(k));
-    })
-    .reduce((s, t) => s + t.amount, 0);
-  
+  const needsSum = txs.filter(t => t.type === 'expense' && needsKeywords.some(k => (t.categories?.name ?? '').toLowerCase().includes(k))).reduce((s, t) => s + t.amount, 0);
   const wantsSum = expense - needsSum;
-  const spendingEfficiency = expense > 0 ? (needsSum / expense) * 100 : 0; // High ratio of needs is good if budget is tight, but we want 50/30/20 rule
+  const spendingEfficiency = expense > 0 ? (needsSum / expense) * 100 : 0;
   const efficiencyLabel = spendingEfficiency <= 50 ? 'Sangat Efisien' : spendingEfficiency <= 70 ? 'Wajar' : 'Banyak Keinginan';
 
-  // Net Worth Milestones (Gamification)
-  const milestones = [10000000, 50000000, 100000000, 500000000, 1000000000]; // 10jt, 50jt, 100jt, 500jt, 1M
+  // Milestones
+  const milestones = [10000000, 50000000, 100000000, 500000000, 1000000000];
   const nextMilestone = milestones.find(m => m > netWorth) || milestones[milestones.length - 1];
   const milestoneProgress = Math.min(pct(netWorth, nextMilestone), 100);
 
-  // Subscription Detector (Simple heuristic for recurring transactions in last 30 days)
+  // Subscriptions
   const subMap: Record<string, number> = {};
   last30.filter(t => t.type === 'expense').forEach(t => {
     const key = `${t.categories?.name ?? 'Lain'}-${t.amount}`;
     subMap[key] = (subMap[key] ?? 0) + 1;
   });
-  const suspectedSubs = Object.entries(subMap)
-    .filter(([_, count]) => count >= 2) // Heuristic: appeared more than once in 30 days
-    .map(([key, _]) => ({ name: key.split('-')[0], amount: Number(key.split('-')[1]) }));
+  const suspectedSubs = Object.entries(subMap).filter(([_, count]) => count >= 2).map(([key]) => ({ name: key.split('-')[0], amount: Number(key.split('-')[1]) }));
 
-  // Future Cost Projections (Inflation: 5% per year)
+  // Future Cost & Opportunity Cost
   const inflationRate = 0.05;
   const costIn5Y = monthlyExpBase * Math.pow(1 + inflationRate, 5);
   const costIn10Y = monthlyExpBase * Math.pow(1 + inflationRate, 10);
   const costIn20Y = monthlyExpBase * Math.pow(1 + inflationRate, 20);
 
-  // Opportunity Cost Calculation (Coffee Effect)
-  const dailyCoffee = 50000; // Rp 50k
-  const invested10Y = dailyCoffee * 30 * 12 * 10 * 1.5; // Simple 50% growth over 10y for illustrative purposes
-  const invested20Y = dailyCoffee * 30 * 12 * 20 * 3.0; // Illustrative
+  const dailyCoffee = 50000;
+  const invested10Y = dailyCoffee * 30 * 12 * 10 * 1.5;
+  const invested20Y = dailyCoffee * 30 * 12 * 20 * 3.0;
 
-  // Big Purchase Simulator (Interactive Logic for UI)
-  const bigPurchaseSample = 500000000; // Contoh: Mobil Rp 500jt
-  const newNetWorth = netWorth - bigPurchaseSample;
-  const newRemainingFI = Math.max(0, fiNumber - newNetWorth);
-  const newMonthsToFI = monthlySurplus > 0 ? Math.ceil(newRemainingFI / monthlySurplus) : Infinity;
-  const delayInYears = monthsToFI !== Infinity && newMonthsToFI !== Infinity 
-    ? ((newMonthsToFI - monthsToFI) / 12).toFixed(1) 
-    : '∞';
+  // Big Purchase Simulator
+  const bigPurchaseSample = 500000000;
+  const delayInYears = monthlySurplus > 0 ? (((fiNumber - (netWorth - bigPurchaseSample)) / monthlySurplus) - monthsToFI) / 12 : 0;
 
   const monthLabel = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
   const dateLabel  = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -273,13 +239,8 @@ export default async function DashboardPage() {
         .ov-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 16px; }
         .ov-grid6 { display: grid; grid-template-columns: repeat(6,1fr); gap: 12px; margin-bottom: 12px; }
         .ov-grid2 { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; margin-bottom: 12px; }
-        
-        @media (max-width: 1400px) {
-          .ov-grid6 { grid-template-columns: repeat(3,1fr); }
-        }
-        @media (max-width: 900px) {
-          .ov-grid6 { grid-template-columns: repeat(2,1fr); }
-        }
+        @media (max-width: 1400px) { .ov-grid6 { grid-template-columns: repeat(3,1fr); } }
+        @media (max-width: 900px) { .ov-grid6 { grid-template-columns: repeat(2,1fr); } }
         @media (max-width: 768px) {
           .ov-header { flex-direction: column; align-items: stretch; }
           .ov-grid6 { grid-template-columns: 1fr; gap: 8px; }
@@ -317,228 +278,108 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Financial Consultant Recommendations */}
-      <div className="ov-card" style={{ marginBottom: '12px', background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)' }}>
+      {/* Recommendations */}
+      <Card style={{ marginBottom: '12px', background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)' }}>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
           <div style={{ fontSize: '20px' }}>💡</div>
           <div>
             <div style={{ fontSize: '13px', fontWeight: '600', color: '#f59e0b', marginBottom: '4px' }}>Rekomendasi Konsultan Finansial</div>
             <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#9ca3af', lineHeight: '1.6' }}>
-              {healthRecs.map((rec, i) => (
-                <li key={i} style={{ marginBottom: '2px' }}>{rec}</li>
-              ))}
+              {healthRecs.map((rec, i) => <li key={i} style={{ marginBottom: '2px' }}>{rec}</li>)}
             </ul>
           </div>
         </div>
-      </div>
+      </Card>
 
-      {/* Row 1: 6 kartu KPI */}
+      {/* Row 1: KPI Grid */}
       <div className="ov-grid6">
-        <div className="ov-card">
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>Net Worth</div>
-          <div style={{ fontSize: '20px', fontWeight: '700', color: netWorth >= 0 ? '#4ade80' : '#f87171', letterSpacing: '-0.5px' }}>
-            {fmt(Math.abs(netWorth))}
-          </div>
-          <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
-            {assetList.length === 0 ? 'Belum ada aset' : `Aset ${fmt(totalAsset)}`}
-          </div>
-        </div>
-        <div className="ov-card">
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>Pemasukan</div>
-          <div style={{ fontSize: '20px', fontWeight: '700', color: '#4ade80', letterSpacing: '-0.5px' }}>{fmt(income)}</div>
-          <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>{monthLabel}</div>
-        </div>
-        <div className="ov-card">
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>Pengeluaran</div>
-          <div style={{ fontSize: '20px', fontWeight: '700', color: '#f87171', letterSpacing: '-0.5px' }}>{fmt(expense)}</div>
-          <div style={{ fontSize: '11px', marginTop: '4px', color: Math.abs(expTrend) > 5 ? (expTrend > 0 ? '#f87171' : '#4ade80') : '#6b7280' }}>
-            {prevExp > 0 ? `${expTrend > 0 ? '↑' : '↓'} ${Math.abs(expTrend).toFixed(0)}%` : monthLabel}
-          </div>
-        </div>
-        <div className="ov-card">
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>Saving Rate</div>
-          <div style={{ fontSize: '20px', fontWeight: '700', color: savingRate > 20 ? '#4ade80' : savingRate > 10 ? '#f59e0b' : '#f87171', letterSpacing: '-0.5px' }}>
-            {savingRate.toFixed(1)}%
-          </div>
-          <div style={{ fontSize: '11px', marginTop: '4px', color: Math.abs(savRateTrend) > 2 ? (savRateTrend > 0 ? '#4ade80' : '#f87171') : '#6b7280' }}>
-            {prevInc > 0 ? `${savRateTrend > 0 ? '↑' : '↓'} ${Math.abs(savRateTrend).toFixed(1)}%` : 'vs bln lalu'}
-          </div>
-        </div>
-        <div className="ov-card">
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>Survival Time</div>
-          <div style={{ fontSize: '20px', fontWeight: '700', color: survivalColor, letterSpacing: '-0.5px' }}>
-            {survivalTime.toFixed(1)} <span style={{ fontSize: '12px', fontWeight: '400', color: '#6b7280' }}>bln</span>
-          </div>
-          <div style={{ fontSize: '11px', marginTop: '4px', color: survivalColor }}>
-            {survivalLabel} (Total Runway: {totalRunway.toFixed(1)} bln)
-          </div>
-        </div>
-        <div className="ov-card">
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>Burn Rate</div>
-          <div style={{ fontSize: '20px', fontWeight: '700', color: '#f87171', letterSpacing: '-0.5px' }}>
-            {fmt(burnRate)}
-          </div>
-          <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>Avg. per bulan</div>
-        </div>
+        <KpiCard label="Net Worth" value={fmt(Math.abs(netWorth))} subValue={assetList.length === 0 ? 'Belum ada aset' : `Aset ${fmt(totalAsset)}`} valueColor={netWorth >= 0 ? '#4ade80' : '#f87171'} />
+        <KpiCard label="Pemasukan" value={fmt(income)} subValue={monthLabel} valueColor="#4ade80" />
+        <KpiCard label="Pengeluaran" value={fmt(expense)} subValue={prevExp > 0 ? `${expTrend > 0 ? '↑' : '↓'} ${Math.abs(expTrend).toFixed(0)}%` : monthLabel} valueColor="#f87171" subColor={Math.abs(expTrend) > 5 ? (expTrend > 0 ? '#f87171' : '#4ade80') : '#6b7280'} />
+        <KpiCard label="Saving Rate" value={`${savingRate.toFixed(1)}%`} subValue={prevInc > 0 ? `${savRateTrend > 0 ? '↑' : '↓'} ${Math.abs(savRateTrend).toFixed(1)}%` : 'vs bln lalu'} valueColor={savingRate > 20 ? '#4ade80' : savingRate > 10 ? '#f59e0b' : '#f87171'} subColor={Math.abs(savRateTrend) > 2 ? (savRateTrend > 0 ? '#4ade80' : '#f87171') : '#6b7280'} />
+        <KpiCard label="Survival Time" value={`${survivalTime.toFixed(1)} bln`} subValue={`${survivalLabel} (Total: ${totalRunway.toFixed(1)} bln)`} valueColor={survivalColor} subColor={survivalColor} />
+        <KpiCard label="Burn Rate" value={fmt(burnRate)} subValue="Avg. per bulan" valueColor="#f87171" />
       </div>
 
-      {/* Row 2: Saldo Bar & Emergency Fund Detail */}
+      {/* Row 2: Status Bars */}
       <div className="ov-grid2">
-        <div className="ov-card">
+        <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Saldo Bersih {monthLabel}</span>
-            <span style={{ fontSize: '15px', fontWeight: '700', color: balance >= 0 ? '#4ade80' : '#f87171' }}>
-              {balance >= 0 ? '+' : '-'}{fmt(Math.abs(balance))}
-            </span>
+            <span style={{ fontSize: '15px', fontWeight: '700', color: balance >= 0 ? '#4ade80' : '#f87171' }}>{balance >= 0 ? '+' : '-'}{fmt(Math.abs(balance))}</span>
           </div>
           {income > 0 && (
             <div style={{ height: '6px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
-              <div style={{
-                height: '100%', borderRadius: '99px',
-                width: `${Math.min(pct(expense, income), 100)}%`,
-                background: pct(expense, income) > 90 ? '#ef4444' : pct(expense, income) > 70 ? '#f59e0b' : '#2563eb',
-              }}/>
+              <div style={{ height: '100%', borderRadius: '99px', width: `${Math.min(pct(expense, income), 100)}%`, background: pct(expense, income) > 90 ? '#ef4444' : pct(expense, income) > 70 ? '#f59e0b' : '#2563eb' }}/>
             </div>
           )}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-            <span style={{ fontSize: '11px', color: '#374151' }}>
-              {income > 0 ? `${pct(expense, income)}% pemasukan terpakai` : 'Belum ada pemasukan'}
-            </span>
+            <span style={{ fontSize: '11px', color: '#374151' }}>{income > 0 ? `${pct(expense, income)}% pemasukan terpakai` : 'Belum ada pemasukan'}</span>
             <span style={{ fontSize: '11px', color: '#374151' }}>{txs.length} transaksi</span>
           </div>
-        </div>
-
-        <div className="ov-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Financial Independence Tracker</span>
-            <span style={{ fontSize: '11px', color: '#6b7280' }}>{fmt(netWorth)} / {fmt(fiNumber)}</span>
-          </div>
-          <div style={{ height: '6px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
-            <div style={{
-              height: '100%', borderRadius: '99px',
-              width: `${fiProgress}%`,
-              background: '#8b5cf6',
-            }}/>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-            <span style={{ fontSize: '11px', color: '#374151' }}>FI Number: {fmt(fiNumber)}</span>
-            <div style={{ textAlign: 'right' }}>
-              <span style={{ fontSize: '11px', color: '#8b5cf6', fontWeight: '600', display: 'block' }}>
-                {fiProgress}% Terpenuhi
-              </span>
-              <span style={{ fontSize: '10px', color: '#6b7280' }}>
-                Est. {yearsToFI} tahun lagi (surplus {fmt(monthlySurplus)}/bln)
-              </span>
-            </div>
-          </div>
-        </div>
+        </Card>
+        <ProgressCard label="Financial Independence Tracker" current={netWorth} target={fiNumber} progress={fiProgress} color="#8b5cf6" footerLeft={`FI Number: ${fmt(fiNumber)}`} footerRight={<span style={{ fontSize: '10px', color: '#6b7280' }}>Est. {yearsToFI} tahun lagi (surplus {fmt(monthlySurplus)}/bln)</span>} />
       </div>
 
-      {/* Row 4: Debt & Emergency Fund */}
-      <div className="ov-grid2" style={{ marginBottom: '12px' }}>
-        <div className="ov-card">
+      {/* Row 3: Intelligence Modules */}
+      <div className="ov-grid6">
+        <Card style={{ gridColumn: 'span 2', position: 'relative', overflow: 'hidden' }}>
+          {nwHistory.length > 2 && (
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '40px', opacity: 0.1, pointerEvents: 'none' }}>
+              <svg width="100%" height="100%" preserveAspectRatio="none" viewBox={`0 0 ${nwHistory.length - 1} 100`}>
+                <polyline fill="none" stroke={nwGrowth >= 0 ? '#4ade80' : '#f87171'} strokeWidth="4" points={nwHistory.map((h, i) => `${i},${100 - ((h.net_worth - nwMinVal) / (nwRange || 1)) * 100}`).join(' ')} />
+              </svg>
+            </div>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Net Worth Growth</span>
+            <span style={{ fontSize: '14px', fontWeight: '700', color: nwGrowth >= 0 ? '#4ade80' : '#f87171' }}>{nwGrowth >= 0 ? '↑' : '↓'} {fmt(Math.abs(nwGrowth))}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '11px', color: '#6b7280' }}>{nwHistory.length > 0 ? `Tren ${nwHistory.length} hari` : 'Bulan ini'}</span>
+            <span style={{ fontSize: '11px', color: velocityColor, fontWeight: '500' }}>{wealthVelocityStatus}</span>
+          </div>
+        </Card>
+        <Card style={{ gridColumn: 'span 2' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Passive Income Coverage</span>
+            <span style={{ fontSize: '14px', fontWeight: '700', color: passiveIncomeCoverage >= 100 ? '#4ade80' : '#f59e0b' }}>{passiveIncomeCoverage}%</span>
+          </div>
+          <div style={{ fontSize: '11px', color: '#6b7280' }}>Pasif income {fmt(monthlyPassiveIncome)}/bln</div>
+        </Card>
+        <Card style={{ gridColumn: 'span 2' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Lifestyle Inflation</span>
+            <span style={{ fontSize: '14px', fontWeight: '700', color: lifestyleColor }}>{lifestyleStatus}</span>
+          </div>
+          <div style={{ fontSize: '11px', color: '#6b7280' }}>Pengeluaran {expChange > 0 ? `naik ${expChange.toFixed(0)}%` : 'stabil'}</div>
+        </Card>
+      </div>
+
+      {/* Row 4: Debt & EF */}
+      <div className="ov-grid2">
+        <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Debt Paydown Intelligence (Snowball)</span>
+            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Debt Snowball</span>
             <span style={{ fontSize: '14px', fontWeight: '700', color: '#f87171' }}>{fmt(totalLiabVal)}</span>
           </div>
-          {liabilities.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '12px 0', color: '#4ade80', fontSize: '12px' }}>
-              ✅ Tidak ada hutang aktif!
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '4px' }}>Prioritas pelunasan (saldo terkecil ke terbesar):</div>
+          {liabilities.length === 0 ? <div style={{ textAlign: 'center', padding: '12px 0', color: '#4ade80', fontSize: '12px' }}>✅ Bebas Hutang</div> : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {liabilities.map((l, i) => (
-                <div key={l.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', background: i === 0 ? 'rgba(239,68,68,0.05)' : 'rgba(255,255,255,0.02)', borderRadius: '8px', border: i === 0 ? '1px solid rgba(239,68,68,0.2)' : '1px solid transparent' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: '600', color: i === 0 ? '#f87171' : '#f0f0f5' }}>{i + 1}. {l.name}</span>
-                    {i === 0 && <span style={{ fontSize: '9px', background: '#f87171', color: '#fff', padding: '1px 4px', borderRadius: '4px', fontWeight: '700' }}>UTAMAKAN</span>}
-                  </div>
+                <div key={l.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px', background: i === 0 ? 'rgba(239,68,68,0.05)' : 'rgba(255,255,255,0.02)', borderRadius: '8px', border: i === 0 ? '1px solid rgba(239,68,68,0.2)' : '1px solid transparent' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '600' }}>{i + 1}. {l.name}</span>
                   <span style={{ fontSize: '12px', fontWeight: '600' }}>{fmt(l.value)}</span>
                 </div>
               ))}
             </div>
           )}
-        </div>
-
-        <div className="ov-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Dana Darurat (Emergency Fund)</span>
-            <span style={{ fontSize: '11px', color: '#6b7280' }}>{fmt(liquidAssets)} / {fmt(efTargetMin)}</span>
-          </div>
-          <div style={{ height: '6px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
-            <div style={{
-              height: '100%', borderRadius: '99px',
-              width: `${efProgress}%`,
-              background: efProgress >= 100 ? '#4ade80' : efProgress >= 50 ? '#f59e0b' : '#f87171',
-            }}/>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-            <span style={{ fontSize: '11px', color: '#374151' }}>Target: 6x Pengeluaran ({fmt(efTargetMin)})</span>
-            <span style={{ fontSize: '11px', color: efProgress >= 100 ? '#4ade80' : '#6b7280' }}>
-              {efProgress >= 100 ? 'Aman ✅' : `${fmt(efTargetMin - liquidAssets)} lagi`}
-            </span>
-          </div>
-        </div>
+        </Card>
+        <ProgressCard label="Emergency Fund" current={liquidAssets} target={efTargetMin} progress={efProgress} color={efProgress >= 100 ? '#4ade80' : efProgress >= 50 ? '#f59e0b' : '#f87171'} footerLeft={`Target: 6x (${fmt(efTargetMin)})`} footerRight={<span style={{ fontSize: '11px', color: '#6b7280' }}>{efProgress >= 100 ? 'Aman ✅' : `${fmt(efTargetMin - liquidAssets)} lagi`}</span>} />
       </div>
 
-      {/* Row 3: Growth, Passive Income, Lifestyle Inflation */}
-      <div className="ov-grid6" style={{ marginBottom: '12px' }}>
-        <div className="ov-card" style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
-          {/* Sparkline background */}
-          {nwHistory.length > 2 && (
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '40px', opacity: 0.1, pointerEvents: 'none' }}>
-              <svg width="100%" height="100%" preserveAspectRatio="none" viewBox={`0 0 ${nwHistory.length - 1} 100`}>
-                <polyline
-                  fill="none"
-                  stroke={nwGrowth >= 0 ? '#4ade80' : '#f87171'}
-                  strokeWidth="4"
-                  points={nwHistory.map((h, i) => `${i},${100 - ((h.net_worth - nwMinVal) / (nwRange || 1)) * 100}`).join(' ')}
-                />
-              </svg>
-            </div>
-          )}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', position: 'relative' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Net Worth Growth</span>
-            <span style={{ fontSize: '14px', fontWeight: '700', color: nwGrowth >= 0 ? '#4ade80' : '#f87171' }}>
-              {nwGrowth >= 0 ? '↑' : '↓'} {fmt(Math.abs(nwGrowth))}
-            </span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative' }}>
-            <span style={{ fontSize: '11px', color: '#6b7280' }}>{nwHistory.length > 0 ? `Tren ${nwHistory.length} hari terakhir` : 'Pertumbuhan surplus bulan ini'}</span>
-            <span style={{ fontSize: '11px', color: velocityColor, fontWeight: '500' }}>{wealthVelocityStatus}</span>
-          </div>
-        </div>
-
-        <div className="ov-card" style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Passive Income Coverage</span>
-            <span style={{ fontSize: '14px', fontWeight: '700', color: passiveIncomeCoverage >= 100 ? '#4ade80' : '#f59e0b' }}>
-              {passiveIncomeCoverage}%
-            </span>
-          </div>
-          <div style={{ fontSize: '11px', color: '#6b7280' }}>
-            Estimasi pasif income ({fmt(monthlyPassiveIncome)}/bln) menutup {passiveIncomeCoverage}% biaya hidup
-          </div>
-        </div>
-
-        <div className="ov-card" style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Lifestyle Inflation Detector</span>
-            <span style={{ fontSize: '14px', fontWeight: '700', color: lifestyleColor }}>
-              {lifestyleStatus}
-            </span>
-          </div>
-          <div style={{ fontSize: '11px', color: '#6b7280' }}>
-            {expChange > 0 ? `Pengeluaran naik ${expChange.toFixed(0)}%` : 'Pengeluaran terkendali'} vs bln lalu
-          </div>
-        </div>
-      </div>
-
-      {/* Row 2: Grafik + Goals */}
+      {/* Row 5: Analytics & Goals */}
       <div className="ov-grid2">
-        {/* Grafik */}
-        <div className="ov-card">
+        <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>30 Hari Terakhir</span>
             <div style={{ display: 'flex', gap: '10px', fontSize: '11px' }}>
@@ -548,275 +389,119 @@ export default async function DashboardPage() {
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', height: '80px' }}>
             {chartData.map((d, i) => {
-              const incH = Math.round((d.income  / maxVal) * 76);
+              const incH = Math.round((d.income / maxVal) * 76);
               const expH = Math.round((d.expense / maxVal) * 76);
               return (
                 <div key={i} style={{ flex: 1, display: 'flex', gap: '1px', alignItems: 'flex-end', height: '80px' }}>
-                  {d.income > 0  && <div style={{ flex: 1, height: `${Math.max(incH, 2)}px`, background: '#166534', borderRadius: '1px 1px 0 0' }}/>}
+                  {d.income > 0 && <div style={{ flex: 1, height: `${Math.max(incH, 2)}px`, background: '#166534', borderRadius: '1px 1px 0 0' }}/>}
                   {d.expense > 0 && <div style={{ flex: 1, height: `${Math.max(expH, 2)}px`, background: '#7f1d1d', borderRadius: '1px 1px 0 0' }}/>}
-                  {d.income === 0 && d.expense === 0 && <div style={{ flex: 1, height: '2px', background: '#1f1f2e' }}/>}
                 </div>
               );
             })}
           </div>
-        </div>
-
-        {/* Goals */}
-        <div className="ov-card">
+        </Card>
+        <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>Goals</span>
             <a href="/dashboard/goals" style={{ fontSize: '11px', color: '#2563eb', textDecoration: 'none' }}>Semua →</a>
           </div>
-          {goalList.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '12px 0', color: '#6b7280', fontSize: '12px' }}>
-              <div style={{ fontSize: '20px', marginBottom: '6px' }}>🎯</div>
-              Belum ada goals
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {goalList.map(g => {
-                const p = Math.min(pct(g.current_amount, g.target_amount), 100);
-                return (
-                  <div key={g.id}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: '500' }}>{g.icon} {g.name}</span>
-                      <span style={{ fontSize: '11px', color: '#6b7280' }}>{p}%</span>
-                    </div>
-                    <div style={{ height: '4px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', borderRadius: '99px', width: `${p}%`, background: p >= 100 ? '#4ade80' : '#2563eb' }}/>
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#374151', marginTop: '2px' }}>
-                      {fmt(g.current_amount)} / {fmt(g.target_amount)}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Row 5: Life Event & Future Planning */}
-      <div className="ov-grid2" style={{ marginBottom: '12px' }}>
-        <div className="ov-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>Future Cost Projection (Inflasi 5%)</span>
-            <span style={{ fontSize: '11px', color: '#6b7280' }}>Berdasarkan pengeluaran bln ini</span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '12px', color: '#9ca3af' }}>Biaya hidup 5 tahun lagi</span>
-              <span style={{ fontSize: '13px', fontWeight: '600' }}>{fmt(costIn5Y)}/bln</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '12px', color: '#9ca3af' }}>Biaya hidup 10 tahun lagi</span>
-              <span style={{ fontSize: '13px', fontWeight: '600' }}>{fmt(costIn10Y)}/bln</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '12px', color: '#9ca3af' }}>Biaya hidup 20 tahun lagi</span>
-              <span style={{ fontSize: '13px', fontWeight: '600', color: '#f87171' }}>{fmt(costIn20Y)}/bln</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="ov-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>Life Event Planner</span>
-            <span style={{ fontSize: '11px', color: '#6b7280' }}>Simulasi Dana</span>
-          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div style={{ padding: '8px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <span style={{ fontSize: '12px', fontWeight: '500' }}>🎓 Dana Pendidikan (Anak)</span>
-                <span style={{ fontSize: '11px', color: '#6b7280' }}>Est. 15thn lagi</span>
-              </div>
-              <div style={{ fontSize: '11px', color: '#9ca3af' }}>Butuh: ~{fmt(monthlyExpBase * 100)} (asumsi 100x biaya hidup saat ini)</div>
-            </div>
-            <div style={{ padding: '8px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <span style={{ fontSize: '12px', fontWeight: '500' }}>🏝️ Pensiun Sederhana</span>
-                <span style={{ fontSize: '11px', color: '#6b7280' }}>FI Number</span>
-              </div>
-              <div style={{ fontSize: '11px', color: '#9ca3af' }}>Butuh: ~{fmt(fiNumber)} (4% Safe Withdrawal Rate)</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Row 6: Money Decision Intelligence & Asset Allocation */}
-      <div className="ov-grid2" style={{ marginBottom: '12px' }}>
-        <div className="ov-card" style={{ border: '1px solid #3b82f6', background: 'rgba(59,130,246,0.05)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '13px', fontWeight: '600', color: '#60a5fa' }}>🧠 Opportunity Cost Engine</span>
-            <span style={{ fontSize: '11px', color: '#60a5fa' }}>Decision Support</span>
-          </div>
-          <div style={{ fontSize: '12px', color: '#9ca3af', lineHeight: '1.6' }}>
-            Jika Anda menyisihkan <span style={{ color: '#f0f0f5', fontWeight: '600' }}>{fmt(dailyCoffee)}</span> per hari dan menginvestasikannya:
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '10px' }}>
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase' }}>10 Tahun</div>
-                <div style={{ fontSize: '15px', fontWeight: '700', color: '#4ade80' }}>~{fmt(invested10Y)}</div>
-              </div>
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase' }}>20 Tahun</div>
-                <div style={{ fontSize: '15px', fontWeight: '700', color: '#4ade80' }}>~{fmt(invested20Y)}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="ov-card" style={{ border: '1px solid #ec4899', background: 'rgba(236,72,153,0.05)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '13px', fontWeight: '600', color: '#f472b6' }}>🛍️ Big Purchase Simulator</span>
-            <span style={{ fontSize: '11px', color: '#f472b6' }}>Impact Analysis</span>
-          </div>
-          <div style={{ fontSize: '12px', color: '#9ca3af', lineHeight: '1.6' }}>
-            Jika Anda membeli barang seharga <span style={{ color: '#f0f0f5', fontWeight: '600' }}>{fmt(bigPurchaseSample)}</span> tunai hari ini:
-            <div style={{ marginTop: '10px', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid rgba(236,72,153,0.2)' }}>
-              <div style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase' }}>Dampak terhadap Kebebasan Finansial</div>
-              <div style={{ fontSize: '15px', fontWeight: '700', color: '#f87171', marginTop: '4px' }}>
-                Pensiun tertunda {delayInYears} tahun ⏳
-              </div>
-              <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '4px' }}>
-                *Berdasarkan sisa target FI dan surplus bulanan saat ini.
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Row 7: Asset Allocation */}
-      <div className="ov-card" style={{ marginBottom: '12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>Asset Allocation</span>
-          <span style={{ fontSize: '11px', color: '#6b7280' }}>Komposisi Portofolio</span>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px', alignItems: 'center' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80' }}/>
-              <span style={{ fontSize: '12px', color: '#9ca3af', flex: 1 }}>Kas & Setara Kas</span>
-              <span style={{ fontSize: '12px', fontWeight: '600' }}>{cashPct}%</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2563eb' }}/>
-              <span style={{ fontSize: '12px', color: '#9ca3af', flex: 1 }}>Investasi</span>
-              <span style={{ fontSize: '12px', fontWeight: '600' }}>{invPct}%</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#6b7280' }}/>
-              <span style={{ fontSize: '12px', color: '#9ca3af', flex: 1 }}>Aset Lainnya</span>
-              <span style={{ fontSize: '12px', fontWeight: '600' }}>{otherPct}%</span>
-            </div>
-          </div>
-          <div style={{ height: '24px', background: '#1f1f2e', borderRadius: '6px', overflow: 'hidden', display: 'flex' }}>
-            <div style={{ height: '100%', width: `${cashPct}%`, background: '#4ade80', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#000', fontWeight: '700' }}>{cashPct > 10 ? `${cashPct}%` : ''}</div>
-            <div style={{ height: '100%', width: `${invPct}%`, background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#fff', fontWeight: '700' }}>{invPct > 10 ? `${invPct}%` : ''}</div>
-            <div style={{ height: '100%', width: `${otherPct}%`, background: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#fff', fontWeight: '700' }}>{otherPct > 10 ? `${otherPct}%` : ''}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Row 8: Anomaly Detection & Spending Efficiency */}
-      <div className="ov-grid2" style={{ marginBottom: '12px' }}>
-        <div className="ov-card" style={{ border: suspectedSubs.length > 0 ? '1px solid #f59e0b' : '1px solid #1f1f2e' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '13px', fontWeight: '600', color: suspectedSubs.length > 0 ? '#f59e0b' : '#9ca3af' }}>🕵️ Subscription Detector</span>
-            <span style={{ fontSize: '11px', color: '#6b7280' }}>Analisis 30 hari</span>
-          </div>
-          {suspectedSubs.length === 0 ? (
-            <div style={{ fontSize: '12px', color: '#6b7280', textAlign: 'center', padding: '10px 0' }}>
-              Tidak ada pengeluaran berulang yang mencurigakan.
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ fontSize: '11px', color: '#f59e0b', marginBottom: '4px' }}>Ditemukan {suspectedSubs.length} transaksi berulang:</div>
-              {suspectedSubs.map((sub, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: 'rgba(245,158,11,0.05)', borderRadius: '6px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: '500' }}>{sub.name}</span>
-                  <span style={{ fontSize: '12px', fontWeight: '600' }}>{fmt(sub.amount)}</span>
-                </div>
-              ))}
-              <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '4px', fontStyle: 'italic' }}>
-                *Tinjau kembali apakah langganan ini masih diperlukan.
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="ov-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>Spending Efficiency (Needs vs Wants)</span>
-            <span style={{ fontSize: '12px', fontWeight: '600', color: spendingEfficiency <= 70 ? '#4ade80' : '#f87171' }}>{efficiencyLabel}</span>
-          </div>
-          <div style={{ display: 'flex', gap: '4px', height: '12px', background: '#1f1f2e', borderRadius: '4px', overflow: 'hidden', marginBottom: '10px' }}>
-            <div style={{ width: `${spendingEfficiency}%`, background: '#2563eb', transition: 'width 0.5s ease' }}/>
-            <div style={{ width: `${100 - spendingEfficiency}%`, background: '#f472b6', transition: 'width 0.5s ease' }}/>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#6b7280' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#2563eb' }}/>
-              Needs: {fmt(needsSum)} ({spendingEfficiency.toFixed(0)}%)
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#f472b6' }}/>
-              Wants: {fmt(wantsSum)} ({(100 - spendingEfficiency).toFixed(0)}%)
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Row 9: Milestones (Gamification) */}
-      <div className="ov-card" style={{ marginBottom: '12px', background: 'linear-gradient(135deg, #111118 0%, #1a1a2e 100%)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-          <span style={{ fontSize: '13px', fontWeight: '600', color: '#8b5cf6' }}>🏆 Net Worth Milestones</span>
-          <span style={{ fontSize: '11px', color: '#9ca3af' }}>Target Berikutnya: {fmt(nextMilestone)}</span>
-        </div>
-        <div style={{ position: 'relative', height: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '99px', overflow: 'hidden', marginBottom: '8px' }}>
-          <div style={{ 
-            position: 'absolute', top: 0, left: 0, height: '100%', 
-            width: `${milestoneProgress}%`, background: 'linear-gradient(90deg, #8b5cf6 0%, #d946ef 100%)',
-            borderRadius: '99px', boxShadow: '0 0 10px rgba(139,92,246,0.5)'
-          }}/>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '11px', color: '#6b7280' }}>Saat ini: {fmt(netWorth)}</span>
-          <span style={{ fontSize: '12px', fontWeight: '700', color: '#d946ef' }}>{milestoneProgress}% Complete</span>
-        </div>
-      </div>
-
-      {/* Top kategori */}
-      <div className="ov-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-          <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>Top Pengeluaran {monthLabel}</span>
-          <a href="/dashboard/transactions" style={{ fontSize: '11px', color: '#2563eb', textDecoration: 'none' }}>Semua →</a>
-        </div>
-        {topCats.length === 0 ? (
-          <div style={{ color: '#6b7280', fontSize: '13px', textAlign: 'center', padding: '8px 0' }}>Belum ada pengeluaran</div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {topCats.map(([cat, amt], i) => {
-              const p = pct(amt, expense);
-              const colors = ['#2563eb','#6366f1','#8b5cf6','#a855f7','#c084fc'];
+            {goalList.map(g => {
+              const p = pct(g.current_amount, g.target_amount);
               return (
-                <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '12px', color: '#6b7280', width: '14px', flexShrink: 0 }}>{i + 1}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: '500' }}>{cat}</span>
-                      <span style={{ fontSize: '12px', color: '#9ca3af' }}>{fmt(amt)}</span>
-                    </div>
-                    <div style={{ height: '4px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', borderRadius: '99px', width: `${p}%`, background: colors[i] ?? '#374151' }}/>
-                    </div>
+                <div key={g.id}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: '500' }}>{g.icon} {g.name}</span>
+                    <span style={{ fontSize: '11px', color: '#6b7280' }}>{p}%</span>
                   </div>
-                  <span style={{ fontSize: '11px', color: '#374151', width: '28px', textAlign: 'right', flexShrink: 0 }}>{p}%</span>
+                  <div style={{ height: '4px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}><div style={{ height: '100%', width: `${p}%`, background: p >= 100 ? '#4ade80' : '#2563eb' }}/></div>
                 </div>
               );
             })}
           </div>
-        )}
+        </Card>
       </div>
+
+      {/* Row 6: Simulators */}
+      <div className="ov-grid2">
+        <Card style={{ border: '1px solid #3b82f6', background: 'rgba(59,130,246,0.05)' }}>
+          <div style={{ fontSize: '13px', fontWeight: '600', color: '#60a5fa', marginBottom: '12px' }}>🧠 Opportunity Cost</div>
+          <div style={{ fontSize: '12px', color: '#9ca3af', lineHeight: '1.6' }}>
+            Investasi {fmt(dailyCoffee)}/hari (kopi):
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '10px' }}>
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px' }}>
+                <div style={{ fontSize: '10px', color: '#6b7280' }}>10 THN</div>
+                <div style={{ fontSize: '15px', fontWeight: '700', color: '#4ade80' }}>~{fmt(invested10Y)}</div>
+              </div>
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px' }}>
+                <div style={{ fontSize: '10px', color: '#6b7280' }}>20 THN</div>
+                <div style={{ fontSize: '15px', fontWeight: '700', color: '#4ade80' }}>~{fmt(invested20Y)}</div>
+              </div>
+            </div>
+          </div>
+        </Card>
+        <Card style={{ border: '1px solid #ec4899', background: 'rgba(236,72,153,0.05)' }}>
+          <div style={{ fontSize: '13px', fontWeight: '600', color: '#f472b6', marginBottom: '12px' }}>🛍️ Big Purchase Simulator</div>
+          <div style={{ fontSize: '12px', color: '#9ca3af', lineHeight: '1.6' }}>
+            Beli {fmt(bigPurchaseSample)} tunai:
+            <div style={{ marginTop: '10px', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid rgba(236,72,153,0.2)' }}>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#f87171' }}>Pensiun tertunda {delayInYears.toFixed(1)} thn ⏳</div>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Row 7: Efficiency & Assets */}
+      <div className="ov-grid2">
+        <Card style={{ border: suspectedSubs.length > 0 ? '1px solid #f59e0b' : '1px solid #1f1f2e' }}>
+          <div style={{ fontSize: '13px', fontWeight: '600', color: suspectedSubs.length > 0 ? '#f59e0b' : '#9ca3af', marginBottom: '12px' }}>🕵️ Subscriptions</div>
+          {suspectedSubs.length === 0 ? <div style={{ fontSize: '12px', color: '#6b7280', textAlign: 'center' }}>Tidak ada langganan terdeteksi</div> : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {suspectedSubs.map((sub, i) => <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px', background: 'rgba(245,158,11,0.05)', borderRadius: '6px' }}><span style={{ fontSize: '12px' }}>{sub.name}</span><span style={{ fontSize: '12px', fontWeight: '600' }}>{fmt(sub.amount)}</span></div>)}
+            </div>
+          )}
+        </Card>
+        <Card>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <span style={{ fontSize: '13px', color: '#9ca3af' }}>Asset Allocation</span>
+            <span style={{ fontSize: '12px', fontWeight: '600', color: '#4ade80' }}>{cashPct}% Kas</span>
+          </div>
+          <div style={{ height: '24px', background: '#1f1f2e', borderRadius: '6px', overflow: 'hidden', display: 'flex' }}>
+            <div style={{ width: `${cashPct}%`, background: '#4ade80' }}/>
+            <div style={{ width: `${invPct}%`, background: '#2563eb' }}/>
+            <div style={{ width: `${otherPct}%`, background: '#6b7280' }}/>
+          </div>
+        </Card>
+      </div>
+
+      {/* Row 8: Milestones */}
+      <Card style={{ marginBottom: '12px', background: 'linear-gradient(135deg, #111118 0%, #1a1a2e 100%)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+          <span style={{ fontSize: '13px', fontWeight: '600', color: '#8b5cf6' }}>🏆 Net Worth Milestones</span>
+          <span style={{ fontSize: '11px', color: '#9ca3af' }}>Next: {fmt(nextMilestone)}</span>
+        </div>
+        <div style={{ height: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '99px', overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${milestoneProgress}%`, background: 'linear-gradient(90deg, #8b5cf6 0%, #d946ef 100%)' }}/>
+        </div>
+      </Card>
+
+      {/* Top Categories */}
+      <Card>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
+          <span style={{ fontSize: '13px', color: '#9ca3af' }}>Top Pengeluaran {monthLabel}</span>
+          <a href="/dashboard/transactions" style={{ fontSize: '11px', color: '#2563eb', textDecoration: 'none' }}>Semua →</a>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {topCats.map(([cat, amt], i) => (
+            <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}><span style={{ fontSize: '13px' }}>{cat}</span><span style={{ fontSize: '12px', color: '#9ca3af' }}>{fmt(amt)}</span></div>
+                <div style={{ height: '4px', background: '#1f1f2e', borderRadius: '99px' }}><div style={{ height: '100%', width: `${pct(amt, expense)}%`, background: '#2563eb' }}/></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 }
