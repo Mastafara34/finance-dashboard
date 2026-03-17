@@ -114,8 +114,13 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
     return Object.entries(map).sort().map(([y,v]) => ({label:y,...v}));
   }, [transactions]);
 
-  const chartData = view==='daily'?dailyData:view==='monthly'?monthlyData:yearlyData;
-  const maxVal    = Math.max(...chartData.map(d=>Math.max(d.income,d.expense)),1);
+  const chartData = useMemo(() => {
+    if (view === 'daily') return dailyData;
+    if (view === 'monthly') return monthlyData;
+    return yearlyData;
+  }, [view, dailyData, monthlyData, yearlyData]);
+
+  const maxVal    = Math.max(...chartData.map(d=>Math.max(d.income,d.expense)), 1);
 
   const thisMonth   = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   const mIncome     = transactions.filter(t=>t.date.startsWith(thisMonth)&&t.type==='income').reduce((s,t)=>s+t.amount,0);
@@ -272,14 +277,13 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
       ) : (
         <div style={{ background:'#111118', border:'1px solid #1f1f2e', borderRadius:'12px', padding:'16px', marginBottom:'14px' }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px', flexWrap:'wrap', gap:'8px' }}>
-          <div style={{ display:'flex', gap:'4px' }}>
-            {(['daily','monthly','yearly','report'] as const).map(v => (
-              <button key={v} onClick={()=>setView(v)} style={btnStyle(view===v)}>
-                {v==='daily'?'Harian':v==='monthly'?'Bulanan':v==='yearly'?'Tahunan':'📄 Laporan'}
-              </button>
-            ))}
-          </div>
-          {view !== 'report' && (
+            <div style={{ display:'flex', gap:'4px' }}>
+              {(['daily','monthly','yearly','report'] as const).map(v => (
+                <button key={v} onClick={()=>setView(v)} style={btnStyle(view===v)}>
+                  {v==='daily'?'Harian':v==='monthly'?'Bulanan':v==='yearly'?'Tahunan':'📄 Laporan'}
+                </button>
+              ))}
+            </div>
             <div style={{ display:'flex', gap:'4px' }}>
               {(['both','income','expense'] as const).map(v => (
                 <button key={v} onClick={()=>setShowType(v)} style={btnStyle(showType===v)}>
@@ -287,8 +291,7 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
                 </button>
               ))}
             </div>
-          )}
-        </div>
+          </div>
           <BarChart data={chartData} maxVal={maxVal}
             showIncome={showType==='both'||showType==='income'}
             showExpense={showType==='both'||showType==='expense'}
