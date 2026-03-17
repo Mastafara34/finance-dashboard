@@ -28,13 +28,32 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const { data: profile } = await supabase
-    .from('users').select('id, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
-    .eq('email', user.email!).maybeSingle();
-  if (!profile) redirect('/login');
+  const { data: profile, error: profileError } = await supabase
+    .from('users')
+    .select('id, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
+    .eq('email', user.email!)
+    .maybeSingle();
 
-  const userId = profile.id;
-  const userRole = profile.role || 'user';
+  // Jika error (misal kolom belum ada), coba fetch tanpa kolom target baru
+  let safeProfile = profile;
+  if (profileError || !profile) {
+    const { data: retryProfile } = await supabase
+      .from('users')
+      .select('id, display_name, telegram_chat_id, role')
+      .eq('email', user.email!)
+      .maybeSingle();
+    
+    if (!retryProfile) redirect('/login');
+    safeProfile = {
+      ...retryProfile,
+      saving_target: 20,
+      wants_target: 30,
+      needs_target: 50
+    };
+  }
+
+  const userId = safeProfile.id;
+  const userRole = safeProfile.role || 'user';
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
   const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];

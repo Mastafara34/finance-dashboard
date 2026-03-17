@@ -40,13 +40,13 @@ export async function POST(request: Request) {
     transaction_count: txs?.length || 0
   };
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('users')
     .select('saving_target')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
 
-  const savingTarget = profile?.saving_target || 20;
+  const savingTarget = profile?.saving_target ?? 20;
 
   const { data: newReport, error } = await supabase
     .from('financial_reports')

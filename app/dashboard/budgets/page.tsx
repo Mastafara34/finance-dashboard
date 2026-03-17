@@ -53,11 +53,24 @@ export default async function BudgetsPage() {
   });
 
   // Fetch user targets
-  const { data: userTargets } = await supabase
+  const { data: userTargets, error: targetError } = await supabase
     .from('users')
     .select('role, saving_target, wants_target, needs_target')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
+
+  // Safe fallback jika kolom belum ada di DB
+  const safeTargets = targetError ? {
+    role: 'user',
+    saving_target: 20,
+    wants_target: 30,
+    needs_target: 50
+  } : {
+    role: userTargets?.role || 'user',
+    saving_target: userTargets?.saving_target ?? 20,
+    wants_target: userTargets?.wants_target ?? 30,
+    needs_target: userTargets?.needs_target ?? 50
+  };
 
   return (
     <BudgetsClient
@@ -66,11 +79,11 @@ export default async function BudgetsPage() {
       spendMap={spendMap}
       userId={userId}
       month={month}
-      userRole={userTargets?.role || 'user'}
+      userRole={safeTargets.role}
       initialTargets={{
-        saving: userTargets?.saving_target ?? 20,
-        wants: userTargets?.wants_target ?? 30,
-        needs: userTargets?.needs_target ?? 50,
+        saving: safeTargets.saving_target,
+        wants: safeTargets.wants_target,
+        needs: safeTargets.needs_target,
       }}
     />
   );

@@ -506,6 +506,48 @@ export default function BudgetsClient({
               <div style={{ padding: '10px', background: (targetSaving + targetWants + targetNeeds > 100) ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.1)', borderRadius: '8px', fontSize: '11px', color: (targetSaving + targetWants + targetNeeds > 100) ? '#f87171' : '#4ade80' }}>
                 Total Alokasi: {targetSaving + targetWants + targetNeeds}% {targetSaving + targetWants + targetNeeds > 100 && '(Melebihi 100%!)'}
               </div>
+
+              {/* Benchmark Standar Global */}
+              <div style={{ 
+                marginTop: '16px', padding: '12px', background: '#0a0a0f', 
+                border: '1px dashed #1f1f2e', borderRadius: '10px' 
+              }}>
+                <div style={{ fontSize: '11px', color: '#9ca3af', fontWeight: '600', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <span>📊</span> STANDAR GLOBAL (50/30/20)
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                  {[
+                    { label: 'Kebutuhan', val: '50%', color: '#60a5fa' },
+                    { label: 'Keinginan', val: '30%', color: '#fbbf24' },
+                    { label: 'Tabungan', val: '20%', color: '#4ade80' },
+                  ].map(b => (
+                    <div key={b.label} style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '9px', color: '#6b7280', textTransform: 'uppercase' }}>{b.label}</div>
+                      <div style={{ fontSize: '12px', fontWeight: '700', color: b.color }}>{b.val}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: '10px', fontSize: '10px', color: '#6b7280', fontStyle: 'italic', lineHeight: '1.4' }}>
+                  Aturan 50/30/20 adalah panduan umum: 50% untuk kebutuhan pokok, 30% untuk keinginan pribadi, dan 20% untuk tabungan/investasi.
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setTargetNeeds(50);
+                    setTargetWants(30);
+                    setTargetSaving(20);
+                  }}
+                  style={{
+                    width: '100%', marginTop: '10px', padding: '6px',
+                    background: '#1f1f2e', border: 'none', borderRadius: '6px',
+                    color: '#f0f0f5', fontSize: '11px', fontWeight: '600', cursor: 'pointer'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#2a2a3a'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#1f1f2e'}
+                >
+                  Terapkan Standar 50/30/20
+                </button>
+              </div>
             </div>
 
             <div style={{ display: 'flex', gap: '10px' }}>

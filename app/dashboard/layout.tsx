@@ -18,7 +18,21 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .eq('email', user.email!)
     .maybeSingle();
 
-  if (!profile) redirect('/login');
+  // Jika profile tidak ditemukan tapi user ada, ini anomali (mungkin row belum dibuat)
+  // Untuk mencegah loop redirect, kita tampilkan pesan error atau fallback
+  if (!profile) {
+    return (
+      <div style={{ 
+        height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+        background: '#0a0a0f', color: '#f0f0f5', flexDirection: 'column', gap: '16px' 
+      }}>
+        <div style={{ fontSize: '40px' }}>⚠️</div>
+        <h2 style={{ margin: 0 }}>Profil Tidak Ditemukan</h2>
+        <p style={{ color: '#6b7280', fontSize: '14px' }}>Akun anda belum terdaftar di database kami.</p>
+        <a href="/login" style={{ color: '#2563eb', textDecoration: 'none', fontWeight: '600' }}>Kembali ke Login</a>
+      </div>
+    );
+  }
 
   // Fetch kategori untuk QuickAdd
   const { data: categories } = await supabase
