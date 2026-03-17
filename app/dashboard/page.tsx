@@ -44,13 +44,20 @@ export default async function DashboardPage() {
       .maybeSingle();
     
     if (!retryProfile) redirect('/login');
+    
     safeProfile = {
-      ...retryProfile,
+      id: retryProfile.id,
+      display_name: retryProfile.display_name,
+      telegram_chat_id: retryProfile.telegram_chat_id,
+      role: retryProfile.role,
       saving_target: 20,
       wants_target: 30,
       needs_target: 50
     };
   }
+
+  // Double check for TS satisfaction
+  if (!safeProfile) redirect('/login');
 
   const userId = safeProfile.id;
   const userRole = safeProfile.role || 'user';
