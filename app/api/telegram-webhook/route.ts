@@ -30,6 +30,11 @@ interface TelegramMessage {
   text?: string;
 }
 
+interface TelegramUpdate {
+  update_id?: number;
+  message?: TelegramMessage;
+}
+
 interface User {
   id: string;
   telegram_chat_id: number;
@@ -951,6 +956,34 @@ async function handleTransaction(
   );
 }
 
+async function markTelegramUpdateProcessed(params: {
+  updateId?: number;
+  chatId: number;
+  messageId?: number;
+}): Promise<'processed' | 'duplicate' | 'skipped'> {
+  const { updateId, chatId, messageId } = params;
+  if (!updateId) return 'skipped';
+
+  const { error } = await supabase
+    .from('telegram_updates_processed')
+    .insert([{
+      update_id: updateId,
+      chat_id: chatId,
+      message_id: messageId ?? null,
+      processed_at: new Date().toISOString(),
+    }]);
+
+  if (!error) return 'processed';
+  if ((error as any).code === '23505') return 'duplicate';
+
+  void writeAuditLog(chatId, 'dedupe_insert_failed', 'warn', {
+    update_id: updateId,
+    message_id: messageId ?? null,
+    error: (error as any).message,
+  });
+  return 'skipped';
+}
+
 // ─── Command: /forecast ──────────────────────────────────────────────────────
 async function cmdForecast(chatId: number, userId: string): Promise<void> {
   const now         = new Date();
@@ -1064,7 +1097,8 @@ export async function POST(request: Request) {
   if (!security.allowed) return NextResponse.json({ ok: true });
 
   const { chatId } = security.context!;
-  const msg: TelegramMessage = body.message;
+  const update: TelegramUpdate = body as TelegramUpdate;
+  const msg: TelegramMessage = update.message as TelegramMessage;
   const userText = msg.text ?? '';
 
   try {
@@ -1078,17 +1112,21 @@ export async function POST(request: Request) {
       if (!handled) {
         await sendMessage(chatId, '❓ Command tidak dikenal. Ketik /help untuk daftar perintah.');
       }
+      // Mark processed only after successful handling
+      await markTelegramUpdateProcessed({ updateId: update.update_id, chatId, messageId: msg.message_id });
       return NextResponse.json({ ok: true });
     }
 
     // Non-text messages
     if (security.context?.messageType !== 'text') {
       await sendMessage(chatId, '📝 Kirim catatan keuanganmu dalam teks ya.\nContoh: _"Makan siang 35 ribu"_');
+      await markTelegramUpdateProcessed({ updateId: update.update_id, chatId, messageId: msg.message_id });
       return NextResponse.json({ ok: true });
     }
 
     // Natural language → transaction
     await handleTransaction(chatId, userId, userText, msg.message_id);
+    await markTelegramUpdateProcessed({ updateId: update.update_id, chatId, messageId: msg.message_id });
     return NextResponse.json({ ok: true });
 
   } catch (err: any) {
@@ -1098,7 +1136,7 @@ export async function POST(request: Request) {
     // User-friendly errors for common Gemini failure modes
     const code = err?.code as string | undefined;
     if (code === 'GEMINI_QUOTA') {
-      void sendMessage(
+      await sendMessage(
         chatId,
         `⏳ *AI sedang limit/kuota habis.*\n\n` +
         `Kamu tetap bisa:\n` +
@@ -1109,7 +1147,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
     if (code === 'GEMINI_PARSE') {
-      void sendMessage(
+      await sendMessage(
         chatId,
         `🤔 Aku belum bisa membaca format transaksinya.\n\n` +
         `Coba contoh:\n` +
@@ -1122,7 +1160,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
 
-    void sendMessage(chatId, '⚠️ Terjadi kesalahan. Coba lagi dalam beberapa detik ya.');
+    await sendMessage(chatId, '⚠️ Terjadi kesalahan. Coba lagi dalam beberapa detik ya.');
     return NextResponse.json({ ok: true });
   }
 }
