@@ -22,6 +22,8 @@
   --card-bg: #111118;
   --card-shadow: none;
   --accent-primary: #2563eb;
+  --skeleton-base: #111118;
+  --skeleton-highlight: #1a1a25;
 }
 
 [data-theme='light'], :root[data-theme='light'] {
@@ -33,6 +35,8 @@
   --card-bg: #ffffff;
   --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
   --accent-primary: #3b82f6;
+  --skeleton-base: #e2e8f0;
+  --skeleton-highlight: #f1f5f9;
 }
 
 html {
