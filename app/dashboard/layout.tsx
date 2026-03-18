@@ -63,14 +63,18 @@ export default async function DashboardLayout({ children }: { children: React.Re
           --text-main: #f8fafc;
           --text-muted: #94a3b8;
           --card-bg: #111118;
+          --card-shadow: none;
+          --accent-primary: #2563eb;
         }
         [data-theme='light'] {
-          --bg-primary: #f8fafc;
-          --bg-secondary: #ffffff;
+          --bg-primary: #f1f5f9;
+          --bg-secondary: #f8fafc;
           --border-color: #e2e8f0;
           --text-main: #0f172a;
-          --text-muted: #64748b;
+          --text-muted: #475569;
           --card-bg: #ffffff;
+          --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+          --accent-primary: #3b82f6;
         }
         .fintrack-layout {
           display: flex;

@@ -11,7 +11,7 @@ interface CardProps {
 }
 
 export const Card = ({ children, style, className = "ov-card" }: CardProps) => (
-  <div className={className} style={style}>
+  <div className={className} style={{ boxShadow: 'var(--card-shadow)', ...style }}>
     {children}
   </div>
 );
@@ -24,14 +24,14 @@ interface KpiCardProps {
   valueColor?: string;
 }
 
-export const KpiCard = ({ label, value, subValue, subColor = '#94a3b8', valueColor = '#f0f0f5' }: KpiCardProps) => (
+export const KpiCard = ({ label, value, subValue, subColor = 'var(--text-muted)', valueColor = 'var(--text-main)' }: KpiCardProps) => (
   <Card>
-    <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>{label}</div>
+    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: '600' }}>{label}</div>
     <div style={{ fontSize: '20px', fontWeight: '700', color: valueColor, letterSpacing: '-0.5px' }}>
       {value}
     </div>
     {subValue && (
-      <div style={{ fontSize: '11px', color: subColor, marginTop: '4px' }}>
+      <div style={{ fontSize: '11px', color: subColor, marginTop: '4px', fontWeight: '500' }}>
         {subValue}
       </div>
     )}
@@ -49,23 +49,24 @@ interface ProgressCardProps {
   title?: string;
 }
 
-export const ProgressCard = ({ label, current, target, progress, color = '#2563eb', footerLeft, footerRight, title }: ProgressCardProps) => (
+export const ProgressCard = ({ label, current, target, progress, color = 'var(--accent-primary)', footerLeft, footerRight, title }: ProgressCardProps) => (
   <Card>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-      <span style={{ fontSize: '13px', color: '#e2e8f0', fontWeight: '500' }}>{label}</span>
-      <span style={{ fontSize: '11px', color: '#94a3b8' }}>{fmt(current)} / {fmt(target)}</span>
+      <span style={{ fontSize: '13px', color: 'var(--text-main)', fontWeight: '600' }}>{label}</span>
+      <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '500' }}>{fmt(current)} / {fmt(target)}</span>
     </div>
-    <div style={{ height: '6px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
+    <div style={{ height: '8px', background: 'var(--border-color)', borderRadius: '99px', overflow: 'hidden' }}>
       <div style={{
         height: '100%', borderRadius: '99px',
         width: `${progress}%`,
         background: color,
+        transition: 'width 0.5s ease-in-out'
       }}/>
     </div>
-    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-      <span style={{ fontSize: '11px', color: '#94a3b8' }}>{footerLeft}</span>
+    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
+      <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '500' }}>{footerLeft}</span>
       <div style={{ textAlign: 'right' }}>
-        <span style={{ fontSize: '11px', color: color, fontWeight: '600', display: 'block' }}>
+        <span style={{ fontSize: '11px', color: color, fontWeight: '700', display: 'block' }}>
           {progress}% Terpenuhi
         </span>
         {footerRight}

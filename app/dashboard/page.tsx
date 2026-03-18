@@ -247,25 +247,6 @@ export default async function DashboardPage() {
   const firstName  = safeProfile.display_name?.split(' ')[0] ?? 'Kamu';
 
   // CSS Variables for Theme
-  const themeStyles = `
-    :root {
-      --bg-primary: #111118;
-      --bg-secondary: #0a0a0f;
-      --border-color: #1f1f2e;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --card-bg: #111118;
-    }
-    [data-theme='light'] {
-      --bg-primary: #f8fafc;
-      --bg-secondary: #ffffff;
-      --border-color: #e2e8f0;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --card-bg: #ffffff;
-    }
-  `;
-
   // Spending Efficiency Logic Replacement for Ratio Visualization
   const spendingEfficiency = expense > 0 ? (needsSum / expense) * 100 : 0;
   const efficiencyLabel = spendingEfficiency <= 50 ? 'Sangat Efisien' : spendingEfficiency <= 70 ? 'Wajar' : 'Banyak Keinginan';
@@ -276,21 +257,21 @@ export default async function DashboardPage() {
   const savingRateYear = incomeYear > 0 ? ((incomeYear - expenseYear) / incomeYear) * 100 : 0;
 
   const monthlyKpis = [
-    { label: "Kekayaan Bersih", value: fmt(Math.abs(netWorth)), subValue: `Aset: ${fmt(totalAsset)}`, valueColor: netWorth >= 0 ? '#4ade80' : '#f87171' },
-    { label: "Pemasukan", value: fmt(income), subValue: `Bulan ${monthLabel}`, valueColor: "#4ade80" },
-    { label: "Pengeluaran", value: fmt(expense), subValue: prevExp > 0 ? `${expTrend > 0 ? '↑' : '↓'} ${Math.abs(expTrend).toFixed(0)}%` : `Bulan ${monthLabel}`, valueColor: "#f87171", subColor: Math.abs(expTrend) > 5 ? (expTrend > 0 ? '#f87171' : '#4ade80') : '#6b7280' },
-    { label: "Saving Rate", value: `${savingRate.toFixed(1)}%`, subValue: prevInc > 0 ? `${savRateTrend > 0 ? '↑' : '↓'} ${Math.abs(savRateTrend).toFixed(1)}%` : 'Target > 20%', valueColor: savingRate > 20 ? '#4ade80' : savingRate > 10 ? '#f59e0b' : '#f87171', subColor: Math.abs(savRateTrend) > 2 ? (savRateTrend > 0 ? '#4ade80' : '#f87171') : '#6b7280' },
+    { label: "Kekayaan Bersih", value: fmt(Math.abs(netWorth)), subValue: `Aset: ${fmt(totalAsset)}`, valueColor: netWorth >= 0 ? '#10b981' : '#ef4444' },
+    { label: "Pemasukan", value: fmt(income), subValue: `Bulan ${monthLabel}`, valueColor: "#10b981" },
+    { label: "Pengeluaran", value: fmt(expense), subValue: prevExp > 0 ? `${expTrend > 0 ? '↑' : '↓'} ${Math.abs(expTrend).toFixed(0)}%` : `Bulan ${monthLabel}`, valueColor: "#ef4444", subColor: Math.abs(expTrend) > 5 ? (expTrend > 0 ? '#ef4444' : '#10b981') : 'var(--text-muted)' },
+    { label: "Saving Rate", value: `${savingRate.toFixed(1)}%`, subValue: prevInc > 0 ? `${savRateTrend > 0 ? '↑' : '↓'} ${Math.abs(savRateTrend).toFixed(1)}%` : 'Target > 20%', valueColor: savingRate > 20 ? '#10b981' : savingRate > 10 ? '#f59e0b' : '#ef4444', subColor: Math.abs(savRateTrend) > 2 ? (savRateTrend > 0 ? '#10b981' : '#ef4444') : 'var(--text-muted)' },
     { label: "Survival Time", value: `${survivalTime.toFixed(1)} bln`, subValue: survivalLabel, valueColor: survivalColor, subColor: survivalColor },
-    { label: "Burn Rate", value: fmt(burnRate), subValue: "Rata-rata 3 bln", valueColor: "#f87171" }
+    { label: "Burn Rate", value: fmt(burnRate), subValue: "Rata-rata 3 bln", valueColor: "#ef4444" }
   ];
 
   const yearlyKpis = [
-    { label: "Kekayaan Bersih", value: fmt(Math.abs(netWorth)), subValue: `Liabilitas: ${fmt(totalLiab)}`, valueColor: netWorth >= 0 ? '#4ade80' : '#f87171' },
-    { label: "Total Pemasukan", value: fmt(incomeYear), subValue: `Tahun ${now.getFullYear()}`, valueColor: "#4ade80" },
-    { label: "Total Pengeluaran", value: fmt(expenseYear), subValue: `Tahun ${now.getFullYear()}`, valueColor: "#f87171" },
-    { label: "Avg Saving Rate", value: `${savingRateYear.toFixed(1)}%`, subValue: "YTD (Year to Date)", valueColor: savingRateYear > 20 ? '#4ade80' : '#f87171' },
+    { label: "Kekayaan Bersih", value: fmt(Math.abs(netWorth)), subValue: `Liabilitas: ${fmt(totalLiab)}`, valueColor: netWorth >= 0 ? '#10b981' : '#ef4444' },
+    { label: "Total Pemasukan", value: fmt(incomeYear), subValue: `Tahun ${now.getFullYear()}`, valueColor: "#10b981" },
+    { label: "Total Pengeluaran", value: fmt(expenseYear), subValue: `Tahun ${now.getFullYear()}`, valueColor: "#ef4444" },
+    { label: "Avg Saving Rate", value: `${savingRateYear.toFixed(1)}%`, subValue: "YTD (Year to Date)", valueColor: savingRateYear > 20 ? '#10b981' : '#ef4444' },
     { label: "Survival Time", value: `${survivalTime.toFixed(1)} bln`, subValue: survivalLabel, valueColor: survivalColor, subColor: survivalColor },
-    { label: "Avg Burn Rate", value: fmt(incomeYear > 0 ? expenseYear / (now.getMonth() + 1) : 0), subValue: "Rerata per bulan", valueColor: "#f87171" }
+    { label: "Avg Burn Rate", value: fmt(incomeYear > 0 ? expenseYear / (now.getMonth() + 1) : 0), subValue: "Rerata per bulan", valueColor: "#ef4444" }
   ];
 
   return (
@@ -320,32 +301,33 @@ export default async function DashboardPage() {
           .ov-grid3 { grid-template-columns: 1fr; gap: 8px; }
           .ov-grid-inner { grid-template-columns: 1fr !important; }
         }
-        .ov-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; }
-        @media (max-width: 768px) { .ov-card { padding: 14px; border-radius: 10px; } }
+        .ov-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .ov-card:hover { transform: translateY(-2px); }
+        @media (max-width: 768px) { .ov-card { padding: 14px; border-radius: 10px; } .ov-card:hover { transform: none; } }
       `}</style>
 
       {/* Header */}
       <div className="ov-header">
         <div>
-          <h1 style={{ fontSize: '20px', fontWeight: '600', margin: '0 0 4px', letterSpacing: '-0.4px', color: 'var(--text-main)' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 4px', letterSpacing: '-0.5px', color: 'var(--text-main)' }}>
             Selamat datang, {firstName} 👋
           </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>{dateLabel}</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: 0, fontWeight: '500' }}>{dateLabel}</p>
         </div>
         <div style={{ 
-          background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', 
-          padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '14px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+          background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '16px', 
+          padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '16px',
+          boxShadow: 'var(--card-shadow)'
         }}>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '2px' }}>Archetype: {archetype}</div>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '2px' }}>Financial Health</div>
-            <div style={{ fontSize: '13px', fontWeight: '700', color: healthColor }}>{healthLabel}</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: '2px', fontWeight: '700' }}>{archetype}</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: '2px', fontWeight: '700' }}>Financial Health</div>
+            <div style={{ fontSize: '14px', fontWeight: '800', color: healthColor }}>{healthLabel}</div>
           </div>
           <div style={{ 
-            width: '44px', height: '44px', borderRadius: '50%', border: `3px solid ${healthColor}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: '800',
-            color: 'var(--text-main)', background: 'rgba(255,255,255,0.02)'
+            width: '48px', height: '48px', borderRadius: '50%', border: `4px solid ${healthColor}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: '900',
+            color: 'var(--text-main)', background: 'var(--bg-primary)'
           }}>
             {healthScore}
           </div>
@@ -354,13 +336,13 @@ export default async function DashboardPage() {
 
       {/* Step A: Anomaly Alert */}
       {anomaly.isAnomaly && (
-        <Card style={{ marginBottom: '12px', background: 'rgba(239,68,68,0.1)', border: '1px solid #ef4444' }}>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <div style={{ fontSize: '24px' }}>🚨</div>
+        <Card style={{ marginBottom: '16px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)' }}>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <div style={{ fontSize: '28px' }}>🚨</div>
             <div>
-              <div style={{ fontSize: '14px', fontWeight: '700', color: '#f87171' }}>Peringatan: Pengeluaran Hari Ini Melonjak!</div>
-              <div style={{ fontSize: '12px', color: '#fca5a5' }}>
-                Total: <strong>{fmt(anomaly.amount)}</strong> (Melebihi budget harian <strong>{fmt(anomaly.limit)}</strong> sebesar <strong>{fmt(anomaly.diff)}</strong>).
+              <div style={{ fontSize: '15px', fontWeight: '800', color: '#ef4444' }}>Peringatan: Pengeluaran Hari Ini Melonjak!</div>
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>
+                Total: <strong style={{color: 'var(--text-main)'}}>{fmt(anomaly.amount)}</strong> (Melebihi budget harian <strong style={{color: 'var(--text-main)'}}>{fmt(anomaly.limit)}</strong> sebesar <strong style={{color: '#ef4444'}}>{fmt(anomaly.diff)}</strong>).
               </div>
             </div>
           </div>
@@ -368,16 +350,16 @@ export default async function DashboardPage() {
       )}
 
       {/* Recommendations */}
-      <Card style={{ marginBottom: '12px', background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)' }}>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-          <div style={{ fontSize: '20px' }}>💡</div>
+      <Card style={{ marginBottom: '16px', background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)' }}>
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+          <div style={{ fontSize: '24px' }}>💡</div>
           <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-              <div style={{ fontSize: '13px', fontWeight: '600', color: '#f59e0b' }}>Rekomendasi Konsultan Finansial</div>
-              <a href="/dashboard/intelligence" style={{ fontSize: '11px', color: '#60a5fa', textDecoration: 'none' }}>Lihat Formula Perhitungan →</a>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <div style={{ fontSize: '14px', fontWeight: '800', color: '#d97706' }}>Rekomendasi Konsultan Finansial</div>
+              <a href="/dashboard/intelligence" style={{ fontSize: '12px', color: '#3b82f6', textDecoration: 'none', fontWeight: '600' }}>Lihat Detail →</a>
             </div>
-            <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#9ca3af', lineHeight: '1.6' }}>
-              {healthRecs.map((rec, i) => <li key={i} style={{ marginBottom: '2px' }}>{rec}</li>)}
+            <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.6', fontWeight: '500' }}>
+              {healthRecs.map((rec, i) => <li key={i} style={{ marginBottom: '4px' }}>{rec}</li>)}
             </ul>
           </div>
         </div>
@@ -387,41 +369,42 @@ export default async function DashboardPage() {
       <div className="ov-section-title">The Protector (Keamanan) 🛡️</div>
       <div className="ov-grid3">
         <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '12px' }}>
-            <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500', flex: 1 }}>Cashflow Forecast (Est. Akhir Bulan)</span>
-            <span style={{ fontSize: '15px', fontWeight: '700', color: forecast.isNegative ? '#f87171' : '#4ade80', textAlign: 'right' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px', gap: '12px' }}>
+            <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '700', flex: 1 }}>CASHFLOW FORECAST</span>
+            <span style={{ fontSize: '16px', fontWeight: '800', color: forecast.isNegative ? '#ef4444' : '#10b981', textAlign: 'right' }}>
               {forecast.isNegative ? 'Defisit' : 'Surplus'} {fmt(Math.abs(forecast.predictedBalance))}
             </span>
           </div>
-          <div style={{ height: '6px', background: 'var(--border-color)', borderRadius: '99px', overflow: 'hidden' }}>
+          <div style={{ height: '8px', background: 'var(--border-color)', borderRadius: '99px', overflow: 'hidden' }}>
             <div style={{ 
               height: '100%', borderRadius: '99px', 
               width: `${Math.min(pct(forecast.predictedTotalExp, income), 100)}%`, 
-              background: forecast.isNegative ? '#ef4444' : '#2563eb' 
+              background: forecast.isNegative ? '#ef4444' : '#3b82f6',
+              transition: 'width 0.5s ease'
             }}/>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-            <span style={{ fontSize: '11px', color: '#94a3b8' }}>Prediksi total: {fmt(forecast.predictedTotalExp)}</span>
-            <span style={{ fontSize: '10px', color: '#64748b', fontStyle: 'italic' }}>Akurasi {forecast.confidence}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '500' }}>Est. Total Pengeluaran: {fmt(forecast.predictedTotalExp)}</span>
+            <span style={{ fontSize: '11px', color: '#64748b', fontStyle: 'italic', fontWeight: '600' }}>Akurasi {forecast.confidence}</span>
           </div>
         </Card>
         <ProgressCard 
-          label="Debt-to-Income (Batas Aman 30%)" 
+          label="DEBT-TO-INCOME (MAX 30%)" 
           current={debtRatio} 
           target={30} 
           progress={Math.min((debtRatio / 30) * 100, 100)} 
           color={debtRatio > 35 ? '#ef4444' : debtRatio > 30 ? '#f59e0b' : '#10b981'} 
-          footerLeft={`Rasio: ${debtRatio.toFixed(1)}%`} 
-          footerRight={<span style={{ fontSize: '10px', color: '#6b7280' }}>{debtRatio > 30 ? 'Bahaya!' : 'Terkendali'}</span>} 
+          footerLeft={`Rasio Saat Ini: ${debtRatio.toFixed(1)}%`} 
+          footerRight={<span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>{debtRatio > 30 ? 'Bahaya!' : 'Terkendali'}</span>} 
         />
         <ProgressCard 
-          label="Dana Darurat (Safety Net)" 
+          label="DANA DARURAT (MIN 6X)" 
           current={liquidAssets} 
           target={efTargetMin} 
           progress={efProgress} 
-          color={efProgress >= 100 ? '#4ade80' : efProgress >= 50 ? '#f59e0b' : '#f87171'} 
-          footerLeft={`Target: 6x Exp`} 
-          footerRight={<span style={{ fontSize: '11px', color: '#6b7280' }}>{efProgress >= 100 ? 'Aman ✅' : `${fmt(efTargetMin - liquidAssets)} lagi`}</span>} 
+          color={efProgress >= 100 ? '#10b981' : efProgress >= 50 ? '#f59e0b' : '#ef4444'} 
+          footerLeft={`Safety Net: 6x Exp`} 
+          footerRight={<span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>{efProgress >= 100 ? 'Aman ✅' : `${fmt(efTargetMin - liquidAssets)} lagi`}</span>} 
         />
       </div>
 
@@ -431,29 +414,29 @@ export default async function DashboardPage() {
       
       <div className="ov-grid2">
         <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#e2e8f0', fontWeight: '500' }}>Realisasi Saldo {monthLabel}</span>
-            <span style={{ fontSize: '15px', fontWeight: '700', color: balance >= 0 ? '#4ade80' : '#f87171' }}>{balance >= 0 ? '+' : '-'}{fmt(Math.abs(balance))}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '700' }}>REALISASI SALDO {monthLabel.toUpperCase()}</span>
+            <span style={{ fontSize: '16px', fontWeight: '800', color: balance >= 0 ? '#10b981' : '#ef4444' }}>{balance >= 0 ? '+' : '-'}{fmt(Math.abs(balance))}</span>
           </div>
           {income > 0 && (
-            <div style={{ height: '6px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
-              <div style={{ height: '100%', borderRadius: '99px', width: `${Math.min(pct(expense, income), 100)}%`, background: pct(expense, income) > 90 ? '#ef4444' : pct(expense, income) > 70 ? '#f59e0b' : '#2563eb' }}/>
+            <div style={{ height: '8px', background: 'var(--border-color)', borderRadius: '99px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', borderRadius: '99px', width: `${Math.min(pct(expense, income), 100)}%`, background: pct(expense, income) > 90 ? '#ef4444' : pct(expense, income) > 70 ? '#f59e0b' : '#3b82f6', transition: 'width 0.5s ease' }}/>
             </div>
           )}
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-            <span style={{ fontSize: '11px', color: '#94a3b8' }}>{income > 0 ? `${pct(expense, income)}% terpakai` : 'Belum ada pemasukan'}</span>
-            <span style={{ fontSize: '11px', color: '#94a3b8' }}>{txs.length} transaksi</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>{income > 0 ? `${pct(expense, income)}% terpakai` : 'Belum ada pemasukan'}</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '500' }}>{txs.length} transaksi tercatat</span>
           </div>
         </Card>
         <div className="ov-grid-inner" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <Card>
-            <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>Inflasi Gaya Hidup</div>
-            <div style={{ fontSize: '14px', fontWeight: '700', color: lifestyleColor }}>{lifestyleStatus}</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px', fontWeight: '700' }}>Inflasi Gaya Hidup</div>
+            <div style={{ fontSize: '15px', fontWeight: '800', color: lifestyleColor }}>{lifestyleStatus}</div>
           </Card>
-          <Card style={{ border: suspectedSubs.length > 0 ? '1px solid #f59e0b' : '1px solid #1f1f2e' }}>
-            <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>Langganan</div>
-            <div style={{ fontSize: '14px', fontWeight: '700', color: suspectedSubs.length > 0 ? '#f59e0b' : '#4ade80' }}>
-              {suspectedSubs.length} Aktif
+          <Card style={{ border: suspectedSubs.length > 0 ? '1px solid #f59e0b' : '1px solid var(--border-color)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px', fontWeight: '700' }}>Langganan Aktif</div>
+            <div style={{ fontSize: '15px', fontWeight: '800', color: suspectedSubs.length > 0 ? '#f59e0b' : '#10b981' }}>
+              {suspectedSubs.length} Layanan
             </div>
           </Card>
         </div>
@@ -463,77 +446,79 @@ export default async function DashboardPage() {
       <div className="ov-section-title">The Journey (Masa Depan) 🚀</div>
       <div className="ov-grid2">
         <ProgressCard 
-          label="Kebebasan Finansial (Financial Independence)" 
+          label="FINANCIAL INDEPENDENCE (FI)" 
           current={netWorth} 
           target={fiNumber} 
           progress={fiProgress} 
           color="#8b5cf6" 
-          footerLeft={`Target: ${fmt(fiNumber)}`} 
-          footerRight={<span style={{ fontSize: '10px', color: '#6b7280' }}>Est. {yearsToFI} thn lagi</span>} 
+          footerLeft={`Target Kebebasan: ${fmt(fiNumber)}`} 
+          footerRight={<span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>Est. {yearsToFI} thn lagi</span>} 
         />
         <Card style={{ position: 'relative', overflow: 'hidden' }}>
           {nwHistory.length > 2 && (
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '40px', opacity: 0.1, pointerEvents: 'none' }}>
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '50px', opacity: 0.15, pointerEvents: 'none' }}>
               <svg width="100%" height="100%" preserveAspectRatio="none" viewBox={`0 0 ${nwHistory.length - 1} 100`}>
-                <polyline fill="none" stroke={balance >= 0 ? '#4ade80' : '#f87171'} strokeWidth="4" points={nwHistory.map((h, i) => `${i},${100 - ((h.net_worth - Math.min(...nwHistory.map(x => x.net_worth))) / (Math.max(...nwHistory.map(x => x.net_worth)) - Math.min(...nwHistory.map(x => x.net_worth)) || 1)) * 100}`).join(' ')} />
+                <polyline fill="none" stroke={balance >= 0 ? '#10b981' : '#ef4444'} strokeWidth="6" points={nwHistory.map((h, i) => `${i},${100 - ((h.net_worth - Math.min(...nwHistory.map(x => x.net_worth))) / (Math.max(...nwHistory.map(x => x.net_worth)) - Math.min(...nwHistory.map(x => x.net_worth)) || 1)) * 100}`).join(' ')} />
               </svg>
             </div>
           )}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Pertumbuhan Kekayaan</span>
-            <span style={{ fontSize: '14px', fontWeight: '700', color: balance >= 0 ? '#4ade80' : '#f87171' }}>{balance >= 0 ? '↑' : '↓'} {fmt(Math.abs(balance))}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '700' }}>PERTUMBUHAN KEKAYAAN</span>
+            <span style={{ fontSize: '16px', fontWeight: '800', color: balance >= 0 ? '#10b981' : '#ef4444' }}>{balance >= 0 ? '↑' : '↓'} {fmt(Math.abs(balance))}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '11px', color: '#6b7280' }}>{balance >= 0 ? 'Akselerasi 🚀' : 'Deselerasi 📉'}</span>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>{balance >= 0 ? 'Akselerasi 🚀' : 'Deselerasi 📉'}</span>
           </div>
         </Card>
       </div>
 
       <div className="ov-grid3">
         <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>Goals Utama</span>
-            <a href="/dashboard/goals" style={{ fontSize: '11px', color: '#60a5fa', textDecoration: 'none' }}>Lihat →</a>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)' }}>GOALS UTAMA</span>
+            <a href="/dashboard/goals" style={{ fontSize: '12px', color: '#3b82f6', textDecoration: 'none', fontWeight: '600' }}>Detail →</a>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {goalList.slice(0, 2).map(g => {
               const p = pct(g.current_amount, g.target_amount);
               return (
                 <div key={g.id}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: '500' }}>{g.icon} {g.name}</span>
-                    <span style={{ fontSize: '11px', color: '#6b7280' }}>{p}%</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)' }}>{g.icon} {g.name}</span>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '700' }}>{p}%</span>
                   </div>
-                  <div style={{ height: '4px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}><div style={{ height: '100%', width: `${p}%`, background: p >= 100 ? '#4ade80' : '#2563eb' }}/></div>
+                  <div style={{ height: '6px', background: 'var(--border-color)', borderRadius: '99px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${p}%`, background: p >= 100 ? '#10b981' : '#3b82f6', transition: 'width 0.5s ease' }}/>
+                  </div>
                 </div>
               );
             })}
           </div>
         </Card>
-        <Card style={{ background: 'linear-gradient(135deg, #111118 0%, #1a1a2e 100%)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span style={{ fontSize: '13px', fontWeight: '600', color: '#8b5cf6' }}>🏆 Milestone</span>
-            <span style={{ fontSize: '11px', color: '#9ca3af' }}>{fmt(nextMilestone)}</span>
+        <Card style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)', border: 'none' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <span style={{ fontSize: '13px', fontWeight: '800', color: '#c084fc' }}>🏆 MILESTONE</span>
+            <span style={{ fontSize: '12px', color: '#e9d5ff', fontWeight: '600' }}>{fmt(nextMilestone)}</span>
           </div>
-          <div style={{ height: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '99px', overflow: 'hidden', marginBottom: '8px' }}>
-            <div style={{ height: '100%', width: `${milestoneProgress}%`, background: 'linear-gradient(90deg, #8b5cf6 0%, #d946ef 100%)' }}/>
+          <div style={{ height: '12px', background: 'rgba(255,255,255,0.1)', borderRadius: '99px', overflow: 'hidden', marginBottom: '10px' }}>
+            <div style={{ height: '100%', width: `${milestoneProgress}%`, background: 'linear-gradient(90deg, #a855f7 0%, #ec4899 100%)', transition: 'width 0.8s ease' }}/>
           </div>
-          <div style={{ fontSize: '10px', color: '#6b7280', textAlign: 'center' }}>{milestoneProgress.toFixed(0)}% menuju target berikut</div>
+          <div style={{ fontSize: '11px', color: '#e9d5ff', textAlign: 'center', fontWeight: '600' }}>{milestoneProgress.toFixed(0)}% Menuju Target Berikut</div>
         </Card>
         <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af' }}>Alokasi Aset</span>
-            <span style={{ fontSize: '12px', fontWeight: '600', color: '#4ade80' }}>{cashPct}% Kas</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '700' }}>ALOKASI ASET</span>
+            <span style={{ fontSize: '13px', fontWeight: '800', color: '#10b981' }}>{cashPct}% Kas</span>
           </div>
-          <div style={{ height: '12px', background: '#1f1f2e', borderRadius: '4px', overflow: 'hidden', display: 'flex', marginBottom: '8px' }}>
-            <div style={{ width: `${cashPct}%`, background: '#4ade80' }}/>
-             <div style={{ width: `${invPct}%`, background: '#2563eb' }}/>
-             <div style={{ width: `${otherPct}%`, background: '#6b7280' }}/>
+          <div style={{ height: '14px', background: 'var(--border-color)', borderRadius: '6px', overflow: 'hidden', display: 'flex', marginBottom: '12px' }}>
+            <div style={{ width: `${cashPct}%`, background: '#10b981' }}/>
+             <div style={{ width: `${invPct}%`, background: '#3b82f6' }}/>
+             <div style={{ width: `${otherPct}%`, background: '#94a3b8' }}/>
            </div>
-           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-             <div style={{ fontSize: '9px', display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: '6px', height: '6px', background: '#4ade80' }}/> Kas</div>
-             <div style={{ fontSize: '9px', display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: '6px', height: '6px', background: '#2563eb' }}/> Invest</div>
-             <div style={{ fontSize: '9px', display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: '6px', height: '6px', background: '#6b7280' }}/> Lain</div>
+           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+             <div style={{ fontSize: '10px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600', color: 'var(--text-muted)' }}><div style={{ width: '8px', height: '8px', background: '#10b981', borderRadius: '2px' }}/> Kas</div>
+             <div style={{ fontSize: '10px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600', color: 'var(--text-muted)' }}><div style={{ width: '8px', height: '8px', background: '#3b82f6', borderRadius: '2px' }}/> Invest</div>
+             <div style={{ fontSize: '10px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600', color: 'var(--text-muted)' }}><div style={{ width: '8px', height: '8px', background: '#94a3b8', borderRadius: '2px' }}/> Lain</div>
            </div>
         </Card>
       </div>
@@ -542,33 +527,34 @@ export default async function DashboardPage() {
       <div className="ov-section-title">The Lab (Simulasi & Eksperimen) 🧠</div>
       <div className="ov-grid2">
         <div className="ov-grid-inner" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          <Card style={{ border: '1px solid #3b82f6', background: 'rgba(59,130,246,0.05)' }}>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: '#60a5fa', marginBottom: '8px' }}>Biaya Peluang ☕</div>
-            <div style={{ fontSize: '11px', color: '#94a3b8' }}>Jika {fmt(dailyCoffee)}/hari diinvestasikan:</div>
-            <div style={{ marginTop: '8px' }}>
-              <div style={{ fontSize: '14px', fontWeight: '700', color: '#4ade80' }}>~{fmt(invested20Y)}</div>
-              <div style={{ fontSize: '9px', color: '#64748b' }}>Dalam 20 Tahun (ROI 7%)</div>
+          <Card style={{ border: '1px solid #3b82f6', background: 'rgba(59,130,246,0.06)' }}>
+            <div style={{ fontSize: '14px', fontWeight: '800', color: '#3b82f6', marginBottom: '10px' }}>Biaya Peluang ☕</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>Jika <strong style={{color: 'var(--text-main)'}}>{fmt(dailyCoffee)}</strong>/hari diinvestasikan:</div>
+            <div style={{ marginTop: '10px' }}>
+              <div style={{ fontSize: '16px', fontWeight: '900', color: '#10b981' }}>~{fmt(invested20Y)}</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600', marginTop: '2px' }}>Dalam 20 Tahun (ROI 7%)</div>
             </div>
           </Card>
-          <Card style={{ border: '1px solid #ec4899', background: 'rgba(236,72,153,0.05)' }}>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: '#f472b6', marginBottom: '8px' }}>Efek Belanja Besar 🛍️</div>
-            <div style={{ fontSize: '11px', color: '#94a3b8' }}>Beli {fmt(bigPurchaseSample)} tunai:</div>
-            <div style={{ marginTop: '8px' }}>
-              <div style={{ fontSize: '14px', fontWeight: '700', color: '#f87171' }}>+{delayInYears.toFixed(1)} Thn Kerja ⏳</div>
+          <Card style={{ border: '1px solid #ec4899', background: 'rgba(236,72,153,0.06)' }}>
+            <div style={{ fontSize: '14px', fontWeight: '800', color: '#ec4899', marginBottom: '10px' }}>Efek Belanja Besar 🛍️</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>Beli <strong style={{color: 'var(--text-main)'}}>{fmt(bigPurchaseSample)}</strong> tunai:</div>
+            <div style={{ marginTop: '10px' }}>
+              <div style={{ fontSize: '16px', fontWeight: '900', color: '#ef4444' }}>+{delayInYears.toFixed(1)} Thn Kerja ⏳</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600', marginTop: '2px' }}>Pensiun Tertunda</div>
             </div>
           </Card>
         </div>
         <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '13px', fontWeight: '500', color: '#94a3b8' }}>Prioritas Hutang</span>
-            <span style={{ fontSize: '12px', fontWeight: '700', color: '#f87171' }}>{fmt(totalLiabVal)}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)' }}>PRIORITAS HUTANG</span>
+            <span style={{ fontSize: '14px', fontWeight: '800', color: '#ef4444' }}>{fmt(totalLiabVal)}</span>
           </div>
-          {liabilities.length === 0 ? <div style={{ textAlign: 'center', color: '#4ade80', fontSize: '11px' }}>Bebas Hutang ✅</div> : (
-            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+          {liabilities.length === 0 ? <div style={{ textAlign: 'center', color: '#10b981', fontSize: '13px', fontWeight: '600', padding: '10px 0' }}>Bebas Hutang ✅</div> : (
+            <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '6px' }}>
               {liabilities.map((l, i) => (
-                <div key={l.id} style={{ flexShrink: 0, padding: '6px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px', border: '1px solid #1f1f2e' }}>
-                  <div style={{ fontSize: '10px', color: '#94a3b8' }}>{l.name}</div>
-                  <div style={{ fontSize: '11px', fontWeight: '600' }}>{fmt(l.value)}</div>
+                <div key={l.id} style={{ flexShrink: 0, padding: '10px 14px', background: 'var(--bg-primary)', borderRadius: '10px', border: '1px solid var(--border-color)', boxShadow: 'var(--card-shadow)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700', marginBottom: '4px' }}>{l.name.toUpperCase()}</div>
+                  <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-main)' }}>{fmt(l.value)}</div>
                 </div>
               ))}
             </div>
@@ -576,8 +562,8 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-        <p style={{ color: '#6b7280', fontSize: '12px' }}>Dashboard ini menggunakan algoritma finansial profesional. <a href="/dashboard/intelligence" style={{ color: '#60a5fa' }}>Pelajari selengkapnya.</a></p>
+      <div style={{ padding: '60px 20px', textAlign: 'center' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '13px', fontWeight: '500' }}>Dashboard ini menggunakan algoritma finansial profesional. <a href="/dashboard/intelligence" style={{ color: '#3b82f6', fontWeight: '700', textDecoration: 'none' }}>Pelajari selengkapnya.</a></p>
       </div>
     </div>
   );
