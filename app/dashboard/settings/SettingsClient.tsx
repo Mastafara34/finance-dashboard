@@ -55,12 +55,13 @@ function Section({ title, subtitle, children }: {
 }) {
   return (
     <div style={{
-      background: '#111118', border: '1px solid #1f1f2e',
+      background: 'var(--card-bg)', border: '1px solid var(--border-color)',
       borderRadius: '14px', overflow: 'hidden', marginBottom: '16px',
+      boxShadow: 'var(--card-shadow)'
     }}>
-      <div style={{ padding: '18px 20px', borderBottom: '1px solid #1f1f2e' }}>
-        <div style={{ fontSize: '14px', fontWeight: '600', color: '#f0f0f5' }}>{title}</div>
-        {subtitle && <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>{subtitle}</div>}
+      <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-color)' }}>
+        <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)' }}>{title}</div>
+        {subtitle && <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: '500' }}>{subtitle}</div>}
       </div>
       <div style={{ padding: '20px' }}>{children}</div>
     </div>

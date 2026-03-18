@@ -43,10 +43,10 @@ const fmtK = (n: number) => {
 };
 
 function statusConfig(pct: number) {
-  if (pct >= 100) return { color: '#ef4444', bg: '#2d0f0f', border: '#7f1d1d', label: 'Melebihi limit' };
-  if (pct >= 80)  return { color: '#f59e0b', bg: '#1a1000', border: '#3d2a00', label: 'Hampir habis' };
-  if (pct >= 50)  return { color: '#60a5fa', bg: '#0c1f3a', border: '#1e3a5f', label: 'Setengah jalan' };
-  return           { color: '#4ade80', bg: '#0f2d1a', border: '#166534', label: 'Aman' };
+  if (pct >= 100) return { color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)', border: 'rgba(239, 68, 68, 0.2)', label: 'Melebihi limit' };
+  if (pct >= 80)  return { color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.2)', label: 'Hampir habis' };
+  if (pct >= 50)  return { color: 'var(--accent-primary)', bg: 'rgba(37, 99, 235, 0.1)', border: 'rgba(37, 99, 235, 0.2)', label: 'Setengah jalan' };
+  return           { color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.2)', label: 'Aman' };
 }
 
 // ─── Envelope Card ────────────────────────────────────────────────────────────
@@ -64,10 +64,11 @@ function EnvelopeCard({
 
   return (
     <div style={{
-      background: '#111118',
-      border: `1px solid ${pct >= 80 ? sc.border : '#1f1f2e'}`,
+      background: 'var(--card-bg)',
+      border: `1px solid ${pct >= 80 ? sc.border : 'var(--border-color)'}`,
       borderRadius: '14px', padding: '20px',
-      transition: 'border-color .2s',
+      transition: 'all .2s',
+      boxShadow: 'var(--card-shadow)',
     }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
@@ -80,7 +81,7 @@ function EnvelopeCard({
             {budget.categories?.icon ?? '📦'}
           </div>
           <div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#f0f0f5' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>
               {budget.categories?.name ?? 'Kategori'}
             </div>
             <div style={{ fontSize: '11px', marginTop: '2px', color: sc.color, fontWeight: '500' }}>
@@ -101,7 +102,7 @@ function EnvelopeCard({
 
       {/* Progress bar */}
       <div style={{ marginBottom: '12px' }}>
-        <div style={{ height: '8px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
+        <div style={{ height: '8px', background: 'var(--bg-secondary)', borderRadius: '99px', overflow: 'hidden' }}>
           <div style={{
             height: '100%', borderRadius: '99px',
             width: `${Math.min(pct, 100)}%`,
@@ -114,15 +115,16 @@ function EnvelopeCard({
       {/* Numbers */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '14px' }}>
         {[
-          { label: 'Terpakai',  value: fmt(spent),               color: '#f87171' },
-          { label: 'Sisa',      value: fmt(sisa),                 color: sisa > 0 ? '#4ade80' : '#f87171' },
-          { label: 'Limit',     value: fmt(budget.limit_amount),  color: '#9ca3af' },
+          { label: 'Terpakai',  value: fmt(spent),               color: '#ef4444' },
+          { label: 'Sisa',      value: fmt(sisa),                 color: sisa > 0 ? '#10b981' : '#ef4444' },
+          { label: 'Limit',     value: fmt(budget.limit_amount),  color: 'var(--text-muted)' },
         ].map(s => (
           <div key={s.label} style={{
-            background: '#0a0a0f', borderRadius: '8px', padding: '8px 10px', textAlign: 'center',
+            background: 'var(--bg-secondary)', borderRadius: '8px', padding: '8px 10px', textAlign: 'center',
+            border: '1px solid var(--border-color)',
           }}>
-            <div style={{ fontSize: '10px', color: '#6b7280', marginBottom: '3px',
-              textTransform: 'uppercase', letterSpacing: '.04em' }}>{s.label}</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '3px',
+              textTransform: 'uppercase', letterSpacing: '.04em', fontWeight: '700' }}>{s.label}</div>
             <div style={{ fontSize: '12px', fontWeight: '700', color: s.color }}>
               {fmtK(parseFloat(s.value.replace(/[^0-9]/g, '')))}
             </div>
@@ -134,19 +136,19 @@ function EnvelopeCard({
       <div style={{ display: 'flex', gap: '8px' }}>
         <button onClick={() => onEdit(budget)} style={{
           flex: 1, padding: '7px', background: 'transparent',
-          border: '1px solid #2a2a3a', borderRadius: '8px',
-          color: '#9ca3af', fontSize: '12px', cursor: 'pointer',
+          border: '1px solid var(--border-color)', borderRadius: '8px',
+          color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', fontWeight: '600'
         }}
-          onMouseEnter={e => { (e.currentTarget).style.borderColor = '#2563eb'; (e.currentTarget).style.color = '#60a5fa'; }}
-          onMouseLeave={e => { (e.currentTarget).style.borderColor = '#2a2a3a'; (e.currentTarget).style.color = '#9ca3af'; }}
+          onMouseEnter={e => { (e.currentTarget).style.borderColor = 'var(--accent-primary)'; (e.currentTarget).style.color = 'var(--accent-primary)'; }}
+          onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; }}
         >Edit Limit</button>
         <button onClick={() => { if (confirm(`Hapus budget ${budget.categories?.name}?`)) onDelete(budget.id); }} style={{
           padding: '7px 12px', background: 'transparent',
-          border: '1px solid #2a2a3a', borderRadius: '8px',
-          color: '#6b7280', fontSize: '12px', cursor: 'pointer',
+          border: '1px solid var(--border-color)', borderRadius: '8px',
+          color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer',
         }}
-          onMouseEnter={e => { (e.currentTarget).style.borderColor = '#7f1d1d'; (e.currentTarget).style.color = '#f87171'; }}
-          onMouseLeave={e => { (e.currentTarget).style.borderColor = '#2a2a3a'; (e.currentTarget).style.color = '#6b7280'; }}
+          onMouseEnter={e => { (e.currentTarget).style.borderColor = '#ef4444'; (e.currentTarget).style.color = '#ef4444'; }}
+          onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; }}
         >✕</button>
       </div>
     </div>
@@ -191,8 +193,8 @@ function BudgetFormModal({
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '9px 12px',
-    background: '#0a0a0f', border: '1px solid #2a2a3a',
-    borderRadius: '8px', color: '#f0f0f5', fontSize: '13px',
+    background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+    borderRadius: '8px', color: 'var(--text-main)', fontSize: '13px',
     outline: 'none', boxSizing: 'border-box',
   };
 
@@ -205,18 +207,19 @@ function BudgetFormModal({
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div style={{
-        background: '#111118', border: '1px solid #1e3a5f',
+        background: 'var(--card-bg)', border: '1px solid var(--border-color)',
         borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '420px',
+        boxShadow: 'var(--card-shadow)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
           <div>
-            <h2 style={{ color: '#f0f0f5', fontSize: '17px', fontWeight: '600', margin: '0 0 2px' }}>
+            <h2 style={{ color: 'var(--text-main)', fontSize: '17px', fontWeight: '600', margin: '0 0 2px' }}>
               {isEdit ? 'Edit Budget' : 'Set Budget Baru'}
             </h2>
-            <div style={{ fontSize: '12px', color: '#6b7280' }}>{monthLabel}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{monthLabel}</div>
           </div>
           <button onClick={onClose} style={{
-            background: 'none', border: 'none', color: '#6b7280', fontSize: '20px', cursor: 'pointer',
+            background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer',
           }}>×</button>
         </div>
 
@@ -235,8 +238,8 @@ function BudgetFormModal({
             ) : (
               <select value={catId} onChange={e => setCatId(e.target.value)} required
                 style={{ ...inp, cursor: 'pointer' }}
-                onFocus={e => e.target.style.borderColor = '#2563eb'}
-                onBlur={e  => e.target.style.borderColor = '#2a2a3a'}
+                onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+                onBlur={e  => e.target.style.borderColor = 'var(--border-color)'}
               >
                 <option value="">— Pilih kategori —</option>
                 {available.map(c => (
@@ -252,7 +255,7 @@ function BudgetFormModal({
             <div style={{ position: 'relative' }}>
               <span style={{
                 position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)',
-                fontSize: '12px', color: '#6b7280', pointerEvents: 'none',
+                fontSize: '12px', color: 'var(--text-muted)', pointerEvents: 'none',
               }}>Rp</span>
               <input
                 type="text" inputMode="numeric" value={displayVal}
@@ -264,18 +267,18 @@ function BudgetFormModal({
                   setLimit(num);
                 }}
                 onFocus={e => {
-                  e.target.style.borderColor = '#2563eb';
+                  e.target.style.borderColor = 'var(--accent-primary)';
                   setDisplayVal(limit === 0 ? '' : limit.toString());
                 }}
                 onBlur={e => {
-                  e.target.style.borderColor = '#2a2a3a';
+                  e.target.style.borderColor = 'var(--border-color)';
                   setDisplayVal(limit === 0 ? '' : limit.toLocaleString('id-ID'));
                 }}
                 style={{ ...inp, paddingLeft: '32px' }}
               />
             </div>
             {limit > 0 && (
-              <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '3px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '3px' }}>
                 {fmt(limit)} per bulan
               </div>
             )}
@@ -285,15 +288,15 @@ function BudgetFormModal({
             <button type="submit" disabled={saving || !catId || limit <= 0} style={{
               flex: 1, padding: '11px', border: 'none', borderRadius: '9px',
               color: '#fff', fontSize: '14px', fontWeight: '600',
-              background: saving || !catId || limit <= 0 ? '#1f1f2e' : '#2563eb',
+              background: saving || !catId || limit <= 0 ? 'var(--border-color)' : 'var(--accent-primary)',
               cursor: saving || !catId || limit <= 0 ? 'not-allowed' : 'pointer',
             }}>
               {saving ? 'Menyimpan...' : isEdit ? 'Simpan' : 'Set Budget'}
             </button>
             <button type="button" onClick={onClose} style={{
               padding: '11px 18px', background: 'transparent',
-              border: '1px solid #2a2a3a', borderRadius: '9px',
-              color: '#9ca3af', fontSize: '14px', cursor: 'pointer',
+              border: '1px solid var(--border-color)', borderRadius: '9px',
+              color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer',
             }}>Batal</button>
           </div>
         </form>

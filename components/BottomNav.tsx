@@ -28,10 +28,11 @@ export default function BottomNav() {
             bottom: 0; left: 0; right: 0;
             height: calc(60px + env(safe-area-inset-bottom));
             padding-bottom: env(safe-area-inset-bottom);
-            background: #111118;
-            border-top: 1px solid #1f1f2e;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
             align-items: stretch;
             z-index: 100;
+            transition: background 0.3s, border-color 0.3s;
           }
           .fintrack-bottom-spacer {
             display: block;
@@ -67,7 +68,7 @@ export default function BottomNav() {
               justifyContent: 'center',
               gap: '3px',
               textDecoration: 'none',
-              color: active ? '#2563eb' : '#6b7280',
+              color: active ? 'var(--accent-primary)' : 'var(--text-muted)',
               transition: 'color .15s',
               paddingTop: '6px',
               position: 'relative',
@@ -79,7 +80,7 @@ export default function BottomNav() {
                   transform: 'translateX(-50%)',
                   width: '20px', height: '2px',
                   borderRadius: '0 0 2px 2px',
-                  background: '#2563eb',
+                  background: 'var(--accent-primary)',
                 }} />
               )}
               <span style={{ fontSize: '20px', lineHeight: 1 }}>{item.icon}</span>

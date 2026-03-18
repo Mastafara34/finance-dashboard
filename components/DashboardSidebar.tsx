@@ -40,13 +40,14 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram }: P
           top: 0; left: 0;
           width: 240px;
           height: 100vh;
-          background: #111118;
-          border-right: 1px solid #1f1f2e;
+          background: var(--card-bg);
+          border-right: 1px solid var(--border-color);
           display: flex;
           flex-direction: column;
           padding: 24px 0;
           z-index: 50;
           overflow-y: auto;
+          transition: background 0.3s, border-color 0.3s;
         }
         @media (max-width: 768px) {
           .fintrack-sidebar { display: none !important; }
@@ -55,7 +56,7 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram }: P
 
       <aside className="fintrack-sidebar">
         {/* Logo */}
-        <div style={{ padding: '0 20px 24px', borderBottom: '1px solid #1f1f2e' }}>
+        <div style={{ padding: '0 20px 24px', borderBottom: '1px solid var(--border-color)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
               width: '32px', height: '32px', borderRadius: '8px',
@@ -64,8 +65,8 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram }: P
               fontSize: '16px', flexShrink: 0,
             }}>💰</div>
             <div>
-              <div style={{ color: '#f0f0f5', fontSize: '14px', fontWeight: '600' }}>FinTrack AI</div>
-              <div style={{ color: '#374151', fontSize: '11px' }}>Personal Finance</div>
+              <div style={{ color: 'var(--text-main)', fontSize: '14px', fontWeight: '600' }}>FinTrack AI</div>
+              <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Personal Finance</div>
             </div>
           </div>
         </div>
@@ -80,23 +81,23 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram }: P
                 display: 'flex', alignItems: 'center', gap: '10px',
                 padding: '9px 12px', borderRadius: '8px', marginBottom: '2px',
                 textDecoration: 'none', transition: 'all .15s',
-                background: isActive ? '#1f1f2e' : 'transparent',
-                color: isActive ? '#f0f0f5' : '#6b7280',
+                background: isActive ? 'rgba(37, 99, 235, 0.1)' : 'transparent',
+                color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)',
               }}
-                onMouseEnter={e => { if (!isActive) (e.currentTarget).style.background = '#16161f'; }}
+                onMouseEnter={e => { if (!isActive) (e.currentTarget).style.background = 'var(--bg-primary)'; }}
                 onMouseLeave={e => { if (!isActive) (e.currentTarget).style.background = 'transparent'; }}
               >
                 <span style={{
                   fontSize: '14px', width: '18px', textAlign: 'center', flexShrink: 0,
-                  color: isActive ? '#2563eb' : '#4b5563',
+                  color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)',
                 }}>{item.icon}</span>
-                <span style={{ fontSize: '13px', fontWeight: isActive ? '500' : '400' }}>
+                <span style={{ fontSize: '13px', fontWeight: isActive ? '600' : '400' }}>
                   {item.label}
                 </span>
                 {isActive && (
                   <span style={{
                     marginLeft: 'auto', width: '4px', height: '4px',
-                    borderRadius: '99px', background: '#2563eb', flexShrink: 0,
+                    borderRadius: '99px', background: 'var(--accent-primary)', flexShrink: 0,
                   }} />
                 )}
               </a>
@@ -108,31 +109,31 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram }: P
         {!hasTelegram && (
           <div style={{
             margin: '0 12px 12px', padding: '10px 12px',
-            background: '#1a1000', border: '1px solid #3d2a00', borderRadius: '8px',
+            background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.2)', borderRadius: '8px',
           }}>
-            <div style={{ color: '#f59e0b', fontSize: '12px', fontWeight: '500', marginBottom: '2px' }}>
+            <div style={{ color: '#f59e0b', fontSize: '12px', fontWeight: '600', marginBottom: '2px' }}>
               Bot belum terhubung
             </div>
-            <div style={{ color: '#6b5a2a', fontSize: '11px' }}>
+            <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>
               Hubungkan Telegram untuk input otomatis
             </div>
           </div>
         )}
 
         {/* User + logout */}
-        <div style={{ padding: '16px 20px 0', borderTop: '1px solid #1f1f2e' }}>
+        <div style={{ padding: '16px 20px 0', borderTop: '1px solid var(--border-color)' }}>
           <div style={{ marginBottom: '12px' }}>
-            <div style={{ color: '#f0f0f5', fontSize: '13px', fontWeight: '500' }}>{userName}</div>
-            <div style={{ color: '#374151', fontSize: '11px', marginTop: '2px' }}>{userEmail}</div>
+            <div style={{ color: 'var(--text-main)', fontSize: '13px', fontWeight: '600' }}>{userName}</div>
+            <div style={{ color: 'var(--text-muted)', fontSize: '11px', marginTop: '2px' }}>{userEmail}</div>
           </div>
           <button onClick={handleLogout} style={{
             width: '100%', padding: '8px',
-            background: 'transparent', border: '1px solid #1f1f2e',
-            borderRadius: '7px', color: '#6b7280', fontSize: '12px',
+            background: 'transparent', border: '1px solid var(--border-color)',
+            borderRadius: '7px', color: 'var(--text-muted)', fontSize: '12px',
             cursor: 'pointer', transition: 'all .15s',
           }}
-            onMouseEnter={e => { (e.currentTarget).style.borderColor = '#3d1515'; (e.currentTarget).style.color = '#f87171'; }}
-            onMouseLeave={e => { (e.currentTarget).style.borderColor = '#1f1f2e'; (e.currentTarget).style.color = '#6b7280'; }}
+            onMouseEnter={e => { (e.currentTarget).style.borderColor = '#ef4444'; (e.currentTarget).style.color = '#ef4444'; (e.currentTarget).style.background = 'rgba(239, 68, 68, 0.05)'; }}
+            onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; (e.currentTarget).style.background = 'transparent'; }}
           >Keluar</button>
         </div>
       </aside>

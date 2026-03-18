@@ -69,12 +69,12 @@ function AssetFormModal({
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '9px 12px',
-    background: '#0a0a0f', border: '1px solid #2a2a3a',
-    borderRadius: '8px', color: '#f0f0f5', fontSize: '13px',
+    background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+    borderRadius: '8px', color: 'var(--text-main)', fontSize: '13px',
     outline: 'none', boxSizing: 'border-box',
   };
 
-  const accentColor = isLiability ? '#ef4444' : '#2563eb';
+  const accentColor = isLiability ? '#ef4444' : 'var(--accent-primary)';
 
   return (
     <div style={{
@@ -85,16 +85,17 @@ function AssetFormModal({
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div style={{
-        background: '#111118', border: `1px solid ${isLiability ? '#3d1515' : '#1e3a5f'}`,
+        background: 'var(--card-bg)', border: `1px solid ${isLiability ? '#ef4444' : 'var(--accent-primary)'}`,
         borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '480px',
         maxHeight: '90vh', overflowY: 'auto',
+        boxShadow: 'var(--card-shadow)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
-          <h2 style={{ color: '#f0f0f5', fontSize: '17px', fontWeight: '600', margin: 0 }}>
+          <h2 style={{ color: 'var(--text-main)', fontSize: '17px', fontWeight: '600', margin: 0 }}>
             {isEdit ? 'Edit' : 'Tambah'} {isLiability ? 'Liabilitas' : 'Aset'}
           </h2>
           <button onClick={onClose} style={{
-            background: 'none', border: 'none', color: '#6b7280', fontSize: '20px', cursor: 'pointer',
+            background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer',
           }}>×</button>
         </div>
 
@@ -108,9 +109,9 @@ function AssetFormModal({
                   onClick={() => setForm(p => ({ ...p, type: t }))}
                   style={{
                     padding: '8px 6px', borderRadius: '8px', border: '1px solid',
-                    borderColor: form.type === t ? accentColor : '#2a2a3a',
-                    background: form.type === t ? (isLiability ? '#2d0f0f' : '#0c1f3a') : '#0a0a0f',
-                    color: form.type === t ? (isLiability ? '#f87171' : '#60a5fa') : '#6b7280',
+                    borderColor: form.type === t ? accentColor : 'var(--border-color)',
+                    background: form.type === t ? (isLiability ? 'rgba(239, 68, 68, 0.1)' : 'rgba(37, 99, 235, 0.1)') : 'var(--bg-secondary)',
+                    color: form.type === t ? (isLiability ? '#ef4444' : 'var(--accent-primary)') : 'var(--text-muted)',
                     fontSize: '12px', cursor: 'pointer', textAlign: 'center',
                   }}>
                   <div style={{ fontSize: '16px', marginBottom: '2px' }}>{TYPE_META[t].icon}</div>
@@ -127,7 +128,7 @@ function AssetFormModal({
               placeholder={isLiability ? 'cth: KPR BCA, Hutang Motor' : 'cth: Tabungan BCA, Reksa Dana Bibit'}
               required style={inp}
               onFocus={e => e.target.style.borderColor = accentColor}
-              onBlur={e  => e.target.style.borderColor = '#2a2a3a'}
+              onBlur={e  => e.target.style.borderColor = 'var(--border-color)'}
             />
           </div>
 
@@ -137,7 +138,7 @@ function AssetFormModal({
             <div style={{ position: 'relative' }}>
               <span style={{
                 position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)',
-                fontSize: '12px', color: '#6b7280', pointerEvents: 'none',
+                fontSize: '12px', color: 'var(--text-muted)', pointerEvents: 'none',
               }}>Rp</span>
               <input
                 type="text" inputMode="numeric" value={displayVal}
@@ -153,14 +154,14 @@ function AssetFormModal({
                   setDisplayVal((form.value ?? 0).toString() === '0' ? '' : (form.value ?? 0).toString());
                 }}
                 onBlur={e => {
-                  e.target.style.borderColor = '#2a2a3a';
+                  e.target.style.borderColor = 'var(--border-color)';
                   setDisplayVal((form.value ?? 0) === 0 ? '' : (form.value ?? 0).toLocaleString('id-ID'));
                 }}
                 style={{ ...inp, paddingLeft: '32px' }}
               />
             </div>
             {(form.value ?? 0) > 0 && (
-              <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '3px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '3px' }}>
                 {fmt(form.value ?? 0)}
               </div>
             )}
@@ -174,7 +175,7 @@ function AssetFormModal({
                 placeholder="cth: BCA, Bibit, OVO"
                 style={inp}
                 onFocus={e => e.target.style.borderColor = accentColor}
-                onBlur={e  => e.target.style.borderColor = '#2a2a3a'}
+                onBlur={e  => e.target.style.borderColor = 'var(--border-color)'}
               />
             </div>
             <div>
@@ -182,7 +183,7 @@ function AssetFormModal({
               <input type="date" value={form.last_updated ?? ''} onChange={e => setForm(p => ({ ...p, last_updated: e.target.value }))}
                 style={inp}
                 onFocus={e => e.target.style.borderColor = accentColor}
-                onBlur={e  => e.target.style.borderColor = '#2a2a3a'}
+                onBlur={e  => e.target.style.borderColor = 'var(--border-color)'}
               />
             </div>
           </div>
@@ -194,7 +195,7 @@ function AssetFormModal({
               placeholder="Keterangan tambahan"
               style={inp}
               onFocus={e => e.target.style.borderColor = accentColor}
-              onBlur={e  => e.target.style.borderColor = '#2a2a3a'}
+              onBlur={e  => e.target.style.borderColor = 'var(--border-color)'}
             />
           </div>
 
@@ -202,15 +203,15 @@ function AssetFormModal({
             <button type="submit" disabled={saving} style={{
               flex: 1, padding: '11px', border: 'none', borderRadius: '9px',
               color: '#fff', fontSize: '14px', fontWeight: '600',
-              background: saving ? '#1f1f2e' : accentColor,
+              background: saving ? 'var(--border-color)' : accentColor,
               cursor: saving ? 'not-allowed' : 'pointer',
             }}>
               {saving ? 'Menyimpan...' : isEdit ? 'Simpan' : 'Tambah'}
             </button>
             <button type="button" onClick={onClose} style={{
               padding: '11px 18px', background: 'transparent',
-              border: '1px solid #2a2a3a', borderRadius: '9px',
-              color: '#9ca3af', fontSize: '14px', cursor: 'pointer',
+              border: '1px solid var(--border-color)', borderRadius: '9px',
+              color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer',
             }}>Batal</button>
           </div>
         </form>
@@ -231,26 +232,27 @@ function AssetRow({ asset, onEdit, onDelete }: {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: '14px',
-      padding: '12px 16px', borderBottom: '1px solid #1a1a24',
+      padding: '12px 16px', borderBottom: '1px solid var(--border-color)',
       transition: 'background .1s',
     }}
-      onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = '#16161f'}
+      onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = 'var(--bg-primary)'}
       onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'transparent'}
     >
       {/* Icon */}
       <div style={{
-        width: '36px', height: '36px', borderRadius: '9px', background: '#1f1f2e',
+        width: '36px', height: '36px', borderRadius: '9px', background: 'var(--bg-secondary)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: '18px', flexShrink: 0,
+        border: '1px solid var(--border-color)',
       }}>{meta.icon}</div>
 
       {/* Name + institution */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '13px', fontWeight: '500', color: '#f0f0f5',
+        <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-main)',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {asset.name}
         </div>
-        <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '1px' }}>
+        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '1px' }}>
           {meta.label}{asset.institution ? ` · ${asset.institution}` : ''}
         </div>
       </div>
@@ -259,11 +261,11 @@ function AssetRow({ asset, onEdit, onDelete }: {
       <div style={{ textAlign: 'right', flexShrink: 0 }}>
         <div style={{
           fontSize: '14px', fontWeight: '600',
-          color: asset.is_liability ? '#f87171' : '#f0f0f5',
+          color: asset.is_liability ? '#ef4444' : 'var(--text-main)',
         }}>
           {asset.is_liability ? '-' : ''}{fmt(asset.value)}
         </div>
-        <div style={{ fontSize: '10px', color: daysAgo > 30 ? '#f59e0b' : '#374151', marginTop: '1px' }}>
+        <div style={{ fontSize: '10px', color: daysAgo > 30 ? '#f59e0b' : 'var(--text-muted)', marginTop: '1px' }}>
           {daysAgo === 0 ? 'Hari ini' : daysAgo === 1 ? 'Kemarin' : `${daysAgo} hari lalu`}
           {daysAgo > 30 && ' ⚠️'}
         </div>
@@ -273,19 +275,19 @@ function AssetRow({ asset, onEdit, onDelete }: {
       <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
         <button onClick={() => onEdit(asset)} style={{
           padding: '4px 10px', background: 'transparent',
-          border: '1px solid #2a2a3a', borderRadius: '6px',
-          color: '#9ca3af', fontSize: '11px', cursor: 'pointer',
+          border: '1px solid var(--border-color)', borderRadius: '6px',
+          color: 'var(--text-muted)', fontSize: '11px', cursor: 'pointer',
         }}
-          onMouseEnter={e => { (e.currentTarget).style.borderColor = '#2563eb'; (e.currentTarget).style.color = '#60a5fa'; }}
-          onMouseLeave={e => { (e.currentTarget).style.borderColor = '#2a2a3a'; (e.currentTarget).style.color = '#9ca3af'; }}
+          onMouseEnter={e => { (e.currentTarget).style.borderColor = 'var(--accent-primary)'; (e.currentTarget).style.color = 'var(--accent-primary)'; }}
+          onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; }}
         >Edit</button>
         <button onClick={() => { if (confirm(`Hapus "${asset.name}"?`)) onDelete(asset.id); }} style={{
           padding: '4px 8px', background: 'transparent',
-          border: '1px solid #2a2a3a', borderRadius: '6px',
-          color: '#6b7280', fontSize: '11px', cursor: 'pointer',
+          border: '1px solid var(--border-color)', borderRadius: '6px',
+          color: 'var(--text-muted)', fontSize: '11px', cursor: 'pointer',
         }}
-          onMouseEnter={e => { (e.currentTarget).style.borderColor = '#7f1d1d'; (e.currentTarget).style.color = '#f87171'; }}
-          onMouseLeave={e => { (e.currentTarget).style.borderColor = '#2a2a3a'; (e.currentTarget).style.color = '#6b7280'; }}
+          onMouseEnter={e => { (e.currentTarget).style.borderColor = '#ef4444'; (e.currentTarget).style.color = '#ef4444'; }}
+          onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; }}
         >✕</button>
       </div>
     </div>
@@ -385,17 +387,18 @@ export default function NetWorthClient({ initialAssets, userId }: {
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div style={{ color: '#f0f0f5', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
+    <div style={{ color: 'var(--text-main)', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
 
       {/* Toast */}
       {toast && (
         <div style={{
           position: 'fixed', top: '20px', right: '20px', zIndex: 200,
           padding: '12px 18px', borderRadius: '10px', fontSize: '13px', fontWeight: '500',
-          background: toast.ok ? '#0f2d1a' : '#2d0f0f',
-          border: `1px solid ${toast.ok ? '#166534' : '#7f1d1d'}`,
-          color: toast.ok ? '#4ade80' : '#f87171',
-          boxShadow: '0 4px 20px rgba(0,0,0,.4)',
+          background: toast.ok ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+          border: `1px solid ${toast.ok ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+          color: toast.ok ? '#10b981' : '#ef4444',
+          backdropFilter: 'blur(8px)',
+          boxShadow: 'var(--card-shadow)',
         }}>{toast.msg}</div>
       )}
 
@@ -415,25 +418,25 @@ export default function NetWorthClient({ initialAssets, userId }: {
           <h1 style={{ fontSize: '22px', fontWeight: '600', margin: '0 0 4px', letterSpacing: '-0.4px' }}>
             Net Worth
           </h1>
-          <p style={{ color: '#6b7280', fontSize: '13px', margin: 0 }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>
             Kekayaan bersih = Total aset − Total liabilitas
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={() => { setFormLiab(false); setShowForm(true); }} style={{
-            padding: '9px 16px', background: '#2563eb', border: 'none',
+            padding: '9px 16px', background: 'var(--accent-primary)', border: 'none',
             borderRadius: '9px', color: '#fff', fontSize: '13px',
             fontWeight: '600', cursor: 'pointer',
           }}
             onMouseEnter={e => (e.currentTarget).style.background = '#1d4ed8'}
-            onMouseLeave={e => (e.currentTarget).style.background = '#2563eb'}
+            onMouseLeave={e => (e.currentTarget).style.background = 'var(--accent-primary)'}
           >+ Aset</button>
           <button onClick={() => { setFormLiab(true); setShowForm(true); }} style={{
             padding: '9px 16px', background: 'transparent',
-            border: '1px solid #7f1d1d', borderRadius: '9px',
-            color: '#f87171', fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+            border: '1px solid #ef4444', borderRadius: '9px',
+            color: '#ef4444', fontSize: '13px', fontWeight: '600', cursor: 'pointer',
           }}
-            onMouseEnter={e => { (e.currentTarget).style.background = '#2d0f0f'; }}
+            onMouseEnter={e => { (e.currentTarget).style.background = 'rgba(239, 68, 68, 0.05)'; }}
             onMouseLeave={e => { (e.currentTarget).style.background = 'transparent'; }}
           >+ Liabilitas</button>
         </div>
@@ -442,9 +445,9 @@ export default function NetWorthClient({ initialAssets, userId }: {
       {/* Stale warning */}
       {staleCount > 0 && (
         <div style={{
-          padding: '12px 16px', background: '#1a1000', border: '1px solid #3d2a00',
+          padding: '12px 16px', background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.2)',
           borderRadius: '10px', marginBottom: '16px', fontSize: '13px',
-          color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '8px',
+          color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '8px',
         }}>
           ⚠️ {staleCount} item belum diupdate lebih dari 30 hari — nilai mungkin sudah berubah.
         </div>
@@ -452,42 +455,45 @@ export default function NetWorthClient({ initialAssets, userId }: {
 
       {/* ── Net Worth hero ───────────────────────────────────────────────────── */}
       <div style={{
-        background: '#111118', border: `1px solid ${netWorth >= 0 ? '#1e3a5f' : '#3d1515'}`,
+        background: 'var(--card-bg)', border: `1px solid ${netWorth >= 0 ? 'var(--border-color)' : 'rgba(239, 68, 68, 0.2)'}`,
         borderRadius: '14px', padding: '28px', marginBottom: '16px', textAlign: 'center',
+        boxShadow: 'var(--card-shadow)',
       }}>
-        <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px',
-          textTransform: 'uppercase', letterSpacing: '.08em' }}>
+        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px',
+          textTransform: 'uppercase', letterSpacing: '.12em', fontWeight: '700' }}>
           Total Net Worth
         </div>
         <div style={{
           fontSize: '40px', fontWeight: '700', letterSpacing: '-1px',
-          color: netWorth >= 0 ? '#4ade80' : '#f87171', marginBottom: '16px',
+          color: netWorth >= 0 ? '#10b981' : '#ef4444', marginBottom: '16px',
         }}>
           {netWorth < 0 ? '-' : ''}{fmt(Math.abs(netWorth))}
         </div>
 
         {/* Aset vs Liabilitas bar */}
         {(totalAset > 0 || totalLiab > 0) && (
-          <>
-            <div style={{ height: '10px', borderRadius: '99px', overflow: 'hidden',
-              background: '#ef4444', maxWidth: '500px', margin: '0 auto 10px' }}>
+          <div style={{ maxWidth: '500px', margin: '0 auto' }}>
+            <div style={{ height: '8px', borderRadius: '99px', overflow: 'hidden',
+              background: '#ef4444', marginBottom: '12px' }}>
               <div style={{
-                height: '100%', background: '#22c55e',
+                height: '100%', background: '#10b981',
                 width: `${totalAset + totalLiab > 0 ? (totalAset / (totalAset + totalLiab)) * 100 : 0}%`,
                 borderRadius: '99px', transition: 'width .6s ease',
               }}/>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '28px', fontSize: '13px' }}>
-              <span>
-                <span style={{ color: '#4ade80', fontWeight: '600' }}>Aset</span>
-                <span style={{ color: '#9ca3af', marginLeft: '8px' }}>{fmt(totalAset)}</span>
-              </span>
-              <span>
-                <span style={{ color: '#f87171', fontWeight: '600' }}>Liabilitas</span>
-                <span style={{ color: '#9ca3af', marginLeft: '8px' }}>{fmt(totalLiab)}</span>
-              </span>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '32px', fontSize: '13px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#10b981' }} />
+                <span style={{ color: 'var(--text-muted)' }}>Aset</span>
+                <span style={{ color: 'var(--text-main)', fontWeight: '600' }}>{fmtK(totalAset)}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#ef4444' }} />
+                <span style={{ color: 'var(--text-muted)' }}>Liabilitas</span>
+                <span style={{ color: 'var(--text-main)', fontWeight: '600' }}>{fmtK(totalLiab)}</span>
+              </div>
             </div>
-          </>
+          </div>
         )}
       </div>
 
@@ -496,35 +502,37 @@ export default function NetWorthClient({ initialAssets, userId }: {
 
         {/* Breakdown by type */}
         <div style={{
-          background: '#111118', border: '1px solid #1f1f2e',
-          borderRadius: '12px', padding: '18px',
+          background: 'var(--card-bg)', border: '1px solid var(--border-color)',
+          borderRadius: '12px', padding: '18px', boxShadow: 'var(--card-shadow)',
+          height: 'fit-content',
         }}>
-          <div style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af', marginBottom: '14px' }}>
+          <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '16px',
+            textTransform: 'uppercase', letterSpacing: '.05em' }}>
             Komposisi Aset
           </div>
           {byType.length === 0 ? (
-            <div style={{ color: '#6b7280', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>
+            <div style={{ color: 'var(--text-muted)', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>
               Belum ada aset
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {byType.map(({ type, value, pct, meta }) => (
                 <div key={type}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '12px', color: '#9ca3af' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--text-main)', fontWeight: '500' }}>
                       {meta.icon} {meta.label}
                     </span>
-                    <span style={{ fontSize: '12px', fontWeight: '600', color: '#f0f0f5' }}>
+                    <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)' }}>
                       {pct}%
                     </span>
                   </div>
-                  <div style={{ height: '5px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
+                  <div style={{ height: '5px', background: 'var(--bg-secondary)', borderRadius: '99px', overflow: 'hidden' }}>
                     <div style={{
                       height: '100%', borderRadius: '99px', width: `${pct}%`,
                       background: meta.color, transition: 'width .5s ease',
                     }}/>
                   </div>
-                  <div style={{ fontSize: '11px', color: '#374151', marginTop: '2px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
                     {fmt(value)}
                   </div>
                 </div>
@@ -538,21 +546,23 @@ export default function NetWorthClient({ initialAssets, userId }: {
 
           {/* Aset */}
           <div style={{
-            background: '#111118', border: '1px solid #1f1f2e', borderRadius: '12px', overflow: 'hidden',
+            background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', 
+            overflow: 'hidden', boxShadow: 'var(--card-shadow)',
           }}>
             <div style={{
-              padding: '14px 16px', borderBottom: '1px solid #1f1f2e',
+              padding: '14px 16px', borderBottom: '1px solid var(--border-color)',
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              background: 'rgba(16, 185, 129, 0.03)',
             }}>
-              <span style={{ fontSize: '13px', fontWeight: '500', color: '#4ade80' }}>
+              <span style={{ fontSize: '13px', fontWeight: '700', color: '#10b981', textTransform: 'uppercase', letterSpacing: '.05em' }}>
                 Aset ({asetList.length})
               </span>
-              <span style={{ fontSize: '13px', fontWeight: '700', color: '#4ade80' }}>
+              <span style={{ fontSize: '14px', fontWeight: '700', color: '#10b981' }}>
                 {fmt(totalAset)}
               </span>
             </div>
             {asetList.length === 0 ? (
-              <div style={{ padding: '24px', textAlign: 'center', color: '#6b7280', fontSize: '13px' }}>
+              <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
                 Belum ada aset. Klik "+ Aset" untuk menambah.
               </div>
             ) : (
@@ -567,21 +577,23 @@ export default function NetWorthClient({ initialAssets, userId }: {
 
           {/* Liabilitas */}
           <div style={{
-            background: '#111118', border: '1px solid #1f1f2e', borderRadius: '12px', overflow: 'hidden',
+            background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', 
+            overflow: 'hidden', boxShadow: 'var(--card-shadow)',
           }}>
             <div style={{
-              padding: '14px 16px', borderBottom: '1px solid #1f1f2e',
+              padding: '14px 16px', borderBottom: '1px solid var(--border-color)',
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              background: 'rgba(239, 68, 68, 0.03)',
             }}>
-              <span style={{ fontSize: '13px', fontWeight: '500', color: '#f87171' }}>
+              <span style={{ fontSize: '13px', fontWeight: '700', color: '#ef4444', textTransform: 'uppercase', letterSpacing: '.05em' }}>
                 Liabilitas ({liabList.length})
               </span>
-              <span style={{ fontSize: '13px', fontWeight: '700', color: '#f87171' }}>
+              <span style={{ fontSize: '14px', fontWeight: '700', color: '#ef4444' }}>
                 {totalLiab > 0 ? `-${fmt(totalLiab)}` : fmt(0)}
               </span>
             </div>
             {liabList.length === 0 ? (
-              <div style={{ padding: '24px', textAlign: 'center', color: '#6b7280', fontSize: '13px' }}>
+              <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
                 Tidak ada liabilitas — bagus! 👍
               </div>
             ) : (
@@ -600,6 +612,6 @@ export default function NetWorthClient({ initialAssets, userId }: {
 }
 
 const lbl: React.CSSProperties = {
-  display: 'block', fontSize: '12px', color: '#6b7280',
+  display: 'block', fontSize: '12px', color: 'var(--text-muted)',
   fontWeight: '500', marginBottom: '6px',
 };

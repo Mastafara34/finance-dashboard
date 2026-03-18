@@ -36,13 +36,14 @@ export default function MobileHeader() {
             align-items: center;
             padding: 0 16px;
             height: 56px;
-            background: #111118;
-            border-bottom: 1px solid #1f1f2e;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
             position: sticky;
             top: 0;
             z-index: 40;
             margin: -16px -16px 16px;
             gap: 12px;
+            transition: background 0.3s, border-color 0.3s;
           }
         }
       `}</style>
@@ -54,7 +55,7 @@ export default function MobileHeader() {
             onClick={() => router.back()}
             style={{
               background: 'none', border: 'none',
-              color: '#9ca3af', fontSize: '20px',
+              color: 'var(--text-muted)', fontSize: '20px',
               cursor: 'pointer', padding: '4px 8px 4px 0',
               display: 'flex', alignItems: 'center',
               flexShrink: 0,
@@ -73,13 +74,13 @@ export default function MobileHeader() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '14px', flexShrink: 0,
             }}>💰</div>
-            <span style={{ color: '#f0f0f5', fontSize: '16px', fontWeight: '600' }}>
+            <span style={{ color: 'var(--text-main)', fontSize: '16px', fontWeight: '600' }}>
               FinTrack AI
             </span>
           </div>
         ) : (
           <span style={{
-            color: '#f0f0f5', fontSize: '16px', fontWeight: '600', flex: 1,
+            color: 'var(--text-main)', fontSize: '16px', fontWeight: '600', flex: 1,
           }}>
             {title}
           </span>

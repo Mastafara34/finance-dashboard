@@ -36,23 +36,23 @@ function BarChart({ data, maxVal, showIncome, showExpense }: {
             >
               {showIncome  && <div style={{ flex:1, height:`${Math.max(incH,d.income>0?2:0)}px`, background:'#166534', borderRadius:'2px 2px 0 0' }}/>}
               {showExpense && <div style={{ flex:1, height:`${Math.max(expH,d.expense>0?2:0)}px`, background:'#7f1d1d', borderRadius:'2px 2px 0 0' }}/>}
-              {d.income===0&&d.expense===0 && <div style={{ flex:1, height:'2px', background:'#1f1f2e' }}/>}
+              {d.income===0&&d.expense===0 && <div style={{ flex:1, height:'2px', background:'var(--border-color)' }}/>}
             </div>
           );
         })}
       </div>
       <div style={{ display:'flex', gap:'2px', marginTop:'4px' }}>
         {data.map((d,i) => (
-          <div key={i} style={{ flex:1, textAlign:'center', fontSize:'9px', color:'#374151' }}>{d.label}</div>
+          <div key={i} style={{ flex:1, textAlign:'center', fontSize:'9px', color:'var(--text-muted)' }}>{d.label}</div>
         ))}
       </div>
       {tooltip && (
         <div style={{
           position:'fixed', zIndex:999, left:tooltip.x+12, top:tooltip.y-60,
-          background:'#1f1f2e', border:'1px solid #2a2a3a', borderRadius:'8px',
-          padding:'8px 12px', fontSize:'12px', pointerEvents:'none',
+          background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'8px',
+          padding:'8px 12px', fontSize:'12px', pointerEvents:'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
         }}>
-          <div style={{ fontWeight:'600', color:'#f0f0f5', marginBottom:'4px' }}>{tooltip.d.label}</div>
+          <div style={{ fontWeight:'600', color:'var(--text-main)', marginBottom:'4px' }}>{tooltip.d.label}</div>
           {showIncome  && <div style={{ color:'#4ade80' }}>↑ {fmt(tooltip.d.income)}</div>}
           {showExpense && <div style={{ color:'#f87171' }}>↓ {fmt(tooltip.d.expense)}</div>}
         </div>
@@ -150,13 +150,14 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
   const btnStyle = (active: boolean): React.CSSProperties => ({
     padding:'6px 12px', borderRadius:'99px', border:'1px solid',
     fontSize:'12px', cursor:'pointer', fontWeight:'500',
-    borderColor: active?'#2563eb':'#2a2a3a',
-    background: active?'#0c1f3a':'transparent',
-    color: active?'#60a5fa':'#6b7280',
+    borderColor: active?'var(--accent-primary)':'var(--border-color)',
+    background: active?'rgba(37, 99, 235, 0.1)':'transparent',
+    color: active?'var(--accent-primary)':'var(--text-muted)',
+    transition: 'all 0.2s',
   });
 
   return (
-    <div style={{ color:'#f0f0f5', fontFamily:'"DM Sans",system-ui,sans-serif' }}>
+    <div style={{ color:'var(--text-main)', fontFamily:'"DM Sans",system-ui,sans-serif' }}>
       <style>{`
         .an-kpi { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
         .an-bottom { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
@@ -169,11 +170,11 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
       <div style={{ marginBottom:'20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ fontSize:'20px', fontWeight:'600', margin:'0 0 4px' }}>Analitik</h1>
-          <p style={{ color:'#6b7280', fontSize:'13px', margin:0 }}>Tren keuangan 12 bulan terakhir</p>
+          <p style={{ color:'var(--text-muted)', fontSize:'13px', margin:0 }}>Tren keuangan 12 bulan terakhir</p>
         </div>
         <a href="/dashboard/reports" style={{ 
-          padding: '8px 16px', background: '#1e1b4b', color: '#818cf8', borderRadius: '8px', 
-          fontSize: '12px', fontWeight: '600', textDecoration: 'none', border: '1px solid #312e81'
+          padding: '8px 16px', background: 'rgba(37, 99, 235, 0.1)', color: 'var(--accent-primary)', borderRadius: '8px', 
+          fontSize: '12px', fontWeight: '600', textDecoration: 'none', border: '1px solid var(--accent-primary)'
         }}>
           📄 Laporan & Evaluasi
         </a>
@@ -188,16 +189,16 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
           { label:'Bulan Ini vs Avg', value: avgExpense>0?`${((mExpense/avgExpense-1)*100).toFixed(0)}%`:'–',
             color: mExpense>avgExpense?'#f87171':'#4ade80', sub:'vs rata-rata 12 bln' },
         ].map(k => (
-          <div key={k.label} style={{ background:'#111118', border:'1px solid #1f1f2e', borderRadius:'10px', padding:'12px 14px' }}>
-            <div style={{ fontSize:'10px', color:'#6b7280', marginBottom:'5px', textTransform:'uppercase', letterSpacing:'.05em' }}>{k.label}</div>
+          <div key={k.label} style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'10px', padding:'12px 14px', boxShadow: 'var(--card-shadow)' }}>
+            <div style={{ fontSize:'10px', color:'var(--text-muted)', marginBottom:'5px', textTransform:'uppercase', letterSpacing:'.05em' }}>{k.label}</div>
             <div style={{ fontSize:'16px', fontWeight:'700', color:k.color, marginBottom:'3px' }}>{k.value}</div>
-            <div style={{ fontSize:'10px', color:'#374151' }}>{k.sub}</div>
+            <div style={{ fontSize:'10px', color:'var(--text-muted)', opacity: 0.8 }}>{k.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Main chart */}
-      <div style={{ background:'#111118', border:'1px solid #1f1f2e', borderRadius:'12px', padding:'16px', marginBottom:'14px' }}>
+      <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'12px', padding:'16px', marginBottom:'14px', boxShadow: 'var(--card-shadow)' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px', flexWrap:'wrap', gap:'8px' }}>
           <div style={{ display:'flex', gap:'4px' }}>
             {(['daily','monthly','yearly'] as const).map(v => (
@@ -223,9 +224,9 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
       {/* Bottom: Donut + Table */}
       <div className="an-bottom">
         {/* Kategori */}
-        <div style={{ background:'#111118', border:'1px solid #1f1f2e', borderRadius:'12px', padding:'16px' }}>
+        <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'12px', padding:'16px', boxShadow: 'var(--card-shadow)' }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px' }}>
-            <span style={{ fontSize:'13px', fontWeight:'500', color:'#9ca3af' }}>Kategori Bulan Ini</span>
+            <span style={{ fontSize:'13px', fontWeight:'700', color:'var(--text-main)' }}>Kategori Bulan Ini</span>
             <div style={{ display:'flex', gap:'4px' }}>
               {(['expense','income'] as const).map(t => (
                 <button key={t} onClick={()=>setCatType(t)} style={btnStyle(catType===t)}>
@@ -235,7 +236,7 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
             </div>
           </div>
           {catData.length===0 ? (
-            <div style={{ textAlign:'center', padding:'20px', color:'#6b7280', fontSize:'13px' }}>Tidak ada data</div>
+            <div style={{ textAlign:'center', padding:'20px', color:'var(--text-muted)', fontSize:'13px' }}>Tidak ada data</div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
               {catData.slice(0,6).map((d,i) => {
@@ -245,14 +246,14 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
                     <span style={{ fontSize:'16px', flexShrink:0 }}>{d.icon}</span>
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'3px' }}>
-                        <span style={{ fontSize:'12px', fontWeight:'500', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.name}</span>
-                        <span style={{ fontSize:'11px', color:'#6b7280', flexShrink:0, marginLeft:'6px' }}>{p}%</span>
+                        <span style={{ fontSize:'12px', fontWeight:'500', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color: 'var(--text-main)' }}>{d.name}</span>
+                        <span style={{ fontSize:'11px', color:'var(--text-muted)', flexShrink:0, marginLeft:'6px' }}>{p}%</span>
                       </div>
-                      <div style={{ height:'4px', background:'#1f1f2e', borderRadius:'99px', overflow:'hidden' }}>
+                      <div style={{ height:'4px', background:'var(--bg-primary)', borderRadius:'99px', overflow:'hidden' }}>
                         <div style={{ height:'100%', borderRadius:'99px', width:`${p}%`, background:d.color }}/>
                       </div>
                     </div>
-                    <span style={{ fontSize:'11px', color:'#9ca3af', flexShrink:0, minWidth:'50px', textAlign:'right' }}>{fmtK(d.value)}</span>
+                    <span style={{ fontSize:'11px', color:'var(--text-muted)', flexShrink:0, minWidth:'50px', textAlign:'right' }}>{fmtK(d.value)}</span>
                   </div>
                 );
               })}
@@ -261,11 +262,11 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
         </div>
 
         {/* Monthly table */}
-        <div style={{ background:'#111118', border:'1px solid #1f1f2e', borderRadius:'12px', padding:'16px' }}>
-          <div style={{ fontSize:'13px', fontWeight:'500', color:'#9ca3af', marginBottom:'12px' }}>Ringkasan Bulanan</div>
+        <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'12px', padding:'16px', boxShadow: 'var(--card-shadow)' }}>
+          <div style={{ fontSize:'13px', fontWeight:'500', color:'var(--text-main)', marginBottom:'12px' }}>Ringkasan Bulanan</div>
           <div style={{ display:'flex', flexDirection:'column', gap:'1px' }}>
             <div style={{ display:'grid', gridTemplateColumns:'50px 1fr 1fr 1fr', padding:'5px 6px',
-              fontSize:'10px', color:'#6b7280', textTransform:'uppercase', letterSpacing:'.05em' }}>
+              fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'.05em' }}>
               <span>Bln</span>
               <span style={{ textAlign:'right' }}>Masuk</span>
               <span style={{ textAlign:'right' }}>Keluar</span>
@@ -276,12 +277,12 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
               return (
                 <div key={i} style={{ display:'grid', gridTemplateColumns:'50px 1fr 1fr 1fr',
                   padding:'7px 6px', borderRadius:'5px', fontSize:'12px',
-                  background: i%2===0?'transparent':'#0a0a0f' }}>
-                  <span style={{ color:'#9ca3af', fontWeight:'500' }}>{d.label}</span>
+                  background: i%2===0?'transparent':'var(--bg-primary)' }}>
+                  <span style={{ color:'var(--text-main)', fontWeight:'500' }}>{d.label}</span>
                   <span style={{ textAlign:'right', color:'#4ade80' }}>{d.income>0?fmtK(d.income):'–'}</span>
                   <span style={{ textAlign:'right', color:'#f87171' }}>{d.expense>0?fmtK(d.expense):'–'}</span>
                   <span style={{ textAlign:'right', fontWeight:'600',
-                    color:diff>0?'#4ade80':diff<0?'#f87171':'#6b7280' }}>
+                    color:diff>0?'#4ade80':diff<0?'#f87171':'var(--text-muted)' }}>
                     {d.income===0&&d.expense===0?'–':`${diff>0?'+':''}${fmtK(diff)}`}
                   </span>
                 </div>

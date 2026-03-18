@@ -58,10 +58,10 @@ const STATUS_LABEL: Record<GoalStatus, string> = {
 };
 
 const STATUS_COLOR: Record<GoalStatus, { bg: string; text: string; border: string }> = {
-  active:    { bg: '#0c1f3a', text: '#60a5fa', border: '#1e3a5f' },
-  achieved:  { bg: '#0f2d1a', text: '#4ade80', border: '#166534' },
-  paused:    { bg: '#2d2500', text: '#fbbf24', border: '#3d3300' },
-  cancelled: { bg: '#1a0a0a', text: '#f87171', border: '#3d1515' },
+  active:    { bg: 'rgba(37, 99, 235, 0.1)', text: 'var(--accent-primary)', border: 'rgba(37, 99, 235, 0.2)' },
+  achieved:  { bg: 'rgba(16, 185, 129, 0.1)', text: '#10b981', border: 'rgba(16, 185, 129, 0.2)' },
+  paused:    { bg: 'rgba(245, 158, 11, 0.1)', text: '#f59e0b', border: 'rgba(245, 158, 11, 0.2)' },
+  cancelled: { bg: 'rgba(239, 68, 68, 0.1)', text: '#ef4444', border: 'rgba(239, 68, 68, 0.2)' },
 };
 
 const ICONS = ['🎯','🏠','🚗','🕌','✈️','📈','🏦','🛡️','💍','🎓','💻','🏋️','🌏','👶','🎁'];
@@ -71,14 +71,14 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
   return (
     <div style={{ textAlign: 'center', padding: '60px 20px' }}>
       <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎯</div>
-      <h3 style={{ color: '#f0f0f5', fontSize: '18px', fontWeight: '600', margin: '0 0 8px' }}>
+      <h3 style={{ color: 'var(--text-main)', fontSize: '18px', fontWeight: '600', margin: '0 0 8px' }}>
         Belum ada goals
       </h3>
-      <p style={{ color: '#6b7280', fontSize: '14px', margin: '0 0 24px', lineHeight: '1.6' }}>
+      <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: '0 0 24px', lineHeight: '1.6' }}>
         Tambahkan tujuan finansialmu — haji, pensiun,<br/>rumah, atau apapun yang ingin kamu capai.
       </p>
       <button onClick={onAdd} style={{
-        padding: '10px 24px', background: '#2563eb', border: 'none',
+        padding: '10px 24px', background: 'var(--accent-primary)', border: 'none',
         borderRadius: '9px', color: '#fff', fontSize: '14px',
         fontWeight: '600', cursor: 'pointer',
       }}>
@@ -103,35 +103,36 @@ function GoalCard({
   const sc      = STATUS_COLOR[goal.status];
   const isAchieved = goal.status === 'achieved';
 
-  const barColor = isAchieved ? '#4ade80'
-    : pct >= 75 ? '#2563eb'
+  const barColor = isAchieved ? '#10b981'
+    : pct >= 75 ? 'var(--accent-primary)'
     : pct >= 40 ? '#6366f1'
     : '#8b5cf6';
 
   return (
     <div style={{
-      background: '#111118', border: '1px solid #1f1f2e',
+      background: 'var(--card-bg)', border: '1px solid var(--border-color)',
       borderRadius: '14px', padding: '22px',
       opacity: goal.status === 'cancelled' ? 0.5 : 1,
-      transition: 'border-color .15s',
+      transition: 'all .15s',
+      boxShadow: 'var(--card-shadow)'
     }}
-      onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = '#2a2a3a'}
-      onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = '#1f1f2e'}
+      onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--accent-primary)'}
+      onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-color)'}
     >
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
             width: '44px', height: '44px', borderRadius: '12px',
-            background: '#1f1f2e', display: 'flex', alignItems: 'center',
+            background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center',
             justifyContent: 'center', fontSize: '22px', flexShrink: 0,
           }}>{goal.icon}</div>
           <div>
-            <div style={{ fontSize: '15px', fontWeight: '600', color: '#f0f0f5', marginBottom: '3px' }}>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '3px' }}>
               {goal.name}
             </div>
             {goal.description && (
-              <div style={{ fontSize: '12px', color: '#6b7280' }}>{goal.description}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>{goal.description}</div>
             )}
           </div>
         </div>
@@ -140,7 +141,7 @@ function GoalCard({
         <span style={{
           fontSize: '11px', padding: '3px 10px', borderRadius: '99px',
           background: sc.bg, color: sc.text, border: `1px solid ${sc.border}`,
-          fontWeight: '500', flexShrink: 0,
+          fontWeight: '700', flexShrink: 0,
         }}>
           {STATUS_LABEL[goal.status]}
         </span>
@@ -149,22 +150,22 @@ function GoalCard({
       {/* Progress */}
       <div style={{ marginBottom: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-          <span style={{ fontSize: '13px', color: '#9ca3af' }}>Progress</span>
-          <span style={{ fontSize: '13px', fontWeight: '600', color: isAchieved ? '#4ade80' : '#f0f0f5' }}>
+          <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>Progress</span>
+          <span style={{ fontSize: '13px', fontWeight: '800', color: isAchieved ? '#10b981' : 'var(--text-main)' }}>
             {pct}%
           </span>
         </div>
-        <div style={{ height: '8px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
+        <div style={{ height: '10px', background: 'var(--bg-secondary)', borderRadius: '99px', overflow: 'hidden' }}>
           <div style={{
             height: '100%', borderRadius: '99px', width: `${pct}%`,
             background: barColor, transition: 'width .6s ease',
           }}/>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
-          <span style={{ fontSize: '12px', color: '#6b7280' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>
             {fmt(goal.current_amount)}
           </span>
-          <span style={{ fontSize: '12px', color: '#6b7280' }}>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>
             {fmt(goal.target_amount)}
           </span>
         </div>
@@ -175,21 +176,21 @@ function GoalCard({
         display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px',
         marginBottom: '16px',
       }}>
-        <div style={{ background: '#0a0a0f', borderRadius: '8px', padding: '10px 12px' }}>
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '3px' }}>Sisa target</div>
-          <div style={{ fontSize: '13px', fontWeight: '600', color: '#f0f0f5' }}>
+        <div style={{ background: 'var(--bg-secondary)', borderRadius: '10px', padding: '10px 12px', border: '1px solid var(--border-color)' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '3px', fontWeight: '700', textTransform: 'uppercase' }}>Sisa target</div>
+          <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-main)' }}>
             {sisa > 0 ? fmt(sisa) : '–'}
           </div>
         </div>
-        <div style={{ background: '#0a0a0f', borderRadius: '8px', padding: '10px 12px' }}>
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '3px' }}>Cicilan/bulan</div>
-          <div style={{ fontSize: '13px', fontWeight: '600', color: '#f0f0f5' }}>
+        <div style={{ background: 'var(--bg-secondary)', borderRadius: '10px', padding: '10px 12px', border: '1px solid var(--border-color)' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '3px', fontWeight: '700', textTransform: 'uppercase' }}>Cicilan/bulan</div>
+          <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-main)' }}>
             {goal.monthly_allocation ? fmt(goal.monthly_allocation) : '–'}
           </div>
         </div>
-        <div style={{ background: '#0a0a0f', borderRadius: '8px', padding: '10px 12px' }}>
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '3px' }}>Estimasi selesai</div>
-          <div style={{ fontSize: '13px', fontWeight: '600', color: '#f0f0f5' }}>
+        <div style={{ background: 'var(--bg-secondary)', borderRadius: '10px', padding: '10px 12px', border: '1px solid var(--border-color)' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '3px', fontWeight: '700', textTransform: 'uppercase' }}>Estimasi selesai</div>
+          <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-main)' }}>
             {isAchieved
               ? goal.achieved_at
                 ? new Date(goal.achieved_at).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })
@@ -197,10 +198,10 @@ function GoalCard({
               : estimatedDate(goal.current_amount, goal.target_amount, goal.monthly_allocation)}
           </div>
         </div>
-        <div style={{ background: '#0a0a0f', borderRadius: '8px', padding: '10px 12px' }}>
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '3px' }}>Waktu tersisa</div>
-          <div style={{ fontSize: '13px', fontWeight: '600',
-            color: isAchieved ? '#4ade80' : '#f0f0f5' }}>
+        <div style={{ background: 'var(--bg-secondary)', borderRadius: '10px', padding: '10px 12px', border: '1px solid var(--border-color)' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '3px', fontWeight: '700', textTransform: 'uppercase' }}>Waktu tersisa</div>
+          <div style={{ fontSize: '13px', fontWeight: '800',
+            color: isAchieved ? '#10b981' : 'var(--text-main)' }}>
             {isAchieved ? '🏆 Done!' : monthsToGoal(goal.current_amount, goal.target_amount, goal.monthly_allocation)}
           </div>
         </div>
@@ -209,9 +210,10 @@ function GoalCard({
       {/* Deadline */}
       {goal.deadline && (
         <div style={{
-          fontSize: '12px', color: '#6b7280', marginBottom: '14px',
-          padding: '7px 10px', background: '#0a0a0f', borderRadius: '7px',
-          display: 'flex', alignItems: 'center', gap: '6px',
+          fontSize: '12px', color: 'var(--text-muted)', marginBottom: '14px',
+          padding: '8px 12px', background: 'var(--bg-secondary)', borderRadius: '8px',
+          display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid var(--border-color)',
+          fontWeight: '600'
         }}>
           <span>📅</span>
           <span>Deadline: {new Date(goal.deadline).toLocaleDateString('id-ID', {
@@ -224,53 +226,53 @@ function GoalCard({
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         {goal.status === 'active' && (
           <button onClick={() => onUpdateProgress(goal)} style={{
-            flex: 1, padding: '10px 14px', background: '#2563eb', border: 'none',
+            flex: 1, padding: '10px 14px', background: 'var(--accent-primary)', border: 'none',
             borderRadius: '8px', color: '#fff', fontSize: '13px',
-            fontWeight: '600', cursor: 'pointer',
+            fontWeight: '700', cursor: 'pointer',
           }}
             onMouseEnter={e => (e.currentTarget).style.background = '#1d4ed8'}
-            onMouseLeave={e => (e.currentTarget).style.background = '#2563eb'}
+            onMouseLeave={e => (e.currentTarget).style.background = 'var(--accent-primary)'}
           >
             + Update Progress
           </button>
         )}
         <button onClick={() => onEdit(goal)} style={{
           padding: '8px 14px', background: 'transparent',
-          border: '1px solid #2a2a3a', borderRadius: '8px',
-          color: '#9ca3af', fontSize: '12px', cursor: 'pointer',
+          border: '1px solid var(--border-color)', borderRadius: '8px',
+          color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', fontWeight: '600'
         }}
-          onMouseEnter={e => { (e.currentTarget).style.borderColor = '#2563eb'; (e.currentTarget).style.color = '#60a5fa'; }}
-          onMouseLeave={e => { (e.currentTarget).style.borderColor = '#2a2a3a'; (e.currentTarget).style.color = '#9ca3af'; }}
+          onMouseEnter={e => { (e.currentTarget).style.borderColor = 'var(--accent-primary)'; (e.currentTarget).style.color = 'var(--accent-primary)'; }}
+          onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; }}
         >Edit</button>
 
         {/* Status change */}
         {goal.status === 'active' && (
           <button onClick={() => onStatusChange(goal.id, 'paused')} style={{
             padding: '8px 14px', background: 'transparent',
-            border: '1px solid #2a2a3a', borderRadius: '8px',
-            color: '#6b7280', fontSize: '12px', cursor: 'pointer',
+            border: '1px solid var(--border-color)', borderRadius: '8px',
+            color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', fontWeight: '600'
           }}
-            onMouseEnter={e => { (e.currentTarget).style.borderColor = '#3d3300'; (e.currentTarget).style.color = '#fbbf24'; }}
-            onMouseLeave={e => { (e.currentTarget).style.borderColor = '#2a2a3a'; (e.currentTarget).style.color = '#6b7280'; }}
+            onMouseEnter={e => { (e.currentTarget).style.borderColor = '#fbbf24'; (e.currentTarget).style.color = '#fbbf24'; }}
+            onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; }}
           >Jeda</button>
         )}
         {goal.status === 'paused' && (
           <button onClick={() => onStatusChange(goal.id, 'active')} style={{
             padding: '8px 14px', background: 'transparent',
-            border: '1px solid #2a2a3a', borderRadius: '8px',
-            color: '#6b7280', fontSize: '12px', cursor: 'pointer',
+            border: '1px solid var(--border-color)', borderRadius: '8px',
+            color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', fontWeight: '600'
           }}
-            onMouseEnter={e => { (e.currentTarget).style.borderColor = '#1e3a5f'; (e.currentTarget).style.color = '#60a5fa'; }}
-            onMouseLeave={e => { (e.currentTarget).style.borderColor = '#2a2a3a'; (e.currentTarget).style.color = '#6b7280'; }}
+            onMouseEnter={e => { (e.currentTarget).style.borderColor = '#10b981'; (e.currentTarget).style.color = '#10b981'; }}
+            onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; }}
           >Aktifkan</button>
         )}
         <button onClick={() => { if (confirm(`Hapus goal "${goal.name}"?`)) onDelete(goal.id); }} style={{
           padding: '8px 10px', background: 'transparent',
-          border: '1px solid #2a2a3a', borderRadius: '8px',
-          color: '#6b7280', fontSize: '12px', cursor: 'pointer',
+          border: '1px solid var(--border-color)', borderRadius: '8px',
+          color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer',
         }}
-          onMouseEnter={e => { (e.currentTarget).style.borderColor = '#7f1d1d'; (e.currentTarget).style.color = '#f87171'; }}
-          onMouseLeave={e => { (e.currentTarget).style.borderColor = '#2a2a3a'; (e.currentTarget).style.color = '#6b7280'; }}
+          onMouseEnter={e => { (e.currentTarget).style.borderColor = '#ef4444'; (e.currentTarget).style.color = '#ef4444'; }}
+          onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; }}
         >✕</button>
       </div>
     </div>
@@ -312,8 +314,8 @@ function GoalFormModal({
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '9px 12px',
-    background: '#0a0a0f', border: '1px solid #2a2a3a',
-    borderRadius: '8px', color: '#f0f0f5', fontSize: '13px',
+    background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+    borderRadius: '8px', color: 'var(--text-main)', fontSize: '13px',
     outline: 'none', boxSizing: 'border-box',
   };
 
@@ -327,16 +329,16 @@ function GoalFormModal({
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div style={{
-        background: '#111118', border: '1px solid #2a2a3a',
+        background: 'var(--card-bg)', border: '1px solid var(--border-color)',
         borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '520px',
         maxHeight: '90vh', overflowY: 'auto',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h2 style={{ color: '#f0f0f5', fontSize: '18px', fontWeight: '600', margin: 0 }}>
+          <h2 style={{ color: 'var(--text-main)', fontSize: '18px', fontWeight: '600', margin: 0 }}>
             {isEdit ? 'Edit Goal' : 'Tambah Goal Baru'}
           </h2>
           <button onClick={onClose} style={{
-            background: 'none', border: 'none', color: '#6b7280',
+            background: 'none', border: 'none', color: 'var(--text-muted)',
             fontSize: '20px', cursor: 'pointer', padding: '0 4px',
           }}>×</button>
         </div>
@@ -352,8 +354,8 @@ function GoalFormModal({
                   style={{
                     width: '38px', height: '38px', fontSize: '20px',
                     borderRadius: '8px', border: '2px solid',
-                    borderColor: form.icon === ic ? '#2563eb' : '#2a2a3a',
-                    background: form.icon === ic ? '#0c1f3a' : '#0a0a0f',
+                    borderColor: form.icon === ic ? 'var(--accent-primary)' : 'var(--border-color)',
+                    background: form.icon === ic ? 'rgba(37, 99, 235, 0.1)' : 'var(--bg-secondary)',
                     cursor: 'pointer',
                   }}>{ic}</button>
               ))}
@@ -366,8 +368,8 @@ function GoalFormModal({
             <input value={form.name ?? ''} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
               placeholder="cth: Dana Haji, Pensiun, DP Rumah" required
               style={inp}
-              onFocus={e => e.target.style.borderColor = '#2563eb'}
-              onBlur={e  => e.target.style.borderColor = '#2a2a3a'}
+              onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+              onBlur={e  => e.target.style.borderColor = 'var(--border-color)'}
             />
           </div>
 
@@ -377,8 +379,8 @@ function GoalFormModal({
             <input value={form.description ?? ''} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
               placeholder="Catatan singkat tentang goal ini"
               style={inp}
-              onFocus={e => e.target.style.borderColor = '#2563eb'}
-              onBlur={e  => e.target.style.borderColor = '#2a2a3a'}
+              onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+              onBlur={e  => e.target.style.borderColor = 'var(--border-color)'}
             />
           </div>
 
@@ -387,28 +389,28 @@ function GoalFormModal({
             <div>
               <label style={lbl}>Target Amount <span style={{ color: '#ef4444' }}>*</span></label>
               <div style={{ position:'relative' }}>
-                <span style={{ position:'absolute', left:'9px', top:'50%', transform:'translateY(-50%)', fontSize:'11px', color:'#6b7280', pointerEvents:'none' }}>Rp</span>
+                <span style={{ position:'absolute', left:'9px', top:'50%', transform:'translateY(-50%)', fontSize:'11px', color:'var(--text-muted)', pointerEvents:'none' }}>Rp</span>
                 <input type="text" inputMode="numeric" value={displayTarget} required placeholder="0"
                   onChange={e => { const n=parseAmt(e.target.value); setDisplayTarget(toDisp(n)); setForm(p=>({...p,target_amount:n})); }}
-                  onFocus={e => { e.target.style.borderColor='#2563eb'; setDisplayTarget((form.target_amount??0)===0?'':(form.target_amount??0).toString()); }}
-                  onBlur={e  => { e.target.style.borderColor='#2a2a3a'; setDisplayTarget(toDisp(form.target_amount??0)); }}
+                  onFocus={e => { e.target.style.borderColor='var(--accent-primary)'; setDisplayTarget((form.target_amount??0)===0?'':(form.target_amount??0).toString()); }}
+                  onBlur={e  => { e.target.style.borderColor='var(--border-color)'; setDisplayTarget(toDisp(form.target_amount??0)); }}
                   style={{...inp, paddingLeft:'28px', fontSize:'16px'}}
                 />
               </div>
-              {(form.target_amount??0)>0 && <div style={{fontSize:'11px',color:'#6b7280',marginTop:'3px'}}>Rp {(form.target_amount??0).toLocaleString('id-ID')}</div>}
+              {(form.target_amount??0)>0 && <div style={{fontSize:'11px',color:'var(--text-muted)',marginTop:'3px'}}>Rp {(form.target_amount??0).toLocaleString('id-ID')}</div>}
             </div>
             <div>
               <label style={lbl}>Sudah terkumpul</label>
               <div style={{ position:'relative' }}>
-                <span style={{ position:'absolute', left:'9px', top:'50%', transform:'translateY(-50%)', fontSize:'11px', color:'#6b7280', pointerEvents:'none' }}>Rp</span>
+                <span style={{ position:'absolute', left:'9px', top:'50%', transform:'translateY(-50%)', fontSize:'11px', color:'var(--text-muted)', pointerEvents:'none' }}>Rp</span>
                 <input type="text" inputMode="numeric" value={displayCurrent} placeholder="0"
                   onChange={e => { const n=parseAmt(e.target.value); setDisplayCurrent(toDisp(n)); setForm(p=>({...p,current_amount:n})); }}
-                  onFocus={e => { e.target.style.borderColor='#2563eb'; setDisplayCurrent((form.current_amount??0)===0?'':(form.current_amount??0).toString()); }}
-                  onBlur={e  => { e.target.style.borderColor='#2a2a3a'; setDisplayCurrent(toDisp(form.current_amount??0)); }}
+                  onFocus={e => { e.target.style.borderColor='var(--accent-primary)'; setDisplayCurrent((form.current_amount??0)===0?'':(form.current_amount??0).toString()); }}
+                  onBlur={e  => { e.target.style.borderColor='var(--border-color)'; setDisplayCurrent(toDisp(form.current_amount??0)); }}
                   style={{...inp, paddingLeft:'28px', fontSize:'16px'}}
                 />
               </div>
-              {(form.current_amount??0)>0 && <div style={{fontSize:'11px',color:'#6b7280',marginTop:'3px'}}>Rp {(form.current_amount??0).toLocaleString('id-ID')}</div>}
+              {(form.current_amount??0)>0 && <div style={{fontSize:'11px',color:'var(--text-muted)',marginTop:'3px'}}>Rp {(form.current_amount??0).toLocaleString('id-ID')}</div>}
             </div>
           </div>
 
@@ -417,35 +419,35 @@ function GoalFormModal({
             <div>
               <label style={lbl}>Cicilan per bulan</label>
               <div style={{ position:'relative' }}>
-                <span style={{ position:'absolute', left:'9px', top:'50%', transform:'translateY(-50%)', fontSize:'11px', color:'#6b7280', pointerEvents:'none' }}>Rp</span>
+                <span style={{ position:'absolute', left:'9px', top:'50%', transform:'translateY(-50%)', fontSize:'11px', color:'var(--text-muted)', pointerEvents:'none' }}>Rp</span>
                 <input type="text" inputMode="numeric" value={displayMonthly} placeholder="0"
                   onChange={e => { const n=parseAmt(e.target.value); setDisplayMonthly(toDisp(n)); setForm(p=>({...p,monthly_allocation:n||null})); }}
-                  onFocus={e => { e.target.style.borderColor='#2563eb'; const v=form.monthly_allocation??0; setDisplayMonthly(v===0?'':v.toString()); }}
-                  onBlur={e  => { e.target.style.borderColor='#2a2a3a'; setDisplayMonthly(toDisp(form.monthly_allocation??0)); }}
+                  onFocus={e => { e.target.style.borderColor='var(--accent-primary)'; const v=form.monthly_allocation??0; setDisplayMonthly(v===0?'':v.toString()); }}
+                  onBlur={e  => { e.target.style.borderColor='var(--border-color)'; setDisplayMonthly(toDisp(form.monthly_allocation??0)); }}
                   style={{...inp, paddingLeft:'28px', fontSize:'16px'}}
                 />
               </div>
-              {(form.monthly_allocation??0)>0 && <div style={{fontSize:'11px',color:'#6b7280',marginTop:'3px'}}>Rp {(form.monthly_allocation??0).toLocaleString('id-ID')}</div>}
+              {(form.monthly_allocation??0)>0 && <div style={{fontSize:'11px',color:'var(--text-muted)',marginTop:'3px'}}>Rp {(form.monthly_allocation??0).toLocaleString('id-ID')}</div>}
             </div>
             <div>
               <label style={lbl}>Deadline (opsional)</label>
               <input type="date" value={form.deadline ?? ''}
                 onChange={e => setForm(p => ({ ...p, deadline: e.target.value || null }))}
                 style={inp}
-                onFocus={e => e.target.style.borderColor = '#2563eb'}
-                onBlur={e  => e.target.style.borderColor = '#2a2a3a'}
+                onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+                onBlur={e  => e.target.style.borderColor = 'var(--border-color)'}
               />
             </div>
           </div>
 
           {/* Priority */}
           <div style={{ marginBottom: '20px' }}>
-            <label style={lbl}>Prioritas: <strong style={{ color: '#f0f0f5' }}>{form.priority}</strong> / 5</label>
+            <label style={lbl}>Prioritas: <strong style={{ color: 'var(--text-main)' }}>{form.priority}</strong> / 5</label>
             <input type="range" min={1} max={5} value={form.priority ?? 3}
               onChange={e => setForm(p => ({ ...p, priority: Number(e.target.value) }))}
-              style={{ width: '100%', accentColor: '#2563eb' }}
+              style={{ width: '100%', accentColor: 'var(--accent-primary)' }}
             />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#374151' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
               <span>Prioritas tinggi (1)</span><span>Prioritas rendah (5)</span>
             </div>
           </div>
@@ -453,21 +455,21 @@ function GoalFormModal({
           {/* Preview proyeksi */}
           {(form.target_amount ?? 0) > 0 && (
             <div style={{
-              padding: '12px 14px', background: '#0a0a0f',
-              border: '1px solid #1f1f2e', borderRadius: '9px', marginBottom: '20px',
+              padding: '12px 14px', background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-color)', borderRadius: '9px', marginBottom: '20px',
             }}>
-              <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px', fontWeight: '500' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: '500' }}>
                 PROYEKSI
               </div>
-              <div style={{ fontSize: '13px', color: '#9ca3af' }}>
-                Sisa: <strong style={{ color: '#f0f0f5' }}>
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                Sisa: <strong style={{ color: 'var(--text-main)' }}>
                   {fmt(Math.max((form.target_amount ?? 0) - (form.current_amount ?? 0), 0))}
                 </strong>
                 {form.monthly_allocation && form.monthly_allocation > 0 && (
-                  <> · Selesai sekitar <strong style={{ color: '#4ade80' }}>
+                  <> · Selesai sekitar <strong style={{ color: '#10b981' }}>
                     {estimatedDate(form.current_amount ?? 0, form.target_amount ?? 0, form.monthly_allocation)}
                   </strong>
-                  · <strong style={{ color: '#60a5fa' }}>
+                  · <strong style={{ color: 'var(--accent-primary)' }}>
                     {monthsToGoal(form.current_amount ?? 0, form.target_amount ?? 0, form.monthly_allocation)}
                   </strong>
                   </>
@@ -478,7 +480,7 @@ function GoalFormModal({
 
           <div style={{ display: 'flex', gap: '10px' }}>
             <button type="submit" disabled={saving} style={{
-              flex: 1, padding: '11px', background: saving ? '#1f1f2e' : '#2563eb',
+              flex: 1, padding: '11px', background: saving ? 'var(--border-color)' : 'var(--accent-primary)',
               border: 'none', borderRadius: '9px', color: '#fff',
               fontSize: '14px', fontWeight: '600',
               cursor: saving ? 'not-allowed' : 'pointer',
@@ -487,8 +489,8 @@ function GoalFormModal({
             </button>
             <button type="button" onClick={onClose} style={{
               padding: '11px 18px', background: 'transparent',
-              border: '1px solid #2a2a3a', borderRadius: '9px',
-              color: '#9ca3af', fontSize: '14px', cursor: 'pointer',
+              border: '1px solid var(--border-color)', borderRadius: '9px',
+              color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer',
             }}>Batal</button>
           </div>
         </form>

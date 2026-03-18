@@ -112,12 +112,13 @@ export default function QuickAdd({ userId, categories }: Props) {
           .qa-overlay { align-items: center; }
         }
         .qa-sheet {
-          background: #111118;
-          border: 1px solid #1f1f2e;
+          background: var(--card-bg);
+          border: 1px solid var(--border-color);
           border-radius: 20px 20px 0 0;
           padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
           width: 100%; max-width: 480px;
           animation: slideUp .2s ease;
+          box-shadow: 0 -10px 25px -5px rgb(0 0 0 / 0.1);
         }
         @media (min-width: 769px) {
           .qa-sheet { border-radius: 16px; padding: 24px; }
@@ -133,9 +134,10 @@ export default function QuickAdd({ userId, categories }: Props) {
         <div style={{
           position:'fixed', top:'20px', left:'50%', transform:'translateX(-50%)',
           zIndex:999, padding:'10px 18px', borderRadius:'99px',
-          background:'#0f2d1a', border:'1px solid #166534',
-          color:'#4ade80', fontSize:'13px', fontWeight:'500',
-          whiteSpace:'nowrap',
+          background:'rgba(16, 185, 129, 0.1)', border:'1px solid rgba(16, 185, 129, 0.2)',
+          color:'#10b981', fontSize:'13px', fontWeight:'500',
+          whiteSpace:'nowrap', backdropFilter: 'blur(8px)',
+          boxShadow: 'var(--card-shadow)',
         }}>{toast}</div>
       )}
 
@@ -149,27 +151,27 @@ export default function QuickAdd({ userId, categories }: Props) {
         <div className="qa-overlay" onClick={e => { if(e.target===e.currentTarget) setOpen(false); }}>
           <div className="qa-sheet">
             {/* Handle bar */}
-            <div style={{ width:'36px', height:'4px', background:'#2a2a3a', borderRadius:'99px', margin:'0 auto 16px' }}/>
+            <div style={{ width:'36px', height:'4px', background:'var(--border-color)', borderRadius:'99px', margin:'0 auto 16px' }}/>
 
             {/* Title */}
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'18px' }}>
-              <h3 style={{ color:'#f0f0f5', fontSize:'16px', fontWeight:'600', margin:0 }}>
+              <h3 style={{ color:'var(--text-main)', fontSize:'16px', fontWeight:'600', margin:0 }}>
                 Tambah Transaksi
               </h3>
               <button onClick={() => setOpen(false)} style={{
-                background:'none', border:'none', color:'#6b7280',
+                background:'none', border:'none', color:'var(--text-muted)',
                 fontSize:'20px', cursor:'pointer', padding:'0 4px',
               }}>×</button>
             </div>
 
             {/* Type toggle */}
-            <div style={{ display:'flex', gap:'4px', background:'#0a0a0f', borderRadius:'10px', padding:'4px', marginBottom:'16px' }}>
+            <div style={{ display:'flex', gap:'4px', background:'var(--bg-secondary)', borderRadius:'10px', padding:'4px', marginBottom:'16px' }}>
               {(['expense','income'] as const).map(t => (
                 <button key={t} onClick={() => { setType(t); setCatId(''); }} style={{
                   flex:1, padding:'8px', borderRadius:'7px', border:'none',
                   fontSize:'14px', fontWeight:'500', cursor:'pointer', transition:'all .15s',
-                  background: type===t ? (t==='expense'?'#2d0f0f':'#0f2d1a') : 'transparent',
-                  color: type===t ? (t==='expense'?'#f87171':'#4ade80') : '#6b7280',
+                  background: type===t ? (t==='expense'?'rgba(239, 68, 68, 0.1)':'rgba(16, 185, 129, 0.1)') : 'transparent',
+                  color: type===t ? (t==='expense'?'#ef4444':'#10b981') : 'var(--text-muted)',
                 }}>
                   {t==='expense' ? '🔴 Pengeluaran' : '💚 Pemasukan'}
                 </button>
@@ -178,13 +180,13 @@ export default function QuickAdd({ userId, categories }: Props) {
 
             {/* Amount */}
             <div style={{ marginBottom:'14px' }}>
-              <label style={{ display:'block', fontSize:'12px', color:'#9ca3af', fontWeight:'500', marginBottom:'6px' }}>
+              <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'6px' }}>
                 Nominal <span style={{ color:'#ef4444' }}>*</span>
               </label>
               <div style={{ position:'relative' }}>
                 <span style={{
                   position:'absolute', left:'12px', top:'50%', transform:'translateY(-50%)',
-                  fontSize:'14px', color:'#6b7280', pointerEvents:'none',
+                  fontSize:'14px', color:'var(--text-muted)', pointerEvents:'none',
                 }}>Rp</span>
                 <input
                   type="text" inputMode="numeric" value={display}
@@ -195,19 +197,19 @@ export default function QuickAdd({ userId, categories }: Props) {
                     setDisplay(num===0?'':num.toLocaleString('id-ID'));
                     setAmount(num);
                   }}
-                  onFocus={e => { e.target.style.borderColor='#2563eb'; setDisplay(amount===0?'':amount.toString()); }}
-                  onBlur={e  => { e.target.style.borderColor='#2a2a3a'; setDisplay(amount===0?'':amount.toLocaleString('id-ID')); }}
+                  onFocus={e => { e.target.style.borderColor='var(--accent-primary)'; setDisplay(amount===0?'':amount.toString()); }}
+                  onBlur={e  => { e.target.style.borderColor='var(--border-color)'; setDisplay(amount===0?'':amount.toLocaleString('id-ID')); }}
                   style={{
                     width:'100%', padding:'12px 12px 12px 40px',
-                    background:'#0a0a0f', border:'1px solid #2a2a3a',
-                    borderRadius:'10px', color:'#f0f0f5',
+                    background:'var(--bg-secondary)', border:'1px solid var(--border-color)',
+                    borderRadius:'10px', color:'var(--text-main)',
                     fontSize:'20px', fontWeight:'600',
                     outline:'none', boxSizing:'border-box',
                   }}
                 />
               </div>
               {amount > 0 && (
-                <div style={{ fontSize:'12px', color:'#6b7280', marginTop:'4px' }}>
+                <div style={{ fontSize:'12px', color:'var(--text-muted)', marginTop:'4px' }}>
                   Rp {amount.toLocaleString('id-ID')}
                 </div>
               )}
@@ -215,13 +217,13 @@ export default function QuickAdd({ userId, categories }: Props) {
 
             {/* Category */}
             <div style={{ marginBottom:'14px' }}>
-              <label style={{ display:'block', fontSize:'12px', color:'#9ca3af', fontWeight:'500', marginBottom:'6px' }}>
+              <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'6px' }}>
                 Kategori
               </label>
               <select value={catId} onChange={e => setCatId(e.target.value)} style={{
                 width:'100%', padding:'10px 12px',
-                background:'#0a0a0f', border:'1px solid #2a2a3a',
-                borderRadius:'10px', color: catId?'#f0f0f5':'#6b7280',
+                background:'var(--bg-secondary)', border:'1px solid var(--border-color)',
+                borderRadius:'10px', color: catId?'var(--text-main)':'var(--text-muted)',
                 fontSize:'16px', outline:'none', cursor:'pointer',
               }}>
                 <option value="">— Pilih kategori —</option>
@@ -233,35 +235,35 @@ export default function QuickAdd({ userId, categories }: Props) {
 
             {/* Note */}
             <div style={{ marginBottom:'14px' }}>
-              <label style={{ display:'block', fontSize:'12px', color:'#9ca3af', fontWeight:'500', marginBottom:'6px' }}>
+              <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'6px' }}>
                 Catatan
               </label>
               <input value={note} onChange={e => setNote(e.target.value)}
                 placeholder="cth: Makan siang, Bensin, Gaji..."
                 style={{
                   width:'100%', padding:'10px 12px',
-                  background:'#0a0a0f', border:'1px solid #2a2a3a',
-                  borderRadius:'10px', color:'#f0f0f5', fontSize:'16px',
+                  background:'var(--bg-secondary)', border:'1px solid var(--border-color)',
+                  borderRadius:'10px', color:'var(--text-main)', fontSize:'16px',
                   outline:'none', boxSizing:'border-box',
                 }}
-                onFocus={e => e.target.style.borderColor='#2563eb'}
-                onBlur={e  => e.target.style.borderColor='#2a2a3a'}
+                onFocus={e => e.target.style.borderColor='var(--accent-primary)'}
+                onBlur={e  => e.target.style.borderColor='var(--border-color)'}
               />
             </div>
 
             {/* Date */}
             <div style={{ marginBottom:'20px' }}>
-              <label style={{ display:'block', fontSize:'12px', color:'#9ca3af', fontWeight:'500', marginBottom:'6px' }}>
+              <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'6px' }}>
                 Tanggal
               </label>
               <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{
                 width:'100%', padding:'10px 12px',
-                background:'#0a0a0f', border:'1px solid #2a2a3a',
-                borderRadius:'10px', color:'#f0f0f5', fontSize:'16px',
+                background:'var(--bg-secondary)', border:'1px solid var(--border-color)',
+                borderRadius:'10px', color:'var(--text-main)', fontSize:'16px',
                 outline:'none', boxSizing:'border-box', cursor:'pointer',
               }}
-                onFocus={e => e.target.style.borderColor='#2563eb'}
-                onBlur={e  => e.target.style.borderColor='#2a2a3a'}
+                onFocus={e => e.target.style.borderColor='var(--accent-primary)'}
+                onBlur={e  => e.target.style.borderColor='var(--border-color)'}
               />
             </div>
 
@@ -271,9 +273,9 @@ export default function QuickAdd({ userId, categories }: Props) {
               disabled={saving || amount <= 0}
               style={{
                 width:'100%', padding:'14px',
-                background: saving||amount<=0 ? '#1f1f2e' : '#2563eb',
+                background: saving||amount<=0 ? 'var(--border-color)' : 'var(--accent-primary)',
                 border:'none', borderRadius:'10px',
-                color: saving||amount<=0 ? '#6b7280' : '#fff',
+                color: saving||amount<=0 ? 'var(--text-muted)' : '#fff',
                 fontSize:'15px', fontWeight:'600',
                 cursor: saving||amount<=0 ? 'not-allowed' : 'pointer',
                 transition:'background .15s',
