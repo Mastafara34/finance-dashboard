@@ -350,16 +350,16 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
             style={{
               padding: '16px', borderRadius: '12px', border: '2px solid',
               cursor: 'pointer', transition: 'all 0.2s',
-              background: 'var(--bg-secondary)',
-              borderColor: theme === 'dark' ? 'var(--accent-primary)' : 'var(--border-color)',
+              background: '#0a0a0f',
+              borderColor: theme === 'dark' ? 'var(--accent-primary)' : '#1f1f2e',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
               <div style={{ fontSize: '18px' }}>🌙</div>
-              <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>Gelap</div>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: '#f8fafc' }}>Gelap</div>
               {theme === 'dark' && <div style={{ marginLeft: 'auto', color: '#2563eb' }}>✓</div>}
             </div>
-            <div style={{ height: '40px', background: 'var(--card-bg)', borderRadius: '6px', border: '1px solid var(--border-color)' }} />
+            <div style={{ height: '40px', background: '#111118', borderRadius: '6px', border: '1px solid #1f1f2e' }} />
           </div>
 
           <div 
