@@ -26,6 +26,7 @@ const supabase = createClient(
 interface TelegramMessage {
   chat: { id: number };
   from?: { username?: string; first_name?: string };
+  message_id?: number;
   text?: string;
 }
 
@@ -118,6 +119,86 @@ async function getOrCreateUser(msg: TelegramMessage): Promise<User> {
 }
 
 // ─── Gemini: Extract financial data ──────────────────────────────────────────
+class GeminiQuotaError extends Error {
+  code = 'GEMINI_QUOTA' as const;
+  constructor(message = 'Gemini quota/rate limit exceeded') {
+    super(message);
+  }
+}
+
+class GeminiParseError extends Error {
+  code = 'GEMINI_PARSE' as const;
+  constructor(message = 'Gemini response could not be parsed') {
+    super(message);
+  }
+}
+
+function parseIndoAmount(raw: string): number {
+  const cleaned = raw
+    .toLowerCase()
+    .replace(/rp/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/,/g, '.'); // tolerate "1,5jt"
+
+  // keep only digits + dot + unit words
+  const match = cleaned.match(/(\d+(?:\.\d+)?)\s*(juta|jt|m|ribu|rb|k)?/i);
+  if (!match) return 0;
+
+  const num = parseFloat(match[1]);
+  if (!isFinite(num)) return 0;
+
+  const unit = (match[2] ?? '').toLowerCase();
+  if (unit === 'juta' || unit === 'jt' || unit === 'm') return Math.round(num * 1_000_000);
+  if (unit === 'ribu' || unit === 'rb' || unit === 'k') return Math.round(num * 1_000);
+  return Math.round(num);
+}
+
+function parseManualTransaction(userText: string): {
+  type: 'income' | 'expense';
+  amount: number;
+  category_name: string;
+  note: string;
+} | null {
+  const t = userText.trim();
+  if (!t) return null;
+
+  // Supported formats:
+  // - "expense 35000 makan siang"
+  // - "income 5000000 gaji"
+  // - "keluar 35rb makan | makan siang warteg"
+  // - "masuk 5jt gaji | bonus"
+  const [first, ...rest] = t.split(/\s+/);
+  const firstLower = first.toLowerCase();
+  const type: 'income' | 'expense' | null =
+    firstLower === 'income' || firstLower === 'in' || firstLower === 'masuk' ? 'income'
+    : firstLower === 'expense' || firstLower === 'out' || firstLower === 'keluar' ? 'expense'
+    : null;
+  if (!type) return null;
+
+  const restText = rest.join(' ').trim();
+  if (!restText) return null;
+
+  // amount is required and should appear early
+  const amtMatch = restText.match(/^(\d[\d.,]*\s*(?:juta|jt|m|ribu|rb|k)?)\s+(.*)$/i);
+  if (!amtMatch) return null;
+
+  const amount = parseIndoAmount(amtMatch[1]);
+  if (!amount || amount <= 0) return null;
+  if (amount > 1_000_000_000_000) throw new Error('Amount tidak wajar');
+
+  const tail = (amtMatch[2] ?? '').trim();
+  if (!tail) return null;
+
+  // Optional delimiter: "kategori | catatan"
+  const [catPart, notePart] = tail.split('|').map(s => s.trim());
+  const category_name = (catPart || '').split(/\s+/).slice(0, 3).join(' ').trim(); // keep category short-ish
+  const note = (notePart ?? catPart).trim();
+  if (!category_name) return null;
+
+  return { type, amount, category_name, note };
+}
+
 async function extractFinancialData(userText: string): Promise<{
   type: 'income' | 'expense';
   amount: number;
@@ -147,11 +228,32 @@ Aturan:
     }),
   });
 
-  const data = await res.json();
-  if (data.error) throw new Error(`Gemini: ${data.error.message}`);
+  let data: any = null;
+  try {
+    data = await res.json();
+  } catch {
+    // non-json from upstream
+    throw new Error(`Gemini: invalid response (${res.status})`);
+  }
 
-  const raw: string = data.candidates[0].content.parts[0].text;
-  const parsed = JSON.parse(raw.replace(/```json|```/gi, '').trim());
+  const errStatus = data?.error?.status as string | undefined;
+  const errMsg = data?.error?.message as string | undefined;
+  if (!res.ok || data?.error) {
+    if (res.status === 429 || errStatus === 'RESOURCE_EXHAUSTED') {
+      throw new GeminiQuotaError(errMsg || 'RESOURCE_EXHAUSTED');
+    }
+    throw new Error(`Gemini: ${errMsg || `HTTP ${res.status}`}`);
+  }
+
+  const raw: string | undefined = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!raw) throw new GeminiParseError('Gemini: empty candidates');
+
+  let parsed: any;
+  try {
+    parsed = JSON.parse(String(raw).replace(/```json|```/gi, '').trim());
+  } catch {
+    throw new GeminiParseError('Gemini: invalid JSON');
+  }
 
   if (!parsed.type || parsed.amount <= 0) return null;
   if (parsed.amount > 1_000_000_000_000) throw new Error('Amount tidak wajar');
@@ -192,11 +294,31 @@ Aturan:
     }),
   });
 
-  const data = await res.json();
-  if (data.error) throw new Error(`Gemini: ${data.error.message}`);
+  let data: any = null;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error(`Gemini: invalid response (${res.status})`);
+  }
 
-  const raw: string = data.candidates[0].content.parts[0].text;
-  const parsed = JSON.parse(raw.replace(/```json|```/gi, '').trim());
+  const errStatus = data?.error?.status as string | undefined;
+  const errMsg = data?.error?.message as string | undefined;
+  if (!res.ok || data?.error) {
+    if (res.status === 429 || errStatus === 'RESOURCE_EXHAUSTED') {
+      throw new GeminiQuotaError(errMsg || 'RESOURCE_EXHAUSTED');
+    }
+    throw new Error(`Gemini: ${errMsg || `HTTP ${res.status}`}`);
+  }
+
+  const raw: string | undefined = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!raw) throw new GeminiParseError('Gemini: empty candidates');
+
+  let parsed: any;
+  try {
+    parsed = JSON.parse(String(raw).replace(/```json|```/gi, '').trim());
+  } catch {
+    throw new GeminiParseError('Gemini: invalid JSON');
+  }
 
   if (!parsed.name || parsed.target_amount <= 0) return null;
 
@@ -708,9 +830,24 @@ async function checkAnomaly(
 async function handleTransaction(
   chatId: number,
   userId: string,
-  userText: string
+  userText: string,
+  messageId?: number
 ): Promise<void> {
-  const data = await extractFinancialData(userText);
+  let data: Awaited<ReturnType<typeof extractFinancialData>> = null;
+  let usedManual = false;
+
+  try {
+    data = await extractFinancialData(userText);
+  } catch (err: any) {
+    // Manual mode fallback when AI is unavailable or response is malformed
+    const manual = parseManualTransaction(userText);
+    if (manual) {
+      data = manual;
+      usedManual = true;
+    } else {
+      throw err;
+    }
+  }
 
   if (!data) {
     await sendMessage(
@@ -720,7 +857,35 @@ async function handleTransaction(
       `• _"Makan siang 35 ribu"_\n` +
       `• _"Bensin 100rb"_\n` +
       `• _"Gaji 8 juta"_\n` +
-      `• _"Nabung 500 ribu"_`
+      `• _"Nabung 500 ribu"_\n\n` +
+      `Atau pakai format manual:\n` +
+      `• _expense 35000 makan siang_\n` +
+      `• _income 5000000 gaji_`
+    );
+    return;
+  }
+
+  // Basic idempotency: prevent duplicate inserts on Telegram retries
+  // Heuristic: same day + same type + amount + note + source bot, created within last 2 minutes
+  const today = new Date().toISOString().split('T')[0];
+  const since = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+  const { data: dup } = await supabase
+    .from('transactions')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('type', data.type)
+    .eq('amount', data.amount)
+    .eq('note', data.note)
+    .eq('source', 'bot')
+    .eq('date', today)
+    .gte('created_at', since)
+    .limit(1);
+
+  if (dup && dup.length > 0) {
+    await sendMessage(
+      chatId,
+      `✅ Sudah tercatat barusan.\n\n` +
+      `Jika ini bukan duplikat, coba tambahkan catatan berbeda atau tunggu sebentar lalu kirim ulang.`
     );
     return;
   }
@@ -754,7 +919,7 @@ async function handleTransaction(
     amount:      data.amount,
     note:        data.note,
     source:      'bot',
-    date:        new Date().toISOString().split('T')[0], // DATE only: YYYY-MM-DD
+    date:        today, // DATE only: YYYY-MM-DD
     created_at:  new Date().toISOString(),
   }]);
 
@@ -781,6 +946,7 @@ async function handleTransaction(
     `💰 Nominal   : *${fmt(data.amount)}*\n` +
     `📂 Kategori  : ${data.category_name}\n` +
     `📝 Catatan   : ${data.note || '-'}\n\n` +
+    (usedManual ? `_Dicatat via mode manual karena AI sedang bermasalah/limit._\n\n` : '') +
     `_/status untuk lihat ringkasan bulan ini_`
   );
 }
@@ -922,12 +1088,39 @@ export async function POST(request: Request) {
     }
 
     // Natural language → transaction
-    await handleTransaction(chatId, userId, userText);
+    await handleTransaction(chatId, userId, userText, msg.message_id);
     return NextResponse.json({ ok: true });
 
   } catch (err: any) {
     void writeAuditLog(chatId, 'handler_error', 'error', { message: err.message });
     console.error('[HANDLER ERROR]', { chatId, error: err.message });
+
+    // User-friendly errors for common Gemini failure modes
+    const code = err?.code as string | undefined;
+    if (code === 'GEMINI_QUOTA') {
+      void sendMessage(
+        chatId,
+        `⏳ *AI sedang limit/kuota habis.*\n\n` +
+        `Kamu tetap bisa:\n` +
+        `• Pakai format manual: _expense 35000 makan siang_ / _income 5000000 gaji_\n` +
+        `• Jalankan command: /status, /goals, /laporan, /forecast\n\n` +
+        `Coba lagi beberapa menit lagi ya.`
+      );
+      return NextResponse.json({ ok: true });
+    }
+    if (code === 'GEMINI_PARSE') {
+      void sendMessage(
+        chatId,
+        `🤔 Aku belum bisa membaca format transaksinya.\n\n` +
+        `Coba contoh:\n` +
+        `• _"Makan siang 35 ribu"_\n` +
+        `• _"Gaji 5 juta"_\n\n` +
+        `Atau format manual:\n` +
+        `• _expense 35000 makan siang_\n` +
+        `• _income 5000000 gaji_`
+      );
+      return NextResponse.json({ ok: true });
+    }
 
     void sendMessage(chatId, '⚠️ Terjadi kesalahan. Coba lagi dalam beberapa detik ya.');
     return NextResponse.json({ ok: true });
