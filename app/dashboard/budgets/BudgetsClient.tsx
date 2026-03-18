@@ -457,21 +457,21 @@ export default function BudgetsClient({
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  const lbl = { display: 'block', fontSize: '12px', color: '#9ca3af', marginBottom: '6px' };
-  const inp = { width: '100%', padding: '10px', background: '#0a0a0f', border: '1px solid #1f1f2e', borderRadius: '8px', color: '#f0f0f5', outline: 'none' };
+  const lbl = { display: 'block', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px' };
+  const inp = { width: '100%', padding: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-main)', outline: 'none' };
 
   return (
-    <div style={{ color: '#f0f0f5', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
+    <div style={{ color: 'var(--text-main)', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
 
       {/* Toast */}
       {toast && (
         <div style={{
           position: 'fixed', top: '20px', right: '20px', zIndex: 200,
           padding: '12px 18px', borderRadius: '10px', fontSize: '13px', fontWeight: '500',
-          background: toast.ok ? '#0f2d1a' : '#2d0f0f',
-          border: `1px solid ${toast.ok ? '#166534' : '#7f1d1d'}`,
-          color: toast.ok ? '#4ade80' : '#f87171',
-          boxShadow: '0 4px 20px rgba(0,0,0,.4)',
+          background: toast.ok ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+          border: `1px solid ${toast.ok ? 'rgba(22, 163, 74, 0.6)' : 'rgba(185, 28, 28, 0.6)'}`,
+          color: toast.ok ? '#15803d' : '#b91c1c',
+          boxShadow: '0 4px 20px rgba(15,23,42,.18)',
         }}>{toast.msg}</div>
       )}
 

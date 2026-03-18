@@ -23,7 +23,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#0a0a0f',
+  themeColor: '#f8fafc',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* PWA splash screens (optional tapi bagus) */}
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body style={{ margin: 0, padding: 0, background: '#0a0a0f' }}>
+      <body style={{ margin: 0, padding: 0, background: 'var(--bg-secondary)', color: 'var(--text-main)' }}>
         {children}
       </body>
     </html>

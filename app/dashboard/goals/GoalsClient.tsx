@@ -535,26 +535,27 @@ function UpdateProgressModal({
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div style={{
-        background: '#111118', border: '1px solid #2a2a3a',
+        background: 'var(--card-bg)', border: '1px solid var(--border-color)',
         borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '400px',
+        boxShadow: 'var(--card-shadow)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ color: '#f0f0f5', fontSize: '18px', fontWeight: '600', margin: 0 }}>
+          <h2 style={{ color: 'var(--text-main)', fontSize: '18px', fontWeight: '600', margin: 0 }}>
             {goal.icon} Update Progress
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: '20px', cursor: 'pointer' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer' }}>×</button>
         </div>
 
         {/* Current state */}
-        <div style={{ marginBottom: '20px', padding: '14px', background: '#0a0a0f', borderRadius: '10px' }}>
-          <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>{goal.name}</div>
+        <div style={{ marginBottom: '20px', padding: '14px', background: 'var(--bg-secondary)', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: '600' }}>{goal.name}</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af' }}>Terkumpul sekarang</span>
-            <span style={{ fontSize: '13px', fontWeight: '600' }}>{fmt(goal.current_amount)}</span>
+            <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Terkumpul sekarang</span>
+            <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)' }}>{fmt(goal.current_amount)}</span>
           </div>
-          <div style={{ height: '6px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
+          <div style={{ height: '6px', background: 'var(--border-color)', borderRadius: '99px', overflow: 'hidden' }}>
             <div style={{
-              height: '100%', borderRadius: '99px', background: '#2563eb',
+              height: '100%', borderRadius: '99px', background: 'var(--accent-primary)',
               width: `${Math.min(Math.round((goal.current_amount / goal.target_amount) * 100), 100)}%`,
             }}/>
           </div>
@@ -564,43 +565,43 @@ function UpdateProgressModal({
           <div style={{ marginBottom: '14px' }}>
             <label style={lbl}>Jumlah yang ditambahkan</label>
             <div style={{ position:'relative' }}>
-              <span style={{ position:'absolute', left:'12px', top:'50%', transform:'translateY(-50%)', fontSize:'13px', color:'#6b7280', pointerEvents:'none' }}>Rp</span>
+              <span style={{ position:'absolute', left:'12px', top:'50%', transform:'translateY(-50%)', fontSize:'13px', color:'var(--text-muted)', pointerEvents:'none' }}>Rp</span>
               <input
                 type="text" inputMode="numeric"
                 value={display}
                 placeholder="0"
                 required autoFocus
                 onChange={e => { const n=parseAmt(e.target.value); setDisplay(toDisp(n)); setAmount(n); }}
-                onFocus={e => { e.target.style.borderColor='#2563eb'; setDisplay(amount===0?'':amount.toString()); }}
-                onBlur={e => { e.target.style.borderColor='#2a2a3a'; setDisplay(toDisp(amount)); }}
+                onFocus={e => { e.target.style.borderColor='var(--accent-primary)'; setDisplay(amount===0?'':amount.toString()); }}
+                onBlur={e => { e.target.style.borderColor='var(--border-color)'; setDisplay(toDisp(amount)); }}
                 style={{
                   width:'100%', padding:'11px 12px 11px 36px',
-                  background:'#0a0a0f', border:'1px solid #2a2a3a',
-                  borderRadius:'9px', color:'#f0f0f5', fontSize:'16px',
+                  background:'var(--bg-secondary)', border:'1px solid var(--border-color)',
+                  borderRadius:'9px', color:'var(--text-main)', fontSize:'16px',
                   outline:'none', boxSizing:'border-box',
                 }}
               />
             </div>
-            {amount > 0 && <div style={{fontSize:'11px',color:'#6b7280',marginTop:'3px'}}>Rp {amount.toLocaleString('id-ID')}</div>}
+            {amount > 0 && <div style={{fontSize:'11px',color:'var(--text-muted)',marginTop:'3px'}}>Rp {amount.toLocaleString('id-ID')}</div>}
 
           {/* Preview */}
           {parsed > 0 && (
             <div style={{
-              padding: '12px 14px', background: '#0c1f3a',
-              border: '1px solid #1e3a5f', borderRadius: '9px', marginBottom: '16px',
+              padding: '12px 14px', background: 'rgba(37, 99, 235, 0.05)',
+              border: '1px solid rgba(37, 99, 235, 0.2)', borderRadius: '9px', marginBottom: '16px',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ fontSize: '12px', color: '#60a5fa' }}>Setelah update</span>
-                <span style={{ fontSize: '13px', fontWeight: '600', color: '#f0f0f5' }}>{fmt(newTotal)}</span>
+                <span style={{ fontSize: '12px', color: 'var(--accent-primary)', fontWeight: '600' }}>Setelah update</span>
+                <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)' }}>{fmt(newTotal)}</span>
               </div>
-              <div style={{ height: '6px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
+              <div style={{ height: '6px', background: 'var(--bg-secondary)', borderRadius: '99px', overflow: 'hidden' }}>
                 <div style={{
                   height: '100%', borderRadius: '99px',
-                  background: newPct >= 100 ? '#4ade80' : '#2563eb',
+                  background: newPct >= 100 ? '#10b981' : 'var(--accent-primary)',
                   width: `${newPct}%`, transition: 'width .3s',
                 }}/>
               </div>
-              <div style={{ textAlign: 'right', fontSize: '11px', color: '#60a5fa', marginTop: '4px' }}>
+              <div style={{ textAlign: 'right', fontSize: '11px', color: 'var(--accent-primary)', marginTop: '4px', fontWeight: '600' }}>
                 {newPct}% {newPct >= 100 && '🎉 Goal tercapai!'}
               </div>
             </div>
@@ -608,8 +609,8 @@ function UpdateProgressModal({
 
           <div style={{ display: 'flex', gap: '10px' }}>
             <button type="submit" disabled={saving || parsed <= 0} style={{
-              flex: 1, padding: '11px', background: saving || parsed <= 0 ? '#1f1f2e' : '#2563eb',
-              border: 'none', borderRadius: '9px', color: saving || parsed <= 0 ? '#6b7280' : '#fff',
+              flex: 1, padding: '11px', background: saving || parsed <= 0 ? 'var(--border-color)' : 'var(--accent-primary)',
+              border: 'none', borderRadius: '9px', color: saving || parsed <= 0 ? 'var(--text-muted)' : '#fff',
               fontSize: '14px', fontWeight: '600',
               cursor: saving || parsed <= 0 ? 'not-allowed' : 'pointer',
             }}>
@@ -617,8 +618,8 @@ function UpdateProgressModal({
             </button>
             <button type="button" onClick={onClose} style={{
               padding: '11px 18px', background: 'transparent',
-              border: '1px solid #2a2a3a', borderRadius: '9px',
-              color: '#9ca3af', fontSize: '14px', cursor: 'pointer',
+              border: '1px solid var(--border-color)', borderRadius: '9px',
+              color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer',
             }}>Batal</button>
           </div>
           </div>
@@ -746,17 +747,17 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div style={{ color: '#f0f0f5', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
+    <div style={{ color: 'var(--text-main)', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
 
       {/* Toast */}
       {toast && (
         <div style={{
           position: 'fixed', top: '20px', right: '20px', zIndex: 200,
           padding: '12px 18px', borderRadius: '10px', fontSize: '13px', fontWeight: '500',
-          background: toast.ok ? '#0f2d1a' : '#2d0f0f',
-          border: `1px solid ${toast.ok ? '#166534' : '#7f1d1d'}`,
-          color: toast.ok ? '#4ade80' : '#f87171',
-          boxShadow: '0 4px 20px rgba(0,0,0,.4)',
+          background: toast.ok ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+          border: `1px solid ${toast.ok ? 'rgba(22, 163, 74, 0.6)' : 'rgba(185, 28, 28, 0.6)'}`,
+          color: toast.ok ? '#15803d' : '#b91c1c',
+          boxShadow: '0 4px 20px rgba(15,23,42,.18)',
         }}>{toast.msg}</div>
       )}
 
@@ -805,18 +806,19 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
       {goals.length > 0 && (
         <div className="goals-summary">
           {[
-            { label: 'Goals Aktif', value: active.length.toString(), color: '#60a5fa' },
-            { label: 'Tercapai', value: achieved.length.toString(), color: '#4ade80' },
-            { label: 'Total Terkumpul', value: fmt(totalCurrent), color: '#f0f0f5' },
-            { label: 'Total Target Aktif', value: fmt(totalTarget), color: '#9ca3af' },
+            { label: 'Goals Aktif', value: active.length.toString(), color: 'var(--accent-primary)' },
+            { label: 'Tercapai', value: achieved.length.toString(), color: '#10b981' },
+            { label: 'Total Terkumpul', value: fmt(totalCurrent), color: 'var(--text-main)' },
+            { label: 'Total Target Aktif', value: fmt(totalTarget), color: 'var(--text-muted)' },
           ].map(s => (
             <div key={s.label} style={{
-              background: '#111118', border: '1px solid #1f1f2e',
+              background: 'var(--card-bg)', border: '1px solid var(--border-color)',
               borderRadius: '10px', padding: '14px 16px',
+              boxShadow: 'var(--card-shadow)',
             }}>
-              <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '4px',
-                textTransform: 'uppercase', letterSpacing: '.05em' }}>{s.label}</div>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: s.color }}>{s.value}</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px',
+                textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: '700' }}>{s.label}</div>
+              <div style={{ fontSize: '16px', fontWeight: '800', color: s.color }}>{s.value}</div>
             </div>
           ))}
         </div>
@@ -831,11 +833,12 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
             return (
               <button key={s} onClick={() => setFilterStatus(s)} style={{
                 padding: '6px 12px', borderRadius: '99px', border: '1px solid',
-                fontSize: '12px', cursor: 'pointer', fontWeight: '500',
+                fontSize: '12px', cursor: 'pointer', fontWeight: '600',
                 whiteSpace: 'nowrap',
-                borderColor: active ? '#2563eb' : '#2a2a3a',
-                background: active ? '#0c1f3a' : 'transparent',
-                color: active ? '#60a5fa' : '#6b7280',
+                borderColor: active ? 'var(--accent-primary)' : 'var(--border-color)',
+                background: active ? 'rgba(37, 99, 235, 0.1)' : 'var(--card-bg)',
+                color: active ? 'var(--accent-primary)' : 'var(--text-muted)',
+                transition: 'all 0.15s',
               }}>
                 {s === 'all' ? 'Semua' : STATUS_LABEL[s]}
                 <span style={{ marginLeft: '5px', opacity: .7, fontSize: '11px' }}>

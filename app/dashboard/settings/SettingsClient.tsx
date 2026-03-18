@@ -73,8 +73,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <div style={{ marginBottom: '16px' }}>
       <label style={{
-        display: 'block', fontSize: '12px', color: '#9ca3af',
-        fontWeight: '500', marginBottom: '6px',
+        display: 'block', fontSize: '12px', color: 'var(--text-muted)',
+        fontWeight: '600', marginBottom: '6px',
       }}>{label}</label>
       {children}
     </div>
@@ -83,9 +83,10 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '10px 12px',
-  background: '#0a0a0f', border: '1px solid #2a2a3a',
-  borderRadius: '8px', color: '#f0f0f5', fontSize: '13px',
+  background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+  borderRadius: '8px', color: 'var(--text-main)', fontSize: '13px',
   outline: 'none', boxSizing: 'border-box',
+  transition: 'all 0.15s',
 };
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -241,17 +242,17 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div style={{ color: '#f0f0f5', fontFamily: '"DM Sans", system-ui, sans-serif', maxWidth: '720px' }}>
+    <div style={{ color: 'var(--text-main)', fontFamily: '"DM Sans", system-ui, sans-serif', maxWidth: '720px' }}>
 
       {/* Toast */}
       {toast && (
         <div style={{
           position: 'fixed', top: '20px', right: '20px', zIndex: 200,
           padding: '12px 18px', borderRadius: '10px', fontSize: '13px', fontWeight: '500',
-          background: toast.ok ? '#0f2d1a' : '#2d0f0f',
-          border: `1px solid ${toast.ok ? '#166534' : '#7f1d1d'}`,
-          color: toast.ok ? '#4ade80' : '#f87171',
-          boxShadow: '0 4px 20px rgba(0,0,0,.4)',
+          background: toast.ok ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+          border: `1px solid ${toast.ok ? 'rgba(22, 163, 74, 0.6)' : 'rgba(185, 28, 28, 0.6)'}`,
+          color: toast.ok ? '#15803d' : '#b91c1c',
+          boxShadow: '0 4px 20px rgba(15,23,42,.18)',
         }}>{toast.msg}</div>
       )}
 
@@ -349,16 +350,16 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
             style={{
               padding: '16px', borderRadius: '12px', border: '2px solid',
               cursor: 'pointer', transition: 'all 0.2s',
-              background: '#0a0a0f',
-              borderColor: theme === 'dark' ? '#2563eb' : '#1f1f2e',
+              background: 'var(--bg-secondary)',
+              borderColor: theme === 'dark' ? 'var(--accent-primary)' : 'var(--border-color)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
               <div style={{ fontSize: '18px' }}>🌙</div>
-              <div style={{ fontSize: '14px', fontWeight: '600', color: '#f0f0f5' }}>Gelap</div>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>Gelap</div>
               {theme === 'dark' && <div style={{ marginLeft: 'auto', color: '#2563eb' }}>✓</div>}
             </div>
-            <div style={{ height: '40px', background: '#111118', borderRadius: '6px', border: '1px solid #1f1f2e' }} />
+            <div style={{ height: '40px', background: 'var(--card-bg)', borderRadius: '6px', border: '1px solid var(--border-color)' }} />
           </div>
 
           <div 
@@ -384,13 +385,13 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
       {(profile.role === 'owner' || profile.role === 'admin') && (
         <a href="/dashboard/settings/users" style={{ textDecoration: 'none' }}>
           <div style={{
-            background: '#111118', border: '1px solid #1f1f2e',
+            background: 'var(--card-bg)', border: '1px solid var(--border-color)',
             borderRadius: '14px', padding: '16px 20px', marginBottom: '16px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             transition: 'border-color .15s', cursor: 'pointer',
           }}
-            onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = '#2a2a3a'}
-            onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = '#1f1f2e'}
+            onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--accent-primary)'}
+            onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-color)'}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
               <div style={{
@@ -399,7 +400,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px',
               }}>👥</div>
               <div>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: '#f0f0f5' }}>Kelola User</div>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>Kelola User</div>
                 <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '1px' }}>
                   Tambah user, ubah role, kelola akses bot
                 </div>
@@ -418,17 +419,19 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
         {profile.telegram_chat_id ? (
           <div style={{
             display: 'flex', alignItems: 'center', gap: '14px',
-            padding: '14px 16px', background: '#0f2d1a',
-            border: '1px solid #166534', borderRadius: '10px',
+            padding: '14px 16px',
+            background: 'rgba(22, 163, 74, 0.08)',
+            border: '1px solid rgba(22, 163, 74, 0.5)',
+            borderRadius: '10px',
           }}>
             <div style={{ fontSize: '24px' }}>✅</div>
             <div>
-              <div style={{ fontSize: '13px', fontWeight: '600', color: '#4ade80', marginBottom: '2px' }}>
+              <div style={{ fontSize: '13px', fontWeight: '600', color: '#15803d', marginBottom: '2px' }}>
                 Bot sudah terhubung
               </div>
               <div style={{ fontSize: '12px', color: '#166534' }}>
-                Chat ID: <code style={{ background: '#0a1a0f', padding: '1px 6px',
-                  borderRadius: '4px', color: '#4ade80' }}>{profile.telegram_chat_id}</code>
+                Chat ID: <code style={{ background: 'rgba(15, 118, 110, 0.06)', padding: '1px 6px',
+                  borderRadius: '4px', color: '#166534' }}>{profile.telegram_chat_id}</code>
               </div>
             </div>
           </div>
@@ -447,10 +450,10 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
             </div>
             <div style={{ fontSize: '13px', color: '#9ca3af', lineHeight: '1.8' }}>
               Cara menghubungkan:
-              <ol style={{ marginTop: '8px', paddingLeft: '18px', fontSize: '13px', color: '#9ca3af' }}>
+              <ol style={{ marginTop: '8px', paddingLeft: '18px', fontSize: '13px', color: 'var(--text-muted)' }}>
                 <li>Buka Telegram, cari bot kamu</li>
-                <li>Kirim pesan <code style={{ background: '#1f1f2e', padding: '1px 6px',
-                  borderRadius: '4px', color: '#60a5fa' }}>/start</code></li>
+                <li>Kirim pesan <code style={{ background: 'var(--card-bg)', padding: '1px 6px',
+                  borderRadius: '4px', color: 'var(--accent-primary)' }}>/start</code></li>
                 <li>Bot akan otomatis mendaftarkan akunmu</li>
                 <li>Refresh halaman ini untuk melihat status</li>
               </ol>
@@ -493,10 +496,10 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
         {/* Category form inline */}
         {showCatForm && (
           <div style={{
-            background: '#0a0a0f', border: '1px solid #2a2a3a',
+            background: 'var(--card-bg)', border: '1px solid var(--border-color)',
             borderRadius: '10px', padding: '16px', marginBottom: '14px',
           }}>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: '#f0f0f5', marginBottom: '14px' }}>
+            <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '14px' }}>
               {editCat ? 'Edit Kategori' : 'Kategori Baru'}
             </div>
 
@@ -537,8 +540,8 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
                     style={{
                       width: '34px', height: '34px', fontSize: '18px', borderRadius: '7px',
                       border: '1px solid', cursor: 'pointer',
-                      borderColor: catForm.icon === ic ? '#2563eb' : '#2a2a3a',
-                      background: catForm.icon === ic ? '#0c1f3a' : '#111118',
+                      borderColor: catForm.icon === ic ? 'var(--accent-primary)' : 'var(--border-color)',
+                      background: catForm.icon === ic ? 'rgba(37, 99, 235, 0.08)' : 'var(--bg-secondary)',
                     }}>{ic}</button>
                 ))}
               </div>
@@ -575,7 +578,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
 
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={saveCat} disabled={savingCat} style={{
-                padding: '8px 18px', background: savingCat ? '#1f1f2e' : '#2563eb',
+                padding: '8px 18px', background: savingCat ? 'var(--border-color)' : 'var(--accent-primary)',
                 border: 'none', borderRadius: '8px', color: '#fff',
                 fontSize: '13px', fontWeight: '600',
                 cursor: savingCat ? 'not-allowed' : 'pointer',
@@ -584,8 +587,8 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
               </button>
               <button onClick={() => { setShowCatForm(false); setEditCat(null); }} style={{
                 padding: '8px 14px', background: 'transparent',
-                border: '1px solid #2a2a3a', borderRadius: '8px',
-                color: '#9ca3af', fontSize: '13px', cursor: 'pointer',
+                border: '1px solid var(--border-color)', borderRadius: '8px',
+                color: 'var(--text-muted)', fontSize: '13px', cursor: 'pointer',
               }}>Batal</button>
             </div>
           </div>
@@ -602,8 +605,8 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
               <div key={cat.id} style={{
                 display: 'flex', alignItems: 'center', gap: '12px',
                 padding: '10px 12px', borderRadius: '8px',
-                border: '1px solid #2a2a3a', marginBottom: '6px',
-                background: '#0a0a0f',
+                border: '1px solid var(--border-color)', marginBottom: '6px',
+                background: 'var(--card-bg)',
               }}>
                 <span style={{ fontSize: '18px' }}>{cat.icon}</span>
                 <div style={{ flex: 1 }}>
@@ -613,19 +616,19 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
                   background: cat.color, flexShrink: 0 }}/>
                 <button onClick={() => openEditCat(cat)} style={{
                   padding: '4px 10px', background: 'transparent',
-                  border: '1px solid #2a2a3a', borderRadius: '6px',
-                  color: '#9ca3af', fontSize: '11px', cursor: 'pointer',
+                  border: '1px solid var(--border-color)', borderRadius: '6px',
+                  color: 'var(--text-muted)', fontSize: '11px', cursor: 'pointer',
                 }}
-                  onMouseEnter={e => { (e.currentTarget).style.borderColor = '#2563eb'; (e.currentTarget).style.color = '#60a5fa'; }}
-                  onMouseLeave={e => { (e.currentTarget).style.borderColor = '#2a2a3a'; (e.currentTarget).style.color = '#9ca3af'; }}
+                  onMouseEnter={e => { (e.currentTarget).style.borderColor = 'var(--accent-primary)'; (e.currentTarget).style.color = 'var(--accent-primary)'; }}
+                  onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; }}
                 >Edit</button>
                 <button onClick={() => deleteCat(cat)} style={{
                   padding: '4px 8px', background: 'transparent',
-                  border: '1px solid #2a2a3a', borderRadius: '6px',
-                  color: '#6b7280', fontSize: '11px', cursor: 'pointer',
+                  border: '1px solid var(--border-color)', borderRadius: '6px',
+                  color: 'var(--text-muted)', fontSize: '11px', cursor: 'pointer',
                 }}
-                  onMouseEnter={e => { (e.currentTarget).style.borderColor = '#7f1d1d'; (e.currentTarget).style.color = '#f87171'; }}
-                  onMouseLeave={e => { (e.currentTarget).style.borderColor = '#2a2a3a'; (e.currentTarget).style.color = '#6b7280'; }}
+                  onMouseEnter={e => { (e.currentTarget).style.borderColor = '#b91c1c'; (e.currentTarget).style.color = '#b91c1c'; }}
+                  onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; }}
                 >✕</button>
               </div>
             ))}
@@ -647,7 +650,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
               <div key={cat.id} style={{
                 display: 'inline-flex', alignItems: 'center', gap: '6px',
                 padding: '5px 10px', borderRadius: '99px',
-                background: '#1f1f2e', fontSize: '12px', color: '#9ca3af',
+                background: 'var(--bg-secondary)', fontSize: '12px', color: '#9ca3af',
               }}>
                 <span>{cat.icon}</span>
                 <span>{cat.name}</span>
@@ -700,7 +703,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
 
       {/* ── 5. Danger zone ────────────────────────────────────────────────── */}
       <div style={{
-        background: '#111118', border: '1px solid #3d1515',
+        background: 'var(--card-bg)', border: '1px solid rgba(185, 28, 28, 0.35)',
         borderRadius: '14px', padding: '20px',
       }}>
         <div style={{ fontSize: '14px', fontWeight: '600', color: '#f87171', marginBottom: '4px' }}>
