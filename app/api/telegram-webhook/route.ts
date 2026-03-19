@@ -837,6 +837,55 @@ async function checkAnomaly(
   }
 }
 
+// ─── DB Mapping / Fuzzy Category ──────────────────────────────────────────────
+async function findOrCreateFuzzyCategory(userId: string, targetName: string, type: 'income' | 'expense') {
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('id, name')
+    .eq('type', type)
+    .or(`user_id.eq.${userId},user_id.is.null`);
+
+  if (categories && categories.length > 0) {
+    const t = targetName.toLowerCase();
+    
+    // 1. Exact match
+    const exact = categories.find(c => c.name.toLowerCase() === t);
+    if (exact) return exact.id;
+
+    // 2. Substring match (menghindari typo minor)
+    const substring = categories.find(c => {
+      const cn = c.name.toLowerCase();
+      // Minimal 4 karakter agar tidak terlalu luas match-nya
+      if (t.length >= 4 && (cn.includes(t) || t.includes(cn))) return true;
+      return false;
+    });
+    if (substring) return substring.id;
+  }
+
+  // 3. Fallback: masukkan ke Lain-lain agar aman (mencegah DB cluttering dengan ratusan typo)
+  const fallbackName = 'Lain-lain';
+  let { data: cat } = await supabase
+    .from('categories')
+    .select('id')
+    .ilike('name', fallbackName)
+    .eq('type', type)
+    .or(`user_id.eq.${userId},user_id.is.null`)
+    .limit(1)
+    .maybeSingle();
+
+  if (!cat) {
+    const { data: newCat, error } = await supabase
+      .from('categories')
+      .insert([{ name: fallbackName, type, user_id: userId }])
+      .select()
+      .single();
+    if (error) throw error;
+    cat = newCat;
+  }
+  
+  return cat!.id;
+}
+
 // ─── Transaction handler ──────────────────────────────────────────────────────
 async function handleTransaction(
   chatId: number,
@@ -901,31 +950,13 @@ async function handleTransaction(
     return;
   }
 
-  // Cari atau buat kategori (prioritas: kategori user dulu, lalu sistem)
-  let { data: cat } = await supabase
-    .from('categories')
-    .select('id')
-    .ilike('name', data.category_name)
-    .eq('type', data.type)
-    .or(`user_id.eq.${userId},user_id.is.null`)
-    .order('user_id', { ascending: false }) // prefer user's category
-    .limit(1)
-    .maybeSingle();
-
-  if (!cat) {
-    const { data: newCat, error: catErr } = await supabase
-      .from('categories')
-      .insert([{ name: data.category_name, type: data.type, user_id: userId }])
-      .select()
-      .single();
-    if (catErr) throw catErr;
-    cat = newCat;
-  }
+  // Cari kategori dengan Fuzzy Search (Prioritas keamanan relasi)
+  const categoryId = await findOrCreateFuzzyCategory(userId, data.category_name, data.type);
 
   // Simpan transaksi
   const { error: txErr } = await supabase.from('transactions').insert([{
     user_id:     userId,
-    category_id: cat?.id,
+    category_id: categoryId,
     type:        data.type,
     amount:      data.amount,
     note:        sanitizeHtml(data.note),
@@ -943,8 +974,8 @@ async function handleTransaction(
   });
 
   // Anomaly detection — hanya untuk pengeluaran, run in background
-  if (data.type === 'expense' && cat?.id) {
-    waitUntil(checkAnomaly(chatId, userId, cat.id, sanitizeHtml(data.category_name), data.amount));
+  if (data.type === 'expense' && categoryId) {
+    waitUntil(checkAnomaly(chatId, userId, categoryId, sanitizeHtml(data.category_name), data.amount));
   }
 
   const typeEmoji = data.type === 'income' ? '💚' : '🔴';
