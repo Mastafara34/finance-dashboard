@@ -15,6 +15,12 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { runSecurityGate, writeAuditLog } from '@/lib/security';
+import { waitUntil } from '@vercel/functions';
+
+function sanitizeHtml(str: string): string {
+  if (!str) return '';
+  return str.replace(/</g, '&lt;').replace(/>/g, '&gt;').trim();
+}
 
 // ─── Supabase ─────────────────────────────────────────────────────────────────
 const supabase = createClient(
@@ -922,7 +928,7 @@ async function handleTransaction(
     category_id: cat?.id,
     type:        data.type,
     amount:      data.amount,
-    note:        data.note,
+    note:        sanitizeHtml(data.note),
     source:      'bot',
     date:        today, // DATE only: YYYY-MM-DD
     created_at:  new Date().toISOString(),
@@ -933,12 +939,12 @@ async function handleTransaction(
   void writeAuditLog(null, 'transaction_created', 'info', {
     user_id: userId,
     type: data.type,
-    category: data.category_name,
+    category: sanitizeHtml(data.category_name),
   });
 
-  // Anomaly detection — hanya untuk pengeluaran, fire-and-forget
+  // Anomaly detection — hanya untuk pengeluaran, run in background
   if (data.type === 'expense' && cat?.id) {
-    void checkAnomaly(chatId, userId, cat.id, data.category_name, data.amount);
+    waitUntil(checkAnomaly(chatId, userId, cat.id, sanitizeHtml(data.category_name), data.amount));
   }
 
   const typeEmoji = data.type === 'income' ? '💚' : '🔴';
@@ -1101,6 +1107,12 @@ export async function POST(request: Request) {
   const msg: TelegramMessage = update.message as TelegramMessage;
   const userText = msg.text ?? '';
 
+  // POINT 1: Pengecekan Idempotency di paling awal sebelum AI & DB Fetch
+  const processStatus = await markTelegramUpdateProcessed({ updateId: update.update_id, chatId, messageId: msg?.message_id });
+  if (processStatus === 'duplicate') {
+    return NextResponse.json({ ok: true }); // Sudah pernah diproses, abaikan retry Telegram
+  }
+
   try {
     // Auto-register / fetch user
     const user = await getOrCreateUser(msg);
@@ -1112,21 +1124,17 @@ export async function POST(request: Request) {
       if (!handled) {
         await sendMessage(chatId, '❓ Command tidak dikenal. Ketik /help untuk daftar perintah.');
       }
-      // Mark processed only after successful handling
-      await markTelegramUpdateProcessed({ updateId: update.update_id, chatId, messageId: msg.message_id });
       return NextResponse.json({ ok: true });
     }
 
     // Non-text messages
     if (security.context?.messageType !== 'text') {
       await sendMessage(chatId, '📝 Kirim catatan keuanganmu dalam teks ya.\nContoh: _"Makan siang 35 ribu"_');
-      await markTelegramUpdateProcessed({ updateId: update.update_id, chatId, messageId: msg.message_id });
       return NextResponse.json({ ok: true });
     }
 
     // Natural language → transaction
     await handleTransaction(chatId, userId, userText, msg.message_id);
-    await markTelegramUpdateProcessed({ updateId: update.update_id, chatId, messageId: msg.message_id });
     return NextResponse.json({ ok: true });
 
   } catch (err: any) {
