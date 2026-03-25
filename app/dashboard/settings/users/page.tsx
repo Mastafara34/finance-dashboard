@@ -22,11 +22,10 @@ export default async function UsersPage() {
     redirect('/dashboard/settings');
   }
 
-  // Fetch semua user — kecuali demo (shadow account)
+  // Fetch semua user (termasuk demo untuk kelola akun)
   const { data: users } = await supabase
     .from('users')
     .select('id, display_name, email, telegram_chat_id, role, monthly_income, onboarded_at, created_at')
-    .or('email.is.null,email.neq.demo@fintrack.app')
     .order('created_at', { ascending: true });
 
   // Fetch whitelist untuk status bot

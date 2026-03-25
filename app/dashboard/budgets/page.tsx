@@ -87,14 +87,6 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { u?
 
   return (
     <div>
-      {isOwner && (
-        <UserSelector
-          users={allUsers}
-          currentViewId={viewUserId}
-          isCollective={false}
-          showCollective={false}
-        />
-      )}
       <BudgetsClient
         initialBudgets={(budgets ?? []) as unknown as any[]}
         prevMonthBudgets={(prevBudgets ?? []) as any[]}

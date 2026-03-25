@@ -14,9 +14,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { data: profile } = await supabase
     .from('users')
-    .select('id, display_name, telegram_chat_id')
+    .select('id, display_name, telegram_chat_id, role')
     .eq('email', user.email!)
     .maybeSingle();
+
+  // Fetch all users for the sidebar selector if owner
+  let allUsers: any[] = [];
+  if (profile?.role === 'owner') {
+    const { data } = await supabase
+      .from('users')
+      .select('id, display_name')
+      .or('email.is.null,email.neq.demo@fintrack.app')
+      .order('display_name');
+    allUsers = data ?? [];
+  }
 
   // Theme logic (Standalone Client Script)
   const themeInitScript = `
@@ -83,6 +94,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
       <div className="fintrack-layout">
         <DashboardSidebar
+          currentUserId={profile.id}
+          userRole={profile.role || 'user'}
+          allUsers={allUsers}
           userName={profile?.display_name ?? user.email ?? 'User'}
           userEmail={user.email ?? ''}
           hasTelegram={!!profile?.telegram_chat_id}

@@ -1,8 +1,9 @@
 // components/DashboardSidebar.tsx
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { UserSelector } from '@/app/dashboard/components/UserSelector';
 
 const NAV = [
   { href: '/dashboard',              icon: '◉', label: 'Overview'   },
@@ -18,12 +19,21 @@ interface Props {
   userName: string;
   userEmail: string;
   hasTelegram: boolean;
+  currentUserId: string;
+  userRole: string;
+  allUsers: { id: string; display_name: string | null }[];
 }
 
-export default function DashboardSidebar({ userName, userEmail, hasTelegram }: Props) {
+export default function DashboardSidebar({ userName, userEmail, hasTelegram, currentUserId, userRole, allUsers }: Props) {
   const pathname = usePathname();
   const router   = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+
+  const isOwner = userRole === 'owner';
+  const uParam = searchParams.get('u');
+  const viewUserId = (isOwner && uParam && uParam !== 'all') ? uParam : currentUserId;
+  const isCollective = isOwner && uParam === 'all';
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -70,6 +80,19 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram }: P
             </div>
           </div>
         </div>
+
+        {/* User Selector for Owner */}
+        {isOwner && (
+          <div style={{ padding: '0 12px 16px', borderBottom: '1px solid var(--border-color)', marginTop: '16px' }}>
+            <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '8px', paddingLeft: '8px' }}>PILIH TAMPILAN</div>
+            <UserSelector 
+              users={allUsers} 
+              currentViewId={viewUserId} 
+              isCollective={isCollective} 
+              showCollective={true} 
+            />
+          </div>
+        )}
 
         {/* Nav */}
         <nav style={{ flex: 1, padding: '16px 12px', overflowY: 'auto' }}>

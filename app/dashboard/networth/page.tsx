@@ -41,14 +41,6 @@ export default async function NetWorthPage({ searchParams }: { searchParams: { u
 
   return (
     <div>
-      {isOwner && (
-        <UserSelector
-          users={allUsers}
-          currentViewId={viewUserId}
-          isCollective={false}
-          showCollective={false}
-        />
-      )}
       <NetWorthClient
         initialAssets={(assets ?? []) as unknown as any[]}
         userId={viewUserId}

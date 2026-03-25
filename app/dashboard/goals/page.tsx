@@ -41,14 +41,6 @@ export default async function GoalsPage({ searchParams }: { searchParams: { u?: 
 
   return (
     <div>
-      {isOwner && (
-        <UserSelector
-          users={allUsers}
-          currentViewId={viewUserId}
-          isCollective={false}
-          showCollective={false}
-        />
-      )}
       <GoalsClient
         initialGoals={(goals ?? []) as unknown as any[]}
         userId={viewUserId}

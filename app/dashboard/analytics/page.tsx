@@ -47,14 +47,6 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: { 
 
   return (
     <div>
-      {isOwner && (
-        <UserSelector
-          users={allUsers}
-          currentViewId={viewUserId}
-          isCollective={false}
-          showCollective={false}
-        />
-      )}
       <AnalyticsClient
         transactions={(transactions ?? []) as unknown as any[]}
       />

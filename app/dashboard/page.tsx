@@ -327,13 +327,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   return (
     <div className="dashboard-root" style={{ color: 'var(--text-main)', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
       
-      {isOwner && (
-        <UserSelector 
-          users={allUsers} 
-          currentViewId={viewUserId} 
-          isCollective={isCollective} 
-        />
-      )}
       <style>{`
         .dashboard-root { padding: 0; }
         .ov-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; gap: 16px; }

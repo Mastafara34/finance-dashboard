@@ -57,13 +57,6 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
 
   return (
     <div style={{ padding: '0px' }}>
-      {isOwner && (
-        <UserSelector 
-          users={allUsers} 
-          currentViewId={viewUserId} 
-          isCollective={false} 
-        />
-      )}
       <TransactionsClient
         transactions={(transactions ?? []) as unknown as any[]}
         categories={(categories ?? []) as unknown as any[]}
