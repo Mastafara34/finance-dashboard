@@ -185,11 +185,12 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
   const supabase = createClient();
 
   const [userList,  setUserList]  = useState<UserRow[]>(users);
+  const [wlData,    setWlData]    = useState<WhitelistRow[]>(whitelist);
   const [showAdd,   setShowAdd]   = useState(false);
   const [toast,     setToast]     = useState<{ msg: string; ok: boolean } | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const whitelistMap = new Map(whitelist.map(w => [w.chat_id, w]));
+  const whitelistMap = new Map(wlData.map(w => [w.chat_id, w]));
 
   function showToast(msg: string, ok = true) {
     setToast({ msg, ok });
@@ -228,6 +229,8 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
 
     if (wlErr) throw new Error('Gagal tambah ke whitelist: ' + wlErr.message);
 
+    const newWl: WhitelistRow = { chat_id: chatId, role, is_active: true };
+    setWlData(prev => [...prev, newWl]);
     setUserList(prev => [...prev, newUser as unknown as UserRow]);
     setShowAdd(false);
     showToast(`User "${displayName}" berhasil ditambahkan`);
@@ -260,10 +263,13 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
 
     // Sync ke whitelist kalau ada
     if (target.telegram_chat_id) {
+      const chatId = target.telegram_chat_id;
       await supabase
         .from('whitelisted_users')
         .update({ role: newRole })
-        .eq('chat_id', target.telegram_chat_id);
+        .eq('chat_id', chatId);
+      
+      setWlData(prev => prev.map(w => w.chat_id === chatId ? { ...w, role: newRole } : w));
     }
 
     setUserList(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
@@ -273,15 +279,31 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
 
   // ── Toggle bot access ─────────────────────────────────────────────────────
   async function handleToggleBot(userId: string, chatId: number, currentActive: boolean) {
+    const target = userList.find(u => u.id === userId);
+    if (!target) return;
+
     const { error } = await supabase
       .from('whitelisted_users')
-      .update({ is_active: !currentActive })
-      .eq('chat_id', chatId);
+      .upsert({
+        chat_id: chatId,
+        display_name: target.display_name || 'User',
+        role: target.role,
+        is_active: !currentActive,
+      }, { onConflict: 'chat_id' });
 
     if (error) { showToast('Gagal update akses bot', false); return; }
 
-    // Update local whitelist map (force re-render via userList)
-    setUserList(prev => [...prev]); // trigger re-render
+    // Update local state to reflect change immediately
+    const updatedWl: WhitelistRow = { 
+      chat_id: chatId, 
+      role: target.role, 
+      is_active: !currentActive 
+    };
+    setWlData(prev => {
+      const filtered = prev.filter(w => w.chat_id !== chatId);
+      return [...filtered, updatedWl];
+    });
+
     showToast(!currentActive ? 'Akses bot diaktifkan' : 'Akses bot dinonaktifkan');
   }
 
