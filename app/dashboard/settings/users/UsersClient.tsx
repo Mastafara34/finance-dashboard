@@ -40,9 +40,9 @@ const ROLE_META: Record<Role, { label: string; color: string; bg: string; border
 
 const inpStyle: React.CSSProperties = {
   width: '100%', padding: '10px 12px',
-  background: '#0a0a0f', border: '1px solid #2a2a3a',
-  borderRadius: '8px', color: '#f0f0f5', fontSize: '14px',
-  outline: 'none', boxSizing: 'border-box',
+  background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+  borderRadius: '8px', color: 'var(--text-main)', fontSize: '14px',
+  offset: 'none', boxSizing: 'border-box',
 };
 
 function RoleSelector({ value, onChange }: { value: Role; onChange: (r: Role) => void }) {
@@ -53,14 +53,14 @@ function RoleSelector({ value, onChange }: { value: Role; onChange: (r: Role) =>
         return (
           <div key={r} onClick={() => onChange(r)} style={{
             padding: '10px 14px', borderRadius: '9px', cursor: 'pointer',
-            border: `1px solid ${value === r ? meta.border : '#2a2a3a'}`,
-            background: value === r ? meta.bg : '#0a0a0f',
+            border: `1px solid ${value === r ? meta.border : 'var(--border-color)'}`,
+            background: value === r ? meta.bg : 'var(--bg-secondary)',
             display: 'flex', alignItems: 'center', gap: '10px',
           }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '99px', background: value === r ? meta.color : '#374151', flexShrink: 0 }} />
+            <div style={{ width: '8px', height: '8px', borderRadius: '99px', background: value === r ? meta.color : 'var(--text-muted)', flexShrink: 0 }} />
             <div>
-              <div style={{ fontSize: '13px', fontWeight: '500', color: value === r ? meta.color : '#f0f0f5' }}>{meta.label}</div>
-              <div style={{ fontSize: '11px', color: '#6b7280' }}>{meta.desc}</div>
+              <div style={{ fontSize: '13px', fontWeight: '500', color: value === r ? meta.color : 'var(--text-main)' }}>{meta.label}</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{meta.desc}</div>
             </div>
           </div>
         );
@@ -106,16 +106,17 @@ function AddUserModal({ onSave, onClose }: {
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
     }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{
-        background: '#111118', border: '1px solid #1e3a5f',
+        background: 'var(--card-bg)', border: '1px solid var(--border-color)',
         borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '460px',
         maxHeight: '90vh', overflowY: 'auto',
+        boxShadow: 'var(--card-shadow)'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
           <div>
-            <h2 style={{ color: '#f0f0f5', fontSize: '17px', fontWeight: '600', margin: '0 0 2px' }}>Tambah User Baru</h2>
-            <p style={{ color: '#6b7280', fontSize: '12px', margin: 0 }}>Isi minimal Chat ID atau Email</p>
+            <h2 style={{ color: 'var(--text-main)', fontSize: '17px', fontWeight: '600', margin: '0 0 2px' }}>Tambah User Baru</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '12px', margin: 0 }}>Isi minimal Chat ID atau Email</p>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: '22px', cursor: 'pointer', lineHeight: 1 }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '22px', cursor: 'pointer', lineHeight: 1 }}>×</button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -132,7 +133,7 @@ function AddUserModal({ onSave, onClose }: {
 
           {/* Email */}
           <div style={{ marginBottom: '14px' }}>
-            <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', fontWeight: '500', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500', marginBottom: '6px' }}>
               Email (untuk login dashboard)
             </label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)}
@@ -140,14 +141,14 @@ function AddUserModal({ onSave, onClose }: {
               style={inpStyle}
               onFocus={e => e.target.style.borderColor = '#2563eb'}
               onBlur={e  => e.target.style.borderColor = '#2a2a3a'} />
-            <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
               Wajib jika user ingin akses dashboard via web
             </div>
           </div>
 
           {/* Chat ID */}
           <div style={{ marginBottom: '14px' }}>
-            <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', fontWeight: '500', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500', marginBottom: '6px' }}>
               Telegram Chat ID (untuk akses bot)
             </label>
             <input type="text" inputMode="numeric" value={chatId}
@@ -163,7 +164,7 @@ function AddUserModal({ onSave, onClose }: {
 
           {/* Role */}
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', fontWeight: '500', marginBottom: '8px' }}>
+            <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500', marginBottom: '8px' }}>
               Role Akses
             </label>
             <RoleSelector value={role} onChange={setRole} />
@@ -237,16 +238,17 @@ function EditUserModal({ user, onSave, onClose }: {
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
     }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{
-        background: '#111118', border: '1px solid #166534',
+        background: 'var(--card-bg)', border: '1px solid var(--border-color)',
         borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '460px',
         maxHeight: '90vh', overflowY: 'auto',
+        boxShadow: 'var(--card-shadow)'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
           <div>
-            <h2 style={{ color: '#f0f0f5', fontSize: '17px', fontWeight: '600', margin: '0 0 2px' }}>Edit User</h2>
-            <p style={{ color: '#6b7280', fontSize: '12px', margin: 0 }}>{user.display_name}</p>
+            <h2 style={{ color: 'var(--text-main)', fontSize: '17px', fontWeight: '600', margin: '0 0 2px' }}>Edit User</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '12px', margin: 0 }}>{user.display_name}</p>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: '22px', cursor: 'pointer', lineHeight: 1 }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '22px', cursor: 'pointer', lineHeight: 1 }}>×</button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -287,7 +289,7 @@ function EditUserModal({ user, onSave, onClose }: {
           {/* Role — tidak bisa set ke owner */}
           {user.role !== 'owner' && (
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', fontWeight: '500', marginBottom: '8px' }}>
+              <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500', marginBottom: '8px' }}>
                 Role Akses
               </label>
               <RoleSelector value={role} onChange={setRole} />
@@ -310,8 +312,8 @@ function EditUserModal({ user, onSave, onClose }: {
             </button>
             <button type="button" onClick={onClose} style={{
               padding: '11px 18px', background: 'transparent',
-              border: '1px solid #2a2a3a', borderRadius: '9px',
-              color: '#9ca3af', fontSize: '14px', cursor: 'pointer',
+              border: '1px solid var(--border-color)', borderRadius: '9px',
+              color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer',
             }}>Batal</button>
           </div>
         </form>
@@ -489,8 +491,8 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
         <div>
-          <h1 style={{ fontSize: '20px', fontWeight: '600', margin: '0 0 4px' }}>Kelola User</h1>
-          <p style={{ color: '#6b7280', fontSize: '13px', margin: 0 }}>
+          <h1 style={{ fontSize: '20px', fontWeight: '600', margin: '0 0 4px', color: 'var(--text-main)' }}>Kelola User</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>
             {userList.length} user terdaftar
           </p>
         </div>
@@ -506,13 +508,13 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
       {/* Role legend */}
       <div style={{
         display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px',
-        padding: '12px 16px', background: '#111118',
-        border: '1px solid #1f1f2e', borderRadius: '10px',
+        padding: '12px 16px', background: 'var(--card-bg)',
+        border: '1px solid var(--border-color)', borderRadius: '10px',
       }}>
         {(Object.entries(ROLE_META) as [Role, typeof ROLE_META[Role]][]).map(([role, meta]) => (
           <div key={role} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <div style={{ width: '8px', height: '8px', borderRadius: '99px', background: meta.color }} />
-            <span style={{ fontSize: '11px', color: '#9ca3af' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
               <strong style={{ color: meta.color }}>{meta.label}</strong>: {meta.desc}
             </span>
           </div>
@@ -530,9 +532,10 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
 
           return (
             <div key={u.id} style={{
-              background: '#111118', border: `1px solid ${isMe ? '#1e3a5f' : '#1f1f2e'}`,
+              background: 'var(--card-bg)', border: `1px solid ${isMe ? 'var(--accent-primary)' : 'var(--border-color)'}`,
               borderRadius: '12px', padding: '16px 18px',
-              transition: 'border-color 0.2s',
+              transition: 'all 0.2s ease',
+              boxShadow: isMe ? '0 4px 12px rgba(37, 99, 235, 0.08)' : 'var(--card-shadow)',
             }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
                 {/* Avatar */}
@@ -548,11 +551,11 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: '#f0f0f5' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>
                       {u.display_name ?? 'Tanpa nama'}
                     </span>
                     {isMe && (
-                      <span style={{ fontSize: '10px', padding: '1px 7px', borderRadius: '99px', background: '#0c1f3a', color: '#60a5fa', border: '1px solid #1e3a5f' }}>
+                      <span style={{ fontSize: '10px', padding: '1px 7px', borderRadius: '99px', background: 'rgba(37, 99, 235, 0.1)', color: 'var(--accent-primary)', border: '1px solid var(--accent-primary)' }}>
                         Saya
                       </span>
                     )}
@@ -561,25 +564,25 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
                     </span>
                   </div>
 
-                  <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '2px' }}>
-                    {u.email ?? <span style={{ color: '#374151', fontStyle: 'italic' }}>Belum ada email</span>}
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '2px' }}>
+                    {u.email ?? <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Belum ada email</span>}
                   </div>
 
                   {u.telegram_chat_id ? (
-                    <div style={{ fontSize: '11px', color: '#374151', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                       <span>📱 {u.telegram_chat_id}</span>
                       <span style={{
                         fontSize: '10px', padding: '1px 6px', borderRadius: '99px',
-                        background: botActive ? '#0f2d1a' : '#1a0a0a',
-                        color: botActive ? '#4ade80' : '#f87171',
-                        border: `1px solid ${botActive ? '#166534' : '#7f1d1d'}`,
+                        background: botActive ? 'rgba(34, 197, 94, 0.1)' : 'rgba(185, 28, 28, 0.1)',
+                        color: botActive ? '#22c55e' : '#ef4444',
+                        border: `1px solid ${botActive ? 'rgba(34, 197, 94, 0.2)' : 'rgba(185, 28, 28, 0.2)'}`,
                         fontWeight: '600',
                       }}>
                         Bot {botActive ? '✓ Aktif' : '✗ Nonaktif'}
                       </span>
                     </div>
                   ) : (
-                    <div style={{ fontSize: '11px', color: '#374151', fontStyle: 'italic' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
                       Belum punya Telegram Chat ID
                     </div>
                   )}
@@ -593,12 +596,12 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
                       onClick={() => setEditingUser(u)}
                       style={{
                         padding: '6px 12px', background: 'transparent',
-                        border: '1px solid #2a2a3a', borderRadius: '8px',
-                        color: '#9ca3af', fontSize: '12px', fontWeight: '500',
+                        border: '1px solid var(--border-color)', borderRadius: '8px',
+                        color: 'var(--text-muted)', fontSize: '12px', fontWeight: '500',
                         cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor = '#4b5563'; e.currentTarget.style.color = '#f0f0f5'; }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a3a'; e.currentTarget.style.color = '#9ca3af'; }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-primary)'; e.currentTarget.style.color = 'var(--accent-primary)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
                     >
                       ✏️ Edit
                     </button>
@@ -642,11 +645,11 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
       {/* Info box */}
       <div style={{
         marginTop: '20px', padding: '14px 16px',
-        background: '#0a0a0f', border: '1px solid #1f1f2e',
-        borderRadius: '10px', fontSize: '12px', color: '#6b7280', lineHeight: '1.6',
+        background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+        borderRadius: '10px', fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6',
       }}>
         💡 User baru yang ditambahkan dengan Chat ID akan otomatis mendapat akses bot Telegram.
-        Minta mereka kirim <code style={{ background: '#1f1f2e', padding: '1px 5px', borderRadius: '4px', color: '#60a5fa' }}>/start</code> ke bot untuk menyelesaikan setup.
+        Minta mereka kirim <code style={{ background: 'var(--card-bg)', padding: '1px 5px', borderRadius: '4px', color: 'var(--accent-primary)' }}>/start</code> ke bot untuk menyelesaikan setup.
         Jika hanya isi Email, user bisa login ke dashboard tapi tidak bisa pakai bot sampai Chat ID ditambahkan.
       </div>
     </div>

@@ -111,23 +111,30 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const olderMonthStart = new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString().split('T')[0];
   const olderMonthEnd = new Date(now.getFullYear(), now.getMonth() - 1, 0).toISOString().split('T')[0];
 
+  // Identifikasi akun demo untuk di-exclude dari total keluarga
+  const { data: demo } = await supabase.from('users').select('id').eq('email', 'demo@fintrack.app').maybeSingle();
+  const demoId = demo?.id;
+
   const [txMonth, txPrev, txOlder, txLast30, txYear, goals, assets, history, usersResult] = await Promise.all([
     // Monthly transactions
     (() => {
       let q = supabase.from('transactions').select('amount, type, date, categories(name)').eq('is_deleted', false).gte('date', monthStart);
       if (!isCollective) q = q.eq('user_id', viewUserId);
+      else if (demoId) q = q.neq('user_id', demoId);
       return q;
     })(),
     // Previous Month
     (() => {
       let q = supabase.from('transactions').select('amount, type, date, categories(name)').eq('is_deleted', false).gte('date', prevMonthStart).lte('date', prevMonthEnd);
       if (!isCollective) q = q.eq('user_id', viewUserId);
+      else if (demoId) q = q.neq('user_id', demoId);
       return q;
     })(),
     // Older Month
     (() => {
       let q = supabase.from('transactions').select('amount, type, date, categories(name)').eq('is_deleted', false).gte('date', olderMonthStart).lte('date', olderMonthEnd);
       if (!isCollective) q = q.eq('user_id', viewUserId);
+      else if (demoId) q = q.neq('user_id', demoId);
       return q;
     })(),
     // Last 30 days
@@ -136,30 +143,35 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         .gte('date', new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0])
         .order('date', { ascending: true });
       if (!isCollective) q = q.eq('user_id', viewUserId);
+      else if (demoId) q = q.neq('user_id', demoId);
       return q;
     })(),
     // Yearly transactions
     (() => {
       let q = supabase.from('transactions').select('amount, type, date, categories(name)').eq('is_deleted', false).gte('date', yearStart);
       if (!isCollective) q = q.eq('user_id', viewUserId);
+      else if (demoId) q = q.neq('user_id', demoId);
       return q;
     })(),
     // Goals
     (() => {
       let q = supabase.from('goals').select('*').eq('status', 'active').order('priority', { ascending: true }).limit(3);
       if (!isCollective) q = q.eq('user_id', viewUserId);
+      else if (demoId) q = q.neq('user_id', demoId);
       return q;
     })(),
     // Assets
     (() => {
       let q = supabase.from('assets').select('id, name, value, is_liability, type');
       if (!isCollective) q = q.eq('user_id', viewUserId);
+      else if (demoId) q = q.neq('user_id', demoId);
       return q;
     })(),
     // History
     (() => {
       let q = supabase.from('net_worth_history').select('date, net_worth').order('date', { ascending: true }).limit(30);
       if (!isCollective) q = q.eq('user_id', viewUserId);
+      else if (demoId) q = q.neq('user_id', demoId);
       return q;
     })(),
     // Users for Owner
