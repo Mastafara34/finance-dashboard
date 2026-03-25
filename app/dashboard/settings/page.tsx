@@ -11,7 +11,7 @@ export default async function SettingsPage() {
   const { data: profile } = await supabase
     .from('users')
     .select('id, display_name, email, telegram_chat_id, monthly_income, timezone, currency, role')
-    .or(`email.eq."${user.email}",id.eq."${user.id}"`)
+    .or(`email.eq.${user.email},id.eq.${user.id}`)
     .maybeSingle();
 
   if (!profile) return null;

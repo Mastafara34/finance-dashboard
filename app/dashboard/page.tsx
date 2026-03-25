@@ -39,7 +39,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   const { data: myProfile, error: profileError } = await supabase
     .from('users')
     .select('id, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
-    .or(`email.eq."${user.email}",id.eq."${user.id}"`)
+    .or(`email.eq.${user.email},id.eq.${user.id}`)
     .maybeSingle();
 
   if (!myProfile) {
@@ -77,17 +77,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
     needs_target: viewProfile.needs_target ?? 50
   };
 
-  let allUsers: any[] = [];
-  if (isOwner) {
-    // Filter demo (shadow account) tapi SERTAKAN user dengan email null (misal user Telegram)
-    const { data } = await supabase
-      .from('users')
-      .select('id, display_name')
-      .or('email.is.null,email.neq.demo@fintrack.app')
-      .order('display_name');
-    allUsers = data ?? [];
-  }
-
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
   const yearStart = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
@@ -96,7 +85,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   const olderMonthStart = new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString().split('T')[0];
   const olderMonthEnd = new Date(now.getFullYear(), now.getMonth() - 1, 0).toISOString().split('T')[0];
 
-  const [txMonth, txPrev, txOlder, txLast30, txYear, goals, assets, history] = await Promise.all([
+  const [txMonth, txPrev, txOlder, txLast30, txYear, goals, assets, history, usersResult] = await Promise.all([
     // Monthly transactions
     (() => {
       let q = supabase.from('transactions').select('amount, type, date, categories(name)').eq('is_deleted', false).gte('date', monthStart);
@@ -147,6 +136,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
       if (!isCollective) q = q.eq('user_id', viewUserId);
       return q;
     })(),
+    // Users for Owner
+    isOwner ? supabase.from('users').select('id, display_name').or('email.is.null,email.neq.demo@fintrack.app').order('display_name') : Promise.resolve({ data: [] })
   ]);
 
   const txs      = (txMonth.data ?? []) as unknown as Transaction[];
@@ -157,6 +148,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   const goalList = (goals.data ?? []) as Goal[];
   const assetList = (assets.data ?? []) as Asset[];
   const nwHistory = (history.data ?? []) as { date: string; net_worth: number }[];
+  const allUsers  = (usersResult?.data ?? []) as any[];
 
   // Basic Totals
   const income   = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
@@ -185,7 +177,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   const investments = assetList.filter(a => !a.is_liability && a.type === 'investment').reduce((s, a) => s + a.value, 0);
   const liquidAssets = assetList.filter(a => !a.is_liability && a.type === 'cash').reduce((s, a) => s + a.value, 0);
   
-  const monthlyInvRatio = income > 0 ? (txs.filter(t => t.type === 'expense' && (t.categories?.name ?? '').toLowerCase().includes('invest')).reduce((s, t) => s + t.amount, 0) / income) * 100 : 0;
+  const monthlyInvRatio = income > 0 ? (txs.filter(t => t.type === 'expense' && t.categories?.name?.toLowerCase().includes('invest')).reduce((s, t) => s + t.amount, 0) / income) * 100 : 0;
   const investmentRatio = income > 0 ? (investments / (income * 12)) * 100 : 0;
 
   // Emergency Fund
@@ -258,7 +250,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   const totalLiabVal = totalLiab;
 
   // New: Step A, B, C Analysis
-  const debtRatio = income > 0 ? (txs.filter(t => t.type === 'expense' && (t.categories?.name ?? '').toLowerCase().includes('cicilan')).reduce((s, t) => s + t.amount, 0) / income) * 100 : 0;
+  const debtRatio = income > 0 ? (txs.filter(t => t.type === 'expense' && t.categories?.name?.toLowerCase().includes('cicilan')).reduce((s, t) => s + t.amount, 0) / income) * 100 : 0;
   const dailyBudget = monthlyExpBase > 0 ? (monthlyExpBase / 30) : 0;
   const anomaly = detectAnomalies(txs, dailyBudget * 1.5); // 50% di atas budget harian dianggap anomali
   const forecast = forecastEndOfMonth(income, expense);

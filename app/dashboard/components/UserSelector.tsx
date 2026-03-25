@@ -46,38 +46,39 @@ export function UserSelector({ users, currentViewId, isCollective = false, showC
         disabled={isNavigating}
         style={{
           width: '100%',
-          background: 'var(--bg-secondary, #0a0a0f)',
+          background: isNavigating ? 'var(--bg-main)' : 'var(--bg-secondary, #0a0a0f)',
           border: '1px solid var(--border-color, #2a2a3a)',
-          color: isNavigating ? 'var(--text-muted)' : 'var(--text-main, #f0f0f5)',
-          padding: '8px 10px',
+          color: 'var(--text-main, #f0f0f5)',
+          padding: '8px 30px 8px 12px',
           borderRadius: '8px',
           fontSize: '13px',
           fontWeight: '600',
-          cursor: 'pointer',
+          cursor: isNavigating ? 'wait' : 'pointer',
           outline: 'none',
           appearance: 'none',
           WebkitAppearance: 'none',
           backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
           backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'right 8px center',
-          backgroundSize: '12px',
+          backgroundPosition: 'right 10px center',
+          backgroundSize: '14px',
+          transition: 'all 0.2s ease',
+          opacity: isNavigating ? 0.7 : 1
         }}
       >
-        {isNavigating ? (
-          <option value="">🔄 Loading...</option>
-        ) : (
-          <>
-            {showCollective && (
-              <option value="all">🏠 Keluarga (Total)</option>
-            )}
-            {users.map(u => (
-              <option key={u.id} value={u.id}>
-                👤 {u.display_name ?? 'Tanpa Nama'}
-              </option>
-            ))}
-          </>
+        {showCollective && (
+          <option value="all">🏠 Keluarga (Total)</option>
         )}
+        {users.map(u => (
+          <option key={u.id} value={u.id}>
+            👤 {u.display_name ?? 'Tanpa Nama'}
+          </option>
+        ))}
       </select>
+      {isNavigating && (
+        <div style={{ position: 'absolute', right: '35px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+          <span style={{ fontSize: '10px', color: 'var(--text-muted)', animation: 'pulse 1s infinite' }}>Loading...</span>
+        </div>
+      )}
     </div>
   );
 }
