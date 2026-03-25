@@ -2,6 +2,8 @@
 // Gantikan window.confirm() dengan modal yang on-brand
 'use client';
 
+import React, { useState } from 'react';
+
 interface Props {
   open: boolean;
   title?: string;
