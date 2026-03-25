@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import ConfirmModal from '@/components/ConfirmModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Profile {
@@ -131,8 +132,16 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
+  // ── Danger Zone state ─────────────────────────────────────────────────────
+  const [showDanger, setShowDanger] = useState(false);
+  const [confirmResetTx, setConfirmResetTx] = useState(false);
+  const [confirmResetCat, setConfirmResetCat] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
+  const [reseting, setReseting] = useState(false);
+
   // ── Toast ─────────────────────────────────────────────────────────────────
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+  const [deletingCat, setDeletingCat] = useState<Category | null>(null);
 
   function showToast(msg: string, ok = true) {
     setToast({ msg, ok });
@@ -226,14 +235,35 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
   }
 
   // ── Delete category ───────────────────────────────────────────────────────
-  async function deleteCat(cat: Category) {
-    if (cat.is_default) { showToast('Kategori sistem tidak bisa dihapus', false); return; }
-    if (!confirm(`Hapus kategori "${cat.name}"? Transaksi dengan kategori ini tidak akan terhapus.`)) return;
+  async function deleteCat() {
+    if (!deletingCat) return;
+    if (deletingCat.is_default) { showToast('Kategori sistem tidak bisa dihapus', false); return; }
 
-    const { error } = await supabase.from('categories').delete().eq('id', cat.id);
-    if (error) { showToast('Gagal menghapus', false); return; }
-    setCats(prev => prev.filter(c => c.id !== cat.id));
+    const { error } = await supabase.from('categories').delete().eq('id', deletingCat.id);
+    if (error) { showToast('Gagal menghapus', false); setDeletingCat(null); return; }
+    setCats(prev => prev.filter(c => c.id !== deletingCat.id));
+    setDeletingCat(null);
     showToast('Kategori dihapus');
+  }
+
+  // ── Reset functions ──────────────────────────────────────────────────────
+  async function resetAllTransactions() {
+    setReseting(true);
+    const { error } = await supabase.from('transactions').update({ is_deleted: true }).eq('user_id', profile.id);
+    setReseting(false);
+    setConfirmResetTx(false);
+    if (error) { showToast('Gagal reset transaksi', false); return; }
+    showToast('Semua transaksi berhasil dihapus');
+  }
+
+  async function resetCustomCategories() {
+    setReseting(true);
+    const { error } = await supabase.from('categories').delete().eq('user_id', profile.id);
+    setReseting(false);
+    setConfirmResetCat(false);
+    if (error) { showToast('Gagal reset kategori', false); return; }
+    setCats(prev => prev.filter(c => c.is_default));
+    showToast('Kategori kustom berhasil direset');
   }
 
   const filteredCats = cats.filter(c => c.type === catTab);
@@ -622,7 +652,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
                   onMouseEnter={e => { (e.currentTarget).style.borderColor = 'var(--accent-primary)'; (e.currentTarget).style.color = 'var(--accent-primary)'; }}
                   onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; }}
                 >Edit</button>
-                <button onClick={() => deleteCat(cat)} style={{
+                <button onClick={() => setDeletingCat(cat)} style={{
                   padding: '4px 8px', background: 'transparent',
                   border: '1px solid var(--border-color)', borderRadius: '6px',
                   color: 'var(--text-muted)', fontSize: '11px', cursor: 'pointer',
@@ -703,32 +733,122 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
 
       {/* ── 5. Danger zone ────────────────────────────────────────────────── */}
       <div style={{
-        background: 'var(--card-bg)', border: '1px solid rgba(185, 28, 28, 0.35)',
-        borderRadius: '14px', padding: '20px',
+        marginTop: '32px',
+        background: showDanger ? 'rgba(239, 68, 68, 0.02)' : 'var(--card-bg)',
+        border: `1px solid ${showDanger ? '#ef4444' : 'var(--border-color)'}`,
+        borderRadius: '16px', padding: '24px',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        boxShadow: showDanger ? '0 10px 30px -10px rgba(239, 68, 68, 0.15)' : 'none',
       }}>
-        <div style={{ fontSize: '14px', fontWeight: '600', color: '#f87171', marginBottom: '4px' }}>
-          Danger Zone
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: showDanger ? '16px' : '0' }}>
+          <div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: showDanger ? '#ef4444' : 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '18px' }}>☢️</span> Danger Zone
+            </div>
+            {showDanger && (
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: '500' }}>
+                Tindakan di bawah ini bersifat permanen dan tidak dapat dibatalkan.
+              </div>
+            )}
+          </div>
+          <button 
+            onClick={() => setShowDanger(!showDanger)}
+            style={{
+              padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: '600',
+              background: showDanger ? 'var(--bg-secondary)' : 'transparent',
+              border: `1px solid ${showDanger ? 'var(--border-color)' : '#ef4444'}`,
+              color: showDanger ? 'var(--text-muted)' : '#ef4444',
+              cursor: 'pointer', transition: 'all 0.2s',
+            }}
+          >
+            {showDanger ? 'Tutup' : 'Buka Akses'}
+          </button>
         </div>
-        <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '14px', lineHeight: '1.6' }}>
-          Tindakan di bawah ini tidak dapat dibatalkan. Harap berhati-hati.
-        </div>
-        <button
-          onClick={async () => {
-            if (!confirm('Yakin ingin keluar dari semua perangkat?')) return;
-            await supabase.auth.signOut({ scope: 'global' });
-            window.location.href = '/login';
-          }}
-          style={{
-            padding: '9px 18px', background: 'transparent',
-            border: '1px solid #7f1d1d', borderRadius: '8px',
-            color: '#f87171', fontSize: '13px', cursor: 'pointer',
-          }}
-          onMouseEnter={e => (e.currentTarget).style.background = '#2d0f0f'}
-          onMouseLeave={e => (e.currentTarget).style.background = 'transparent'}
-        >
-          Keluar dari Semua Perangkat
-        </button>
+
+        {showDanger && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', animation: 'fadeInDown 0.3s ease' }}>
+            <div style={{ height: '1px', background: 'rgba(239, 68, 68, 0.1)', margin: '4px 0' }}></div>
+            
+            {/* Reset Transactions */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', borderRadius: '10px', background: 'rgba(239,68,68,0.03)' }}>
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)' }}>Hapus Semua Transaksi</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Menghapus seluruh riwayat pemasukan dan pengeluaran kamu.</div>
+              </div>
+              <button onClick={() => setConfirmResetTx(true)} style={{ padding: '6px 12px', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>Hapus</button>
+            </div>
+
+            {/* Reset Categories */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', borderRadius: '10px', background: 'rgba(239,68,68,0.03)' }}>
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)' }}>Reset Kategori Kustom</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Menghapus semua kategori yang kamu buat dan kembali ke default.</div>
+              </div>
+              <button onClick={() => setConfirmResetCat(true)} style={{ padding: '6px 12px', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>Reset</button>
+            </div>
+
+            {/* Global Sign Out */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', borderRadius: '10px', background: 'rgba(239,68,68,0.03)' }}>
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)' }}>Keluar dari Semua Perangkat</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Mengakhiri sesi login di semua browser dan perangkat lain.</div>
+              </div>
+              <button onClick={() => setConfirmLogout(true)} style={{ padding: '6px 12px', background: '#ef4444', border: 'none', color: '#fff', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>Sign Out Global</button>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* ── Danger Zone Modals ─────────────────────────────────────────────── */}
+      <ConfirmModal 
+        open={!!deletingCat}
+        title="Hapus Kategori?"
+        message={`Apakah kamu yakin ingin menghapus kategori "${deletingCat?.name}"? Transaksi dengan kategori ini tidak akan terhapus namun kategorinya akan menjadi kosong.`}
+        confirmLabel="Ya, Hapus Kategori"
+        danger={true}
+        onConfirm={deleteCat}
+        onCancel={() => setDeletingCat(null)}
+      />
+
+      <ConfirmModal 
+        open={confirmResetTx}
+        title="Hapus Semua Transaksi?"
+        message="Tindakan ini akan menghapus permanen seluruh riwayat transaksi kamu. Data tidak dapat dipulihkan."
+        confirmLabel={reseting ? 'Menghapus...' : 'Ya, Hapus Semua'}
+        requireWord="HAPUS"
+        onConfirm={resetAllTransactions}
+        onCancel={() => setConfirmResetTx(false)}
+      />
+
+      <ConfirmModal 
+        open={confirmResetCat}
+        title="Reset Kategori Kustom?"
+        message="Semua kategori yang kamu buat sendiri akan dihapus. Transaksi yang sudah ada akan tetap ada namun kategorinya menjadi kosong."
+        confirmLabel={reseting ? 'Mereset...' : 'Ya, Reset Kategori'}
+        requireWord="RESET"
+        onConfirm={resetCustomCategories}
+        onCancel={() => setConfirmResetCat(false)}
+      />
+
+      <ConfirmModal 
+        open={confirmLogout}
+        title="Sign Out Global?"
+        message="Kamu akan dikeluarkan dari semua perangkat yang sedang login menggunakan akun ini."
+        confirmLabel="Ya, Sign Out Global"
+        danger={true}
+        onConfirm={async () => {
+          await supabase.auth.signOut({ scope: 'global' });
+          window.location.href = '/login';
+        }}
+        onCancel={() => setConfirmLogout(false)}
+      />
+
+      <style jsx>{`
+        @keyframes fadeInDown {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 
 import { useState, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import ConfirmModal from '@/components/ConfirmModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Goal {
@@ -266,7 +267,7 @@ function GoalCard({
             onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; }}
           >Aktifkan</button>
         )}
-        <button onClick={() => { if (confirm(`Hapus goal "${goal.name}"?`)) onDelete(goal.id); }} style={{
+        <button onClick={() => onDelete(goal.id)} style={{
           padding: '8px 10px', background: 'transparent',
           border: '1px solid var(--border-color)', borderRadius: '8px',
           color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer',
@@ -639,6 +640,7 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
   const [progressGoal,   setProgressGoal]   = useState<Goal | null>(null);
   const [filterStatus,   setFilterStatus]   = useState<'all' | GoalStatus>('all');
   const [toast,          setToast]          = useState<{ msg: string; ok: boolean } | null>(null);
+  const [deletingGoal,   setDeletingGoal]   = useState<Goal | null>(null);
 
   function showToast(msg: string, ok = true) {
     setToast({ msg, ok });
@@ -738,10 +740,12 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
   }
 
   // ── Delete ────────────────────────────────────────────────────────────────
-  async function handleDelete(goalId: string) {
-    const { error } = await supabase.from('goals').delete().eq('id', goalId);
-    if (error) { showToast('Gagal menghapus', false); return; }
-    setGoals(prev => prev.filter(g => g.id !== goalId));
+  async function handleDelete() {
+    if (!deletingGoal) return;
+    const { error } = await supabase.from('goals').delete().eq('id', deletingGoal.id);
+    if (error) { showToast('Gagal menghapus', false); setDeletingGoal(null); return; }
+    setGoals(prev => prev.filter(g => g.id !== deletingGoal.id));
+    setDeletingGoal(null);
     showToast('Goal dihapus');
   }
 
@@ -776,6 +780,16 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
           onClose={() => setProgressGoal(null)}
         />
       )}
+
+      <ConfirmModal 
+        open={!!deletingGoal}
+        title="Hapus Goal?"
+        message={`Apakah kamu yakin ingin menghapus goal "${deletingGoal?.name}"? Tindakan ini tidak dapat dibatalkan.`}
+        confirmLabel="Ya, Hapus Goal"
+        danger={true}
+        onConfirm={handleDelete}
+        onCancel={() => setDeletingGoal(null)}
+      />
 
       <style>{`
         .goals-summary { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
@@ -862,7 +876,7 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
           {filtered.map(g => (
             <GoalCard key={g.id} goal={g}
               onEdit={g => setEditGoal(g)}
-              onDelete={handleDelete}
+              onDelete={() => setDeletingGoal(g)}
               onUpdateProgress={g => setProgressGoal(g)}
               onStatusChange={handleStatusChange}
             />

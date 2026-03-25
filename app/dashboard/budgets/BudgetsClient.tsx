@@ -3,6 +3,7 @@
 
 import { useState, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import ConfirmModal from '@/components/ConfirmModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Category {
@@ -316,6 +317,7 @@ export default function BudgetsClient({
   const [editBudget, setEditBudget] = useState<Budget | null>(null);
   const [toast,      setToast]      = useState<{ msg: string; ok: boolean } | null>(null);
   const [isCopying,  setIsCopying]  = useState(false);
+  const [deletingBudget, setDeletingBudget] = useState<Budget | null>(null);
 
   // Targets state
   const [targets, setTargets] = useState(initialTargets);
@@ -449,10 +451,12 @@ export default function BudgetsClient({
   }
 
   // ── Delete ────────────────────────────────────────────────────────────────
-  async function handleDelete(id: string) {
-    const { error } = await supabase.from('monthly_budgets').delete().eq('id', id);
-    if (error) { showToast('Gagal menghapus', false); return; }
-    setBudgets(prev => prev.filter(b => b.id !== id));
+  async function handleDelete() {
+    if (!deletingBudget) return;
+    const { error } = await supabase.from('monthly_budgets').delete().eq('id', deletingBudget.id);
+    if (error) { showToast('Gagal menghapus', false); setDeletingBudget(null); return; }
+    setBudgets(prev => prev.filter(b => b.id !== deletingBudget.id));
+    setDeletingBudget(null);
     showToast('Budget dihapus');
   }
 
@@ -486,6 +490,16 @@ export default function BudgetsClient({
           onClose={() => { setShowForm(false); setEditBudget(null); }}
         />
       )}
+
+      <ConfirmModal 
+        open={!!deletingBudget}
+        title="Hapus Budget?"
+        message={`Apakah kamu yakin ingin menghapus budget untuk kategori "${deletingBudget?.categories?.name}"?`}
+        confirmLabel="Ya, Hapus"
+        danger={true}
+        onConfirm={handleDelete}
+        onCancel={() => setDeletingBudget(null)}
+      />
 
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
@@ -715,7 +729,7 @@ export default function BudgetsClient({
               budget={b}
               spent={spendMap[b.categories?.id] ?? 0}
               onEdit={b => setEditBudget(b)}
-              onDelete={handleDelete}
+              onDelete={() => setDeletingBudget(b)}
             />
           ))}
         </div>

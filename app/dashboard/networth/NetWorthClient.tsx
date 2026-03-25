@@ -3,6 +3,7 @@
 
 import { useState, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import ConfirmModal from '@/components/ConfirmModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Asset {
@@ -306,6 +307,7 @@ export default function NetWorthClient({ initialAssets, userId }: {
   const [formLiab,  setFormLiab]  = useState(false);
   const [editAsset, setEditAsset] = useState<Asset | null>(null);
   const [toast,     setToast]     = useState<{ msg: string; ok: boolean } | null>(null);
+  const [deletingAsset, setDeletingAsset] = useState<Asset | null>(null);
 
   function showToast(msg: string, ok = true) {
     setToast({ msg, ok });
@@ -378,10 +380,12 @@ export default function NetWorthClient({ initialAssets, userId }: {
   }
 
   // ── Delete ────────────────────────────────────────────────────────────────
-  async function handleDelete(id: string) {
-    const { error } = await supabase.from('assets').delete().eq('id', id);
-    if (error) { showToast('Gagal menghapus', false); return; }
-    setAssets(prev => prev.filter(a => a.id !== id));
+  async function handleDelete() {
+    if (!deletingAsset) return;
+    const { error } = await supabase.from('assets').delete().eq('id', deletingAsset.id);
+    if (error) { showToast('Gagal menghapus', false); setDeletingAsset(null); return; }
+    setAssets(prev => prev.filter(a => a.id !== deletingAsset.id));
+    setDeletingAsset(null);
     showToast('Dihapus');
   }
 
@@ -411,6 +415,16 @@ export default function NetWorthClient({ initialAssets, userId }: {
           onClose={() => { setShowForm(false); setEditAsset(null); }}
         />
       )}
+
+      <ConfirmModal 
+        open={!!deletingAsset}
+        title={`Hapus ${deletingAsset?.is_liability ? 'Liabilitas' : 'Aset'}?`}
+        message={`Apakah kamu yakin ingin menghapus "${deletingAsset?.name}"?`}
+        confirmLabel="Ya, Hapus"
+        danger={true}
+        onConfirm={handleDelete}
+        onCancel={() => setDeletingAsset(null)}
+      />
 
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
@@ -569,7 +583,7 @@ export default function NetWorthClient({ initialAssets, userId }: {
               asetList.map(a => (
                 <AssetRow key={a.id} asset={a}
                   onEdit={a => setEditAsset(a)}
-                  onDelete={handleDelete}
+                  onDelete={() => setDeletingAsset(a)}
                 />
               ))
             )}
@@ -600,7 +614,7 @@ export default function NetWorthClient({ initialAssets, userId }: {
               liabList.map(a => (
                 <AssetRow key={a.id} asset={a}
                   onEdit={a => setEditAsset(a)}
-                  onDelete={handleDelete}
+                  onDelete={() => setDeletingAsset(a)}
                 />
               ))
             )}
