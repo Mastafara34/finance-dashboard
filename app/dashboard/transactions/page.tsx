@@ -18,6 +18,10 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
 
   if (!profile) return null;
 
+  // Fetch demo ID
+  const { data: demo } = await supabase.from('users').select('id').eq('email', 'demo@fintrack.app').maybeSingle();
+  const demoId = demo?.id;
+
   const myUserId = profile.id;
   const isOwner = profile.role === 'owner';
   const isCollective = isOwner && searchU === 'all';
@@ -48,6 +52,8 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
 
   if (!isCollective) {
     query = query.eq('user_id', viewUserId);
+  } else if (demoId) {
+    query = query.neq('user_id', demoId);
   }
 
   const { data: transactions } = await query;

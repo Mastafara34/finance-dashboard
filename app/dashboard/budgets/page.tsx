@@ -19,6 +19,10 @@ export default async function BudgetsPage({ searchParams }: { searchParams: Prom
 
   if (!profile) return null;
 
+  // Fetch demo ID
+  const { data: demo } = await supabase.from('users').select('id').eq('email', 'demo@fintrack.app').maybeSingle();
+  const demoId = demo?.id;
+
   const isOwner = profile.role === 'owner';
   const isCollective = isOwner && searchU === 'all';
   const viewUserId = isOwner && searchU && searchU !== 'all' ? searchU : profile.id;
@@ -47,6 +51,9 @@ export default async function BudgetsPage({ searchParams }: { searchParams: Prom
   if (!isCollective) {
     bq = bq.eq('user_id', viewUserId);
     pbq = pbq.eq('user_id', viewUserId);
+  } else if (demoId) {
+    bq = bq.neq('user_id', demoId);
+    pbq = pbq.neq('user_id', demoId);
   }
 
   const [{ data: budgets }, { data: prevBudgets }] = await Promise.all([bq, pbq]);
@@ -60,6 +67,8 @@ export default async function BudgetsPage({ searchParams }: { searchParams: Prom
 
   if (!isCollective) {
     tq = tq.eq('user_id', viewUserId);
+  } else if (demoId) {
+    tq = tq.neq('user_id', demoId);
   }
 
   const { data: transactions } = await tq;

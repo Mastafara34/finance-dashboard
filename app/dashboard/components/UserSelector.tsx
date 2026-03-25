@@ -33,6 +33,7 @@ export function UserSelector({ users, currentViewId, isCollective = false, showC
     }
     const targetUrl = `${pathname}?${params.toString()}`;
     router.push(targetUrl);
+    router.refresh();
   }
 
   const activeVal = isCollective ? 'all' : currentViewId;
