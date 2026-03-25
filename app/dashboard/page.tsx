@@ -457,8 +457,60 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
 
       {/* SECTION 2: THE REALITY (Current Status) */}
       <div className="ov-section-title">The Reality (Kondisi Saat Ini) 📊</div>
-      <KpiGridClient monthly={monthlyKpis} yearly={yearlyKpis} />
       
+      {/* KPI Grid */}
+      <KpiGridClient monthly={monthlyKpis} yearly={yearlyKpis} />
+
+      {/* Main Income vs Expense Chart (30 Days) */}
+      <Card style={{ marginBottom: '16px', padding: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <div>
+            <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>ARUS KAS 30 HARI TERAKHIR</span>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>Pemasukan vs Pengeluaran Harian</div>
+          </div>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <div style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)', fontWeight: '600' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#10b981' }} /> In
+            </div>
+            <div style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)', fontWeight: '600' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#ef4444' }} /> Out
+            </div>
+          </div>
+        </div>
+
+        {/* Chart SVG */}
+        <div style={{ height: '200px', width: '100%', position: 'relative', display: 'flex', alignItems: 'flex-end', gap: '2px', paddingBottom: '20px' }}>
+          {chartData.map((d, i) => {
+            const hInc = (d.income / maxVal) * 100;
+            const hExp = (d.expense / maxVal) * 100;
+            return (
+              <div key={i} style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'flex-end', gap: '1px' }}>
+                <div style={{ 
+                  flex: 1, height: `${Math.max(hInc, 1.5)}%`, background: hInc > 0 ? '#10b981' : 'rgba(16, 185, 129, 0.1)', 
+                  borderRadius: '1px', opacity: hInc > 0 ? 1 : 0.3 
+                }} title={`${d.date}: ${fmt(d.income)}`} />
+                <div style={{ 
+                  flex: 1, height: `${Math.max(hExp, 1.5)}%`, background: hExp > 0 ? '#ef4444' : 'rgba(239, 68, 68, 0.1)', 
+                  borderRadius: '1px', opacity: hExp > 0 ? 1 : 0.3 
+                }} title={`${d.date}: ${fmt(d.expense)}`} />
+              </div>
+            );
+          })}
+          
+          {/* Chart Axis Labels */}
+          <div style={{ position: 'absolute', bottom: '0', left: 0, right: 0, display: 'flex', justifyContent: 'space-between', padding: '0 4px' }}>
+            <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{chartData[0]?.date}</span>
+            <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Hari ini</span>
+          </div>
+        </div>
+
+        {txs.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '20px', background: 'var(--bg-primary)', borderRadius: '8px', marginTop: '10px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Belum ada data transaksi bulan ini.</div>
+          </div>
+        )}
+      </Card>
+
       <div className="ov-grid2">
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
@@ -475,18 +527,48 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
             <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '500' }}>{txs.length} transaksi tercatat</span>
           </div>
         </Card>
-        <div className="ov-grid-inner" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          <Card>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px', fontWeight: '700' }}>Inflasi Gaya Hidup</div>
-            <div style={{ fontSize: '15px', fontWeight: '800', color: lifestyleColor }}>{lifestyleStatus}</div>
-          </Card>
-          <Card style={{ border: suspectedSubs.length > 0 ? '1px solid #f59e0b' : '1px solid var(--border-color)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px', fontWeight: '700' }}>Langganan Aktif</div>
-            <div style={{ fontSize: '15px', fontWeight: '800', color: suspectedSubs.length > 0 ? '#f59e0b' : '#10b981' }}>
-              {suspectedSubs.length} Layanan
+        <Card>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)' }}>TRANSAKSI TERAKHIR</span>
+            <a href="/dashboard/transactions" style={{ fontSize: '12px', color: '#3b82f6', textDecoration: 'none', fontWeight: '600' }}>Semua →</a>
+          </div>
+          {txs.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--text-muted)', fontSize: '13px' }}>
+              Belum ada transaksi di periode ini.
             </div>
-          </Card>
-        </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {txs.slice(0, 5).map((t, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: i < 4 ? '1px solid var(--border-color)' : 'none' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)' }}>{t.categories?.name ?? 'Lain-lain'}</span>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{new Date(t.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
+                  </div>
+                  <span style={{ fontSize: '13px', fontWeight: '700', color: t.type === 'income' ? '#10b981' : '#f87171' }}>
+                    {t.type === 'income' ? '+' : '-'}{fmt(t.amount)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
+
+      <div className="ov-grid3" style={{ marginTop: '12px' }}>
+        <Card>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px', fontWeight: '700' }}>Inflasi Gaya Hidup</div>
+          <div style={{ fontSize: '15px', fontWeight: '800', color: lifestyleColor }}>{lifestyleStatus}</div>
+        </Card>
+        <Card style={{ border: suspectedSubs.length > 0 ? '1px solid #f59e0b' : '1px solid var(--border-color)' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px', fontWeight: '700' }}>Langganan Aktif</div>
+          <div style={{ fontSize: '15px', fontWeight: '800', color: suspectedSubs.length > 0 ? '#f59e0b' : '#10b981' }}>
+            {suspectedSubs.length} Layanan
+          </div>
+        </Card>
+        <Card>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px', fontWeight: '700' }}>Biaya Kerja (Avg)</div>
+          <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-main)' }}>{avgExpenseWorkHours.toFixed(1)} jam/bln</div>
+        </Card>
       </div>
 
       {/* SECTION 3: THE JOURNEY (Long-term Goals) */}
