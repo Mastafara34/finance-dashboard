@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 interface Props {
@@ -14,16 +15,19 @@ export function UserSelector({ users, currentViewId, isCollective = false, showC
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  const [isNavigating, setIsNavigating] = useState(false);
+
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const val = e.target.value;
+    setIsNavigating(true);
     const params = new URLSearchParams(searchParams.toString());
     if (val === 'all') {
       params.set('u', 'all');
     } else {
       params.set('u', val);
     }
-    // Navigate to same page with new param — data will re-fetch server-side
-    router.push(`${pathname}?${params.toString()}`);
+    // Hard refresh to ensure data is fetched fresh
+    window.location.href = `${pathname}?${params.toString()}`;
   }
 
   const activeVal = isCollective ? 'all' : currentViewId;
@@ -33,17 +37,21 @@ export function UserSelector({ users, currentViewId, isCollective = false, showC
       display: 'flex', alignItems: 'center', gap: '10px',
       marginBottom: '20px',
       padding: '10px 14px',
-      background: 'var(--card-bg, #111118)',
-      border: '1px solid var(--border-color, #1f1f2e)',
+      background: isNavigating ? 'var(--bg-secondary, #0a0a0f)' : 'var(--card-bg, #111118)',
+      border: `1px solid ${isNavigating ? 'var(--border-color, #2a2a3a)' : 'var(--border-color, #1f1f2e)'}`,
       borderRadius: '10px',
+      opacity: isNavigating ? 0.7 : 1,
+      pointerEvents: isNavigating ? 'none' : 'auto',
+      transition: 'all 0.2s ease',
     }}>
-      <span style={{ fontSize: '18px' }}>👁️</span>
+      <span style={{ fontSize: '18px' }}>{isNavigating ? '⏳' : '👁️'}</span>
       <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted, #6b7280)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-        Tampilkan data:
+        {isNavigating ? 'Sabar bos... (Sedang memuat data)' : 'Tampilkan data:'}
       </span>
       <select
         value={activeVal}
         onChange={handleChange}
+        disabled={isNavigating}
         style={{
           background: 'var(--bg-secondary, #0a0a0f)',
           border: '1px solid var(--border-color, #2a2a3a)',

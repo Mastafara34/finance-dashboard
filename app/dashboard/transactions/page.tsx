@@ -24,7 +24,11 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
 
   let allUsers: any[] = [];
   if (isOwner) {
-    const { data } = await supabase.from('users').select('id, display_name').order('display_name');
+    const { data } = await supabase
+      .from('users')
+      .select('id, display_name')
+      .or('email.is.null,email.neq.demo@fintrack.app')
+      .order('display_name');
     allUsers = data ?? [];
   }
 

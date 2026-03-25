@@ -27,7 +27,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { u?
     const { data } = await supabase
       .from('users')
       .select('id, display_name')
-      .neq('email', 'demo@fintrack.app')
+      .or('email.is.null,email.neq.demo@fintrack.app')
       .order('display_name');
     allUsers = data ?? [];
   }

@@ -76,7 +76,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
 
   let allUsers: any[] = [];
   if (isOwner) {
-    const { data } = await supabase.from('users').select('id, display_name').order('display_name');
+    // Filter demo (shadow account) tapi SERTAKAN user dengan email null (misal user Telegram)
+    const { data } = await supabase
+      .from('users')
+      .select('id, display_name')
+      .or('email.is.null,email.neq.demo@fintrack.app')
+      .order('display_name');
     allUsers = data ?? [];
   }
 
@@ -321,6 +326,14 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
 
   return (
     <div className="dashboard-root" style={{ color: 'var(--text-main)', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
+      
+      {isOwner && (
+        <UserSelector 
+          users={allUsers} 
+          currentViewId={viewUserId} 
+          isCollective={isCollective} 
+        />
+      )}
       <style>{`
         .dashboard-root { padding: 0; }
         .ov-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; gap: 16px; }
@@ -378,14 +391,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
           </div>
         </div>
       </div>
-
-      {isOwner && (
-        <UserSelector 
-          users={allUsers} 
-          currentViewId={viewUserId} 
-          isCollective={isCollective} 
-        />
-      )}
 
       {/* Step A: Anomaly Alert */}
       {anomaly.isAnomaly && (
