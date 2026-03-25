@@ -370,7 +370,9 @@ async function cmdHelp(chatId: number): Promise<void> {
     `/goals update [nama] [jumlah] — Tambah tabungan ke goal\n\n` +
     `*💬 Input Bebas*\n` +
     `Ketik transaksi langsung tanpa command.\n` +
-    `Contoh: _"Makan 35rb"_, _"Gaji 8 juta"_`
+    `Contoh: _"Makan 35rb"_, _"Gaji 8 juta"_` +
+    `\n\n*🔐 Khusus Owner*\n` +
+    `/akun — Lihat semua akun terdaftar`
   );
 }
 
@@ -1111,6 +1113,91 @@ async function cmdForecast(chatId: number, user: User): Promise<void> {
   );
 }
 
+// ─── Command: /akun (owner only) ─────────────────────────────────────────────
+async function cmdAkun(chatId: number, user: User): Promise<void> {
+  if (user.role !== 'owner') {
+    await sendMessage(chatId, '🔐 Perintah ini hanya bisa digunakan oleh *Owner*.');
+    return;
+  }
+
+  // Fetch semua user terregistrasi (kecuali demo)
+  const { data: allUsers } = await supabase
+    .from('users')
+    .select('id, display_name, email, telegram_chat_id, role, created_at')
+    .neq('email', 'demo@fintrack.app')
+    .order('created_at', { ascending: true });
+
+  if (!allUsers || allUsers.length === 0) {
+    await sendMessage(chatId, '📋 Belum ada akun yang terdaftar.');
+    return;
+  }
+
+  // Fetch whitelist untuk status bot
+  const { data: whitelist } = await supabase
+    .from('whitelisted_users')
+    .select('chat_id, is_active');
+  const wlMap = new Map((whitelist ?? []).map((w: any) => [w.chat_id, w.is_active]));
+
+  // Fetch transaksi terakhir per user
+  const userIds = allUsers.map((u: any) => u.id);
+  const { data: lastTxs } = await supabase
+    .from('transactions')
+    .select('user_id, date')
+    .in('user_id', userIds)
+    .eq('is_deleted', false)
+    .order('date', { ascending: false });
+
+  const lastTxMap = new Map<string, string>();
+  (lastTxs ?? []).forEach((t: any) => {
+    if (!lastTxMap.has(t.user_id)) lastTxMap.set(t.user_id, t.date);
+  });
+
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+
+  // Fetch jumlah transaksi bulan ini per user
+  const { data: txCounts } = await supabase
+    .from('transactions')
+    .select('user_id')
+    .in('user_id', userIds)
+    .eq('is_deleted', false)
+    .gte('date', monthStart);
+
+  const txCountMap = new Map<string, number>();
+  (txCounts ?? []).forEach((t: any) => {
+    txCountMap.set(t.user_id, (txCountMap.get(t.user_id) ?? 0) + 1);
+  });
+
+  const roleEmoji: Record<string, string> = {
+    owner: '👑', admin: '🔵', user: '🟢', readonly: '⚪'
+  };
+
+  let lines = allUsers.map((u: any, i: number) => {
+    const botStatus = u.telegram_chat_id
+      ? (wlMap.get(u.telegram_chat_id) ? '🤖✓' : '🤖✗')
+      : '📵';
+    const lastTx = lastTxMap.get(u.id);
+    const lastTxStr = lastTx
+      ? new Date(lastTx).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })
+      : 'belum ada tx';
+    const txCount = txCountMap.get(u.id) ?? 0;
+    const emoji = roleEmoji[u.role] ?? '🟢';
+
+    return (
+      `${i + 1}\. ${emoji} *${u.display_name ?? 'Tanpa Nama'}*\n` +
+      `   ${botStatus} · Tx bulan ini: ${txCount} · Terakhir: ${lastTxStr}`
+    );
+  });
+
+  await sendMessage(
+    chatId,
+    `📋 *Daftar Akun Terdaftar* (${allUsers.length})\n\n` +
+    lines.join('\n\n') +
+    `\n\n_👑=Owner, 🔵=Admin, 🟢=User, ⚪=Readonly_\n` +
+    `_🤖✓=Bot aktif, 🤖✗=Bot nonaktif, 📵=Belum ada Telegram_`
+  );
+}
+
 // ─── Command router ───────────────────────────────────────────────────────────
 async function routeCommand(
   chatId: number,
@@ -1126,6 +1213,7 @@ async function routeCommand(
   if (lower === '/networth')       { await cmdNetWorth(chatId, user); return true; }
   if (lower === '/laporan')        { await cmdLaporan(chatId, user); return true; }
   if (lower === '/forecast')       { await cmdForecast(chatId, user); return true; }
+  if (lower === '/akun')           { await cmdAkun(chatId, user); return true; }
 
   if (lower === '/goals') {
     await cmdGoals(chatId, user);

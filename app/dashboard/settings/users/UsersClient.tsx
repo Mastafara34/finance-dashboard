@@ -38,120 +38,135 @@ const ROLE_META: Record<Role, { label: string; color: string; bg: string; border
   readonly: { label: 'Readonly', color: '#9ca3af', bg: '#1f1f2e', border: '#2a2a3a', desc: 'Hanya bisa lihat, tidak bisa edit' },
 };
 
+const inpStyle: React.CSSProperties = {
+  width: '100%', padding: '10px 12px',
+  background: '#0a0a0f', border: '1px solid #2a2a3a',
+  borderRadius: '8px', color: '#f0f0f5', fontSize: '14px',
+  outline: 'none', boxSizing: 'border-box',
+};
+
+function RoleSelector({ value, onChange }: { value: Role; onChange: (r: Role) => void }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      {(['user', 'readonly', 'admin'] as Role[]).map(r => {
+        const meta = ROLE_META[r];
+        return (
+          <div key={r} onClick={() => onChange(r)} style={{
+            padding: '10px 14px', borderRadius: '9px', cursor: 'pointer',
+            border: `1px solid ${value === r ? meta.border : '#2a2a3a'}`,
+            background: value === r ? meta.bg : '#0a0a0f',
+            display: 'flex', alignItems: 'center', gap: '10px',
+          }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '99px', background: value === r ? meta.color : '#374151', flexShrink: 0 }} />
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: '500', color: value === r ? meta.color : '#f0f0f5' }}>{meta.label}</div>
+              <div style={{ fontSize: '11px', color: '#6b7280' }}>{meta.desc}</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ─── Add User Modal ───────────────────────────────────────────────────────────
 function AddUserModal({ onSave, onClose }: {
-  onSave: (chatId: number, displayName: string, role: Role) => Promise<void>;
+  onSave: (chatId: number | null, displayName: string, email: string, role: Role) => Promise<void>;
   onClose: () => void;
 }) {
   const [chatId,      setChatId]      = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [email,       setEmail]       = useState('');
   const [role,        setRole]        = useState<Role>('user');
   const [saving,      setSaving]      = useState(false);
   const [error,       setError]       = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const id = parseInt(chatId, 10);
-    if (!id || isNaN(id)) { setError('Chat ID harus berupa angka'); return; }
     if (!displayName.trim()) { setError('Nama wajib diisi'); return; }
+    if (!chatId && !email.trim()) { setError('Isi minimal Chat ID Telegram atau Email'); return; }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('Format email tidak valid'); return; }
 
-    setSaving(true);
-    setError('');
+    const numId = chatId ? parseInt(chatId, 10) : null;
+    if (chatId && (isNaN(numId!) || numId! <= 0)) { setError('Chat ID harus berupa angka positif'); return; }
+
+    setSaving(true); setError('');
     try {
-      await onSave(id, displayName.trim(), role);
+      await onSave(numId, displayName.trim(), email.trim(), role);
     } catch (err: any) {
       setError(err.message);
       setSaving(false);
     }
   }
 
-  const inp: React.CSSProperties = {
-    width: '100%', padding: '10px 12px',
-    background: '#0a0a0f', border: '1px solid #2a2a3a',
-    borderRadius: '8px', color: '#f0f0f5', fontSize: '16px',
-    outline: 'none', boxSizing: 'border-box',
-  };
-
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 100,
-      background: 'rgba(0,0,0,.75)',
+      background: 'rgba(0,0,0,.8)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
     }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{
         background: '#111118', border: '1px solid #1e3a5f',
-        borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '440px',
+        borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '460px',
+        maxHeight: '90vh', overflowY: 'auto',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
-          <h2 style={{ color: '#f0f0f5', fontSize: '17px', fontWeight: '600', margin: 0 }}>Tambah User Baru</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: '20px', cursor: 'pointer' }}>×</button>
+          <div>
+            <h2 style={{ color: '#f0f0f5', fontSize: '17px', fontWeight: '600', margin: '0 0 2px' }}>Tambah User Baru</h2>
+            <p style={{ color: '#6b7280', fontSize: '12px', margin: 0 }}>Isi minimal Chat ID atau Email</p>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: '22px', cursor: 'pointer', lineHeight: 1 }}>×</button>
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* Chat ID */}
-          <div style={{ marginBottom: '14px' }}>
-            <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', fontWeight: '500', marginBottom: '6px' }}>
-              Telegram Chat ID <span style={{ color: '#ef4444' }}>*</span>
-            </label>
-            <input
-              type="text" inputMode="numeric" value={chatId}
-              onChange={e => setChatId(e.target.value.replace(/[^0-9]/g, ''))}
-              placeholder="cth: 123456789"
-              style={inp}
-              onFocus={e => e.target.style.borderColor = '#2563eb'}
-              onBlur={e  => e.target.style.borderColor = '#2a2a3a'}
-            />
-            <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
-              Minta user kirim pesan ke @userinfobot di Telegram untuk dapat Chat ID
-            </div>
-          </div>
-
-          {/* Display name */}
+          {/* Nama */}
           <div style={{ marginBottom: '14px' }}>
             <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', fontWeight: '500', marginBottom: '6px' }}>
               Nama <span style={{ color: '#ef4444' }}>*</span>
             </label>
-            <input
-              value={displayName} onChange={e => setDisplayName(e.target.value)}
-              placeholder="cth: Istri, Anak, dll"
-              style={inp}
+            <input value={displayName} onChange={e => setDisplayName(e.target.value)}
+              placeholder="cth: Athia, Ananda, dll" style={inpStyle}
               onFocus={e => e.target.style.borderColor = '#2563eb'}
-              onBlur={e  => e.target.style.borderColor = '#2a2a3a'}
-            />
+              onBlur={e  => e.target.style.borderColor = '#2a2a3a'} />
+          </div>
+
+          {/* Email */}
+          <div style={{ marginBottom: '14px' }}>
+            <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', fontWeight: '500', marginBottom: '6px' }}>
+              Email (untuk login dashboard)
+            </label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="cth: athia@gmail.com"
+              style={inpStyle}
+              onFocus={e => e.target.style.borderColor = '#2563eb'}
+              onBlur={e  => e.target.style.borderColor = '#2a2a3a'} />
+            <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+              Wajib jika user ingin akses dashboard via web
+            </div>
+          </div>
+
+          {/* Chat ID */}
+          <div style={{ marginBottom: '14px' }}>
+            <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', fontWeight: '500', marginBottom: '6px' }}>
+              Telegram Chat ID (untuk akses bot)
+            </label>
+            <input type="text" inputMode="numeric" value={chatId}
+              onChange={e => setChatId(e.target.value.replace(/[^0-9]/g, ''))}
+              placeholder="cth: 123456789"
+              style={inpStyle}
+              onFocus={e => e.target.style.borderColor = '#2563eb'}
+              onBlur={e  => e.target.style.borderColor = '#2a2a3a'} />
+            <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+              Minta user kirim pesan ke @userinfobot di Telegram
+            </div>
           </div>
 
           {/* Role */}
           <div style={{ marginBottom: '20px' }}>
             <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', fontWeight: '500', marginBottom: '8px' }}>
-              Role
+              Role Akses
             </label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {(['user', 'readonly', 'admin'] as Role[]).map(r => {
-                const meta = ROLE_META[r];
-                return (
-                  <div key={r}
-                    onClick={() => setRole(r)}
-                    style={{
-                      padding: '10px 14px', borderRadius: '9px', cursor: 'pointer',
-                      border: `1px solid ${role === r ? meta.border : '#2a2a3a'}`,
-                      background: role === r ? meta.bg : '#0a0a0f',
-                      display: 'flex', alignItems: 'center', gap: '10px',
-                    }}
-                  >
-                    <div style={{
-                      width: '8px', height: '8px', borderRadius: '99px',
-                      background: role === r ? meta.color : '#374151', flexShrink: 0,
-                    }} />
-                    <div>
-                      <div style={{ fontSize: '13px', fontWeight: '500', color: role === r ? meta.color : '#f0f0f5' }}>
-                        {meta.label}
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#6b7280' }}>{meta.desc}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <RoleSelector value={role} onChange={setRole} />
           </div>
 
           {error && (
@@ -180,16 +195,142 @@ function AddUserModal({ onSave, onClose }: {
   );
 }
 
+// ─── Edit User Modal ──────────────────────────────────────────────────────────
+function EditUserModal({ user, onSave, onClose }: {
+  user: UserRow;
+  onSave: (userId: string, data: { display_name: string; email: string; telegram_chat_id: number | null; role: Role }) => Promise<void>;
+  onClose: () => void;
+}) {
+  const [displayName, setDisplayName] = useState(user.display_name ?? '');
+  const [email,       setEmail]       = useState(user.email ?? '');
+  const [chatId,      setChatId]      = useState(user.telegram_chat_id?.toString() ?? '');
+  const [role,        setRole]        = useState<Role>(user.role);
+  const [saving,      setSaving]      = useState(false);
+  const [error,       setError]       = useState('');
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!displayName.trim()) { setError('Nama wajib diisi'); return; }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('Format email tidak valid'); return; }
+
+    const numId = chatId ? parseInt(chatId, 10) : null;
+    if (chatId && (isNaN(numId!) || numId! <= 0)) { setError('Chat ID harus berupa angka positif'); return; }
+
+    setSaving(true); setError('');
+    try {
+      await onSave(user.id, {
+        display_name: displayName.trim(),
+        email: email.trim(),
+        telegram_chat_id: numId,
+        role,
+      });
+    } catch (err: any) {
+      setError(err.message);
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 100,
+      background: 'rgba(0,0,0,.8)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
+    }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{
+        background: '#111118', border: '1px solid #166534',
+        borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '460px',
+        maxHeight: '90vh', overflowY: 'auto',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
+          <div>
+            <h2 style={{ color: '#f0f0f5', fontSize: '17px', fontWeight: '600', margin: '0 0 2px' }}>Edit User</h2>
+            <p style={{ color: '#6b7280', fontSize: '12px', margin: 0 }}>{user.display_name}</p>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: '22px', cursor: 'pointer', lineHeight: 1 }}>×</button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          {/* Nama */}
+          <div style={{ marginBottom: '14px' }}>
+            <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', fontWeight: '500', marginBottom: '6px' }}>
+              Nama <span style={{ color: '#ef4444' }}>*</span>
+            </label>
+            <input value={displayName} onChange={e => setDisplayName(e.target.value)}
+              placeholder="Nama user" style={inpStyle}
+              onFocus={e => e.target.style.borderColor = '#2563eb'}
+              onBlur={e  => e.target.style.borderColor = '#2a2a3a'} />
+          </div>
+
+          {/* Email */}
+          <div style={{ marginBottom: '14px' }}>
+            <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', fontWeight: '500', marginBottom: '6px' }}>
+              Email
+            </label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="email@gmail.com" style={inpStyle}
+              onFocus={e => e.target.style.borderColor = '#2563eb'}
+              onBlur={e  => e.target.style.borderColor = '#2a2a3a'} />
+          </div>
+
+          {/* Chat ID */}
+          <div style={{ marginBottom: '14px' }}>
+            <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', fontWeight: '500', marginBottom: '6px' }}>
+              Telegram Chat ID
+            </label>
+            <input type="text" inputMode="numeric" value={chatId}
+              onChange={e => setChatId(e.target.value.replace(/[^0-9]/g, ''))}
+              placeholder="cth: 123456789" style={inpStyle}
+              onFocus={e => e.target.style.borderColor = '#2563eb'}
+              onBlur={e  => e.target.style.borderColor = '#2a2a3a'} />
+          </div>
+
+          {/* Role — tidak bisa set ke owner */}
+          {user.role !== 'owner' && (
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', fontWeight: '500', marginBottom: '8px' }}>
+                Role Akses
+              </label>
+              <RoleSelector value={role} onChange={setRole} />
+            </div>
+          )}
+
+          {error && (
+            <div style={{ padding: '10px 12px', background: '#2d0f0f', border: '1px solid #7f1d1d', borderRadius: '8px', marginBottom: '14px', fontSize: '13px', color: '#f87171' }}>
+              {error}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button type="submit" disabled={saving} style={{
+              flex: 1, padding: '11px', background: saving ? '#1f1f2e' : '#166534',
+              border: 'none', borderRadius: '9px', color: '#fff',
+              fontSize: '14px', fontWeight: '600', cursor: saving ? 'not-allowed' : 'pointer',
+            }}>
+              {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
+            </button>
+            <button type="button" onClick={onClose} style={{
+              padding: '11px 18px', background: 'transparent',
+              border: '1px solid #2a2a3a', borderRadius: '9px',
+              color: '#9ca3af', fontSize: '14px', cursor: 'pointer',
+            }}>Batal</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function UsersClient({ currentUserId, currentUserRole, users, whitelist }: Props) {
   const supabase = createClient();
 
-  const [userList,  setUserList]  = useState<UserRow[]>(users);
-  const [wlData,    setWlData]    = useState<WhitelistRow[]>(whitelist);
-  const [showAdd,   setShowAdd]   = useState(false);
-  const [toast,     setToast]     = useState<{ msg: string; ok: boolean } | null>(null);
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
-  const [loadingToggleId, setLoadingToggleId] = useState<string | null>(null);
+  const [userList,         setUserList]         = useState<UserRow[]>(users);
+  const [wlData,           setWlData]           = useState<WhitelistRow[]>(whitelist);
+  const [showAdd,          setShowAdd]          = useState(false);
+  const [editingUser,      setEditingUser]      = useState<UserRow | null>(null);
+  const [toast,            setToast]            = useState<{ msg: string; ok: boolean } | null>(null);
+  const [updatingId,       setUpdatingId]       = useState<string | null>(null);
+  const [loadingToggleId,  setLoadingToggleId]  = useState<string | null>(null);
 
   const whitelistMap = new Map(wlData.map(w => [w.chat_id, w]));
 
@@ -199,17 +340,22 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
   }
 
   // ── Add user ──────────────────────────────────────────────────────────────
-  async function handleAddUser(chatId: number, displayName: string, role: Role) {
-    // 1. Cek apakah chat ID sudah ada
-    const existing = userList.find(u => u.telegram_chat_id === chatId);
-    if (existing) throw new Error(`Chat ID ${chatId} sudah terdaftar sebagai "${existing.display_name}"`);
+  async function handleAddUser(chatId: number | null, displayName: string, email: string, role: Role) {
+    if (chatId) {
+      const existing = userList.find(u => u.telegram_chat_id === chatId);
+      if (existing) throw new Error(`Chat ID ${chatId} sudah terdaftar sebagai "${existing.display_name}"`);
+    }
+    if (email) {
+      const existing = userList.find(u => u.email?.toLowerCase() === email.toLowerCase());
+      if (existing) throw new Error(`Email ${email} sudah terdaftar sebagai "${existing.display_name}"`);
+    }
 
-    // 2. Insert ke tabel users
     const { data: newUser, error: userErr } = await supabase
       .from('users')
       .insert([{
         telegram_chat_id: chatId,
         display_name: displayName,
+        email: email || null,
         role,
         onboarded_at: new Date().toISOString(),
       }])
@@ -218,64 +364,75 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
 
     if (userErr) throw new Error('Gagal tambah user: ' + userErr.message);
 
-    // 3. Insert ke whitelist (untuk bot access)
-    const { error: wlErr } = await supabase
-      .from('whitelisted_users')
-      .upsert([{
-        chat_id: chatId,
-        display_name: displayName,
-        role,
-        is_active: true,
-      }], { onConflict: 'chat_id' });
+    // Jika ada chat ID, tambahkan ke whitelist
+    if (chatId) {
+      const { error: wlErr } = await supabase
+        .from('whitelisted_users')
+        .upsert([{ chat_id: chatId, display_name: displayName, role, is_active: true }], { onConflict: 'chat_id' });
+      if (wlErr) throw new Error('Gagal tambah ke whitelist: ' + wlErr.message);
+      const newWl: WhitelistRow = { chat_id: chatId, role, is_active: true };
+      setWlData(prev => [...prev, newWl]);
+    }
 
-    if (wlErr) throw new Error('Gagal tambah ke whitelist: ' + wlErr.message);
-
-    const newWl: WhitelistRow = { chat_id: chatId, role, is_active: true };
-    setWlData(prev => [...prev, newWl]);
     setUserList(prev => [...prev, newUser as unknown as UserRow]);
     setShowAdd(false);
     showToast(`User "${displayName}" berhasil ditambahkan`);
   }
 
-  // ── Update role ───────────────────────────────────────────────────────────
-  async function handleRoleChange(userId: string, newRole: Role) {
-    // Proteksi: tidak bisa downgrade owner kecuali oleh owner lain
+  // ── Edit user ─────────────────────────────────────────────────────────────
+  async function handleEditUser(userId: string, data: { display_name: string; email: string; telegram_chat_id: number | null; role: Role }) {
+    setUpdatingId(userId);
     const target = userList.find(u => u.id === userId);
     if (!target) return;
-    if (target.role === 'owner' && currentUserRole !== 'owner') {
-      showToast('Hanya owner yang bisa mengubah role owner lain', false);
-      return;
-    }
-    // Proteksi: tidak bisa set role owner (harus manual via SQL)
-    if (newRole === 'owner') {
-      showToast('Role owner hanya bisa diset via database langsung', false);
-      return;
+
+    // Check email uniqueness (ignore self)
+    if (data.email) {
+      const conflict = userList.find(u => u.id !== userId && u.email?.toLowerCase() === data.email.toLowerCase());
+      if (conflict) throw new Error(`Email ${data.email} sudah dipakai "${conflict.display_name}"`);
     }
 
-    setUpdatingId(userId);
-
-    // Update di tabel users
     const { error: userErr } = await supabase
       .from('users')
-      .update({ role: newRole })
+      .update({
+        display_name: data.display_name,
+        email: data.email || null,
+        telegram_chat_id: data.telegram_chat_id,
+        role: target.role === 'owner' ? 'owner' : data.role, // proteksi owner
+      })
       .eq('id', userId);
 
-    if (userErr) { showToast('Gagal update role', false); setUpdatingId(null); return; }
+    if (userErr) { showToast('Gagal edit user: ' + userErr.message, false); setUpdatingId(null); return; }
 
-    // Sync ke whitelist kalau ada
-    if (target.telegram_chat_id) {
-      const chatId = target.telegram_chat_id;
-      await supabase
-        .from('whitelisted_users')
-        .update({ role: newRole })
-        .eq('chat_id', chatId);
-      
-      setWlData(prev => prev.map(w => w.chat_id === chatId ? { ...w, role: newRole } : w));
+    // Sync whitelist jika chat id berubah atau ada
+    const newChatId = data.telegram_chat_id;
+    if (newChatId) {
+      const effectiveRole = target.role === 'owner' ? 'owner' : data.role;
+      await supabase.from('whitelisted_users').upsert([{
+        chat_id: newChatId, display_name: data.display_name, role: effectiveRole, is_active: true,
+      }], { onConflict: 'chat_id' });
+
+      // Remove old whitelist entry if chat id changed
+      if (target.telegram_chat_id && target.telegram_chat_id !== newChatId) {
+        await supabase.from('whitelisted_users').update({ is_active: false }).eq('chat_id', target.telegram_chat_id);
+      }
+
+      setWlData(prev => {
+        const filtered = prev.filter(w => w.chat_id !== newChatId && w.chat_id !== target.telegram_chat_id);
+        return [...filtered, { chat_id: newChatId, role: effectiveRole as Role, is_active: true }];
+      });
     }
 
-    setUserList(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+    setUserList(prev => prev.map(u => u.id === userId ? {
+      ...u,
+      display_name: data.display_name,
+      email: data.email || null,
+      telegram_chat_id: data.telegram_chat_id,
+      role: target.role === 'owner' ? 'owner' : data.role,
+    } : u));
+
     setUpdatingId(null);
-    showToast(`Role "${target.display_name ?? target.email}" diubah ke ${ROLE_META[newRole].label}`);
+    setEditingUser(null);
+    showToast(`"${data.display_name}" berhasil diperbarui`);
   }
 
   // ── Toggle bot access ─────────────────────────────────────────────────────
@@ -294,25 +451,16 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
         is_active: !currentActive,
       }, { onConflict: 'chat_id' });
 
-    if (error) { 
-      showToast('Gagal update akses bot', false); 
+    if (error) {
+      showToast('Gagal update akses bot', false);
       setLoadingToggleId(null);
-      return; 
+      return;
     }
 
-    // Update local state to reflect change immediately
-    const updatedWl: WhitelistRow = { 
-      chat_id: chatId, 
-      role: target.role, 
-      is_active: !currentActive 
-    };
-    setWlData(prev => {
-      const filtered = prev.filter(w => w.chat_id !== chatId);
-      return [...filtered, updatedWl];
-    });
-
+    const updatedWl: WhitelistRow = { chat_id: chatId, role: target.role, is_active: !currentActive };
+    setWlData(prev => [...prev.filter(w => w.chat_id !== chatId), updatedWl]);
     setLoadingToggleId(null);
-    showToast(!currentActive ? 'Akses bot diaktifkan' : 'Akses bot dinonaktifkan');
+    showToast(!currentActive ? '✅ Akses bot diaktifkan' : '🔴 Akses bot dinonaktifkan');
   }
 
   return (
@@ -327,11 +475,15 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
           border: `1px solid ${toast.ok ? '#166534' : '#7f1d1d'}`,
           color: toast.ok ? '#4ade80' : '#f87171',
           boxShadow: '0 4px 20px rgba(0,0,0,.4)',
+          animation: 'slideIn 0.2s ease',
         }}>{toast.msg}</div>
       )}
 
       {showAdd && (
         <AddUserModal onSave={handleAddUser} onClose={() => setShowAdd(false)} />
+      )}
+      {editingUser && (
+        <EditUserModal user={editingUser} onSave={handleEditUser} onClose={() => setEditingUser(null)} />
       )}
 
       {/* Header */}
@@ -346,8 +498,8 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
           padding: '9px 18px', background: '#2563eb', border: 'none',
           borderRadius: '9px', color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer',
         }}
-          onMouseEnter={e => (e.currentTarget).style.background = '#1d4ed8'}
-          onMouseLeave={e => (e.currentTarget).style.background = '#2563eb'}
+          onMouseEnter={e => e.currentTarget.style.background = '#1d4ed8'}
+          onMouseLeave={e => e.currentTarget.style.background = '#2563eb'}
         >+ Tambah User</button>
       </div>
 
@@ -374,17 +526,18 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
           const wlEntry   = u.telegram_chat_id ? whitelistMap.get(u.telegram_chat_id) : null;
           const botActive = wlEntry?.is_active ?? false;
           const isMe      = u.id === currentUserId;
-          const canEdit   = !isMe && !(u.role === 'owner' && currentUserRole !== 'owner');
+          const canEdit   = !(u.role === 'owner' && currentUserRole !== 'owner');
 
           return (
             <div key={u.id} style={{
-              background: '#111118', border: '1px solid #1f1f2e',
+              background: '#111118', border: `1px solid ${isMe ? '#1e3a5f' : '#1f1f2e'}`,
               borderRadius: '12px', padding: '16px 18px',
+              transition: 'border-color 0.2s',
             }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
                 {/* Avatar */}
                 <div style={{
-                  width: '40px', height: '40px', borderRadius: '10px',
+                  width: '42px', height: '42px', borderRadius: '10px',
                   background: meta.bg, border: `1px solid ${meta.border}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '18px', flexShrink: 0, color: meta.color, fontWeight: '700',
@@ -407,74 +560,74 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
                       {meta.label}
                     </span>
                   </div>
+
                   <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '2px' }}>
-                    {u.email ?? 'Belum ada email'}
+                    {u.email ?? <span style={{ color: '#374151', fontStyle: 'italic' }}>Belum ada email</span>}
                   </div>
-                  {u.telegram_chat_id && (
-                    <div style={{ fontSize: '11px', color: '#374151', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span>Telegram: {u.telegram_chat_id}</span>
+
+                  {u.telegram_chat_id ? (
+                    <div style={{ fontSize: '11px', color: '#374151', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      <span>📱 {u.telegram_chat_id}</span>
                       <span style={{
                         fontSize: '10px', padding: '1px 6px', borderRadius: '99px',
                         background: botActive ? '#0f2d1a' : '#1a0a0a',
                         color: botActive ? '#4ade80' : '#f87171',
                         border: `1px solid ${botActive ? '#166534' : '#7f1d1d'}`,
+                        fontWeight: '600',
                       }}>
-                        Bot {botActive ? 'aktif' : 'nonaktif'}
+                        Bot {botActive ? '✓ Aktif' : '✗ Nonaktif'}
                       </span>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: '11px', color: '#374151', fontStyle: 'italic' }}>
+                      Belum punya Telegram Chat ID
                     </div>
                   )}
                 </div>
 
                 {/* Actions */}
-                {canEdit && (
-                  <div style={{ display: 'flex', gap: '8px', flexShrink: 0, flexWrap: 'wrap' }}>
-                    {/* Role selector */}
-                    <select
-                      value={u.role}
-                      disabled={updatingId === u.id}
-                      onChange={e => handleRoleChange(u.id, e.target.value as Role)}
+                <div style={{ display: 'flex', gap: '6px', flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
+                  {/* Edit button — visible for all except self-downgrade of owner */}
+                  {canEdit && (
+                    <button
+                      onClick={() => setEditingUser(u)}
                       style={{
-                        padding: '6px 10px', background: '#0a0a0f',
-                        border: '1px solid #2a2a3a', borderRadius: '7px',
-                        color: '#f0f0f5', fontSize: '12px', cursor: 'pointer', outline: 'none',
+                        padding: '6px 12px', background: 'transparent',
+                        border: '1px solid #2a2a3a', borderRadius: '8px',
+                        color: '#9ca3af', fontSize: '12px', fontWeight: '500',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = '#4b5563'; e.currentTarget.style.color = '#f0f0f5'; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a3a'; e.currentTarget.style.color = '#9ca3af'; }}
+                    >
+                      ✏️ Edit
+                    </button>
+                  )}
+
+                  {/* Toggle bot — only if has telegram */}
+                  {canEdit && u.telegram_chat_id && (
+                    <button
+                      onClick={() => handleToggleBot(u.id, u.telegram_chat_id!, botActive)}
+                      disabled={loadingToggleId === u.id}
+                      style={{
+                        padding: '6px 12px',
+                        background: botActive ? '#2d0f0f' : '#0f2d1a',
+                        border: `1px solid ${botActive ? '#7f1d1d' : '#166534'}`,
+                        borderRadius: '8px', fontSize: '12px', fontWeight: '600',
+                        color: botActive ? '#f87171' : '#4ade80',
+                        cursor: loadingToggleId === u.id ? 'wait' : 'pointer',
+                        display: 'flex', alignItems: 'center', gap: '5px',
+                        transition: 'all 0.2s ease',
+                        opacity: loadingToggleId === u.id ? 0.6 : 1,
                       }}
                     >
-                      <option value="user">User</option>
-                      <option value="readonly">Readonly</option>
-                      <option value="admin">Admin</option>
-                      {u.role === 'owner' && <option value="owner">Owner</option>}
-                    </select>
-
-                    {/* Toggle bot */}
-                    {u.telegram_chat_id && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ fontSize: '11px', color: botActive ? '#4ade80' : '#6b7280', fontWeight: '600' }}>
-                          {botActive ? 'Sertifikat Aktif' : 'Belum Aktif'}
-                        </div>
-                        <button
-                          onClick={() => handleToggleBot(u.id, u.telegram_chat_id!, botActive)}
-                          disabled={loadingToggleId === u.id}
-                          style={{
-                            padding: '6px 12px', 
-                            background: botActive ? '#2d0f0f' : '#0f2d1a',
-                            border: `1px solid ${botActive ? '#7f1d1d' : '#166534'}`,
-                            borderRadius: '8px', fontSize: '12px', fontWeight: '600',
-                            color: botActive ? '#f87171' : '#4ade80',
-                            cursor: loadingToggleId === u.id ? 'wait' : 'pointer',
-                            display: 'flex', alignItems: 'center', gap: '6px',
-                            transition: 'all 0.2s ease',
-                            opacity: loadingToggleId === u.id ? 0.6 : 1,
-                          }}
-                        >
-                          {loadingToggleId === u.id ? (
-                             <div style={{ width: '12px', height: '12px', border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
-                          ) : null}
-                          {botActive ? 'Nonaktifkan' : 'Aktifkan'}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      {loadingToggleId === u.id ? (
+                        <div style={{ width: '11px', height: '11px', border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+                      ) : null}
+                      {botActive ? 'Nonaktifkan' : 'Aktifkan'} Bot
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           );
@@ -482,9 +635,8 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
       </div>
 
       <style jsx>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
 
       {/* Info box */}
@@ -493,9 +645,9 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
         background: '#0a0a0f', border: '1px solid #1f1f2e',
         borderRadius: '10px', fontSize: '12px', color: '#6b7280', lineHeight: '1.6',
       }}>
-        💡 User yang ditambahkan di sini akan otomatis mendapat akses ke Telegram bot.
+        💡 User baru yang ditambahkan dengan Chat ID akan otomatis mendapat akses bot Telegram.
         Minta mereka kirim <code style={{ background: '#1f1f2e', padding: '1px 5px', borderRadius: '4px', color: '#60a5fa' }}>/start</code> ke bot untuk menyelesaikan setup.
-        Data masing-masing user terisolasi — tidak bisa lihat data user lain.
+        Jika hanya isi Email, user bisa login ke dashboard tapi tidak bisa pakai bot sampai Chat ID ditambahkan.
       </div>
     </div>
   );

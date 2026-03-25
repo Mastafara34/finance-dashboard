@@ -1,17 +1,17 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
-export function UserSelector({ 
-  users, 
-  currentViewId, 
-  isCollective 
-}: { 
-  users: { id: string, display_name: string | null }[], 
-  currentViewId: string,
-  isCollective: boolean
-}) {
+interface Props {
+  users: { id: string; display_name: string | null }[];
+  currentViewId: string;
+  isCollective?: boolean;
+  showCollective?: boolean;
+}
+
+export function UserSelector({ users, currentViewId, isCollective = false, showCollective = true }: Props) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
@@ -19,40 +19,67 @@ export function UserSelector({
     const params = new URLSearchParams(searchParams.toString());
     if (val === 'all') {
       params.set('u', 'all');
-    } else if (val === 'me') {
-      params.delete('u');
     } else {
       params.set('u', val);
     }
-    router.push(`?${params.toString()}`);
+    // Navigate to same page with new param — data will re-fetch server-side
+    router.push(`${pathname}?${params.toString()}`);
   }
 
   const activeVal = isCollective ? 'all' : currentViewId;
 
   return (
-    <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-      <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-muted)' }}>VIEWING DATA FOR:</label>
-      <select 
-        value={activeVal} 
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: '10px',
+      marginBottom: '20px',
+      padding: '10px 14px',
+      background: 'var(--card-bg, #111118)',
+      border: '1px solid var(--border-color, #1f1f2e)',
+      borderRadius: '10px',
+    }}>
+      <span style={{ fontSize: '18px' }}>👁️</span>
+      <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted, #6b7280)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+        Tampilkan data:
+      </span>
+      <select
+        value={activeVal}
         onChange={handleChange}
         style={{
-          background: 'var(--card-bg)',
-          border: '1px solid var(--border-color)',
-          color: 'var(--text-main)',
-          padding: '6px 12px',
+          background: 'var(--bg-secondary, #0a0a0f)',
+          border: '1px solid var(--border-color, #2a2a3a)',
+          color: 'var(--text-main, #f0f0f5)',
+          padding: '6px 28px 6px 10px',
           borderRadius: '8px',
           fontSize: '14px',
+          fontWeight: '600',
           cursor: 'pointer',
-          outline: 'none'
+          outline: 'none',
+          appearance: 'none',
+          WebkitAppearance: 'none',
+          backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'right 8px center',
+          backgroundSize: '14px',
         }}
       >
-        <option value="all">Keluarga (Total Gabungan)</option>
+        {showCollective && (
+          <option value="all">🏠 Semua Akun (Gabungan)</option>
+        )}
         {users.map(u => (
           <option key={u.id} value={u.id}>
-            {u.display_name}
+            👤 {u.display_name ?? 'Tanpa Nama'}
           </option>
         ))}
       </select>
+
+      <span style={{
+        marginLeft: 'auto',
+        fontSize: '11px',
+        color: '#6b7280',
+        fontStyle: 'italic',
+      }}>
+        Ganti akun untuk refresh otomatis
+      </span>
     </div>
   );
 }
