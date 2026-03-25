@@ -20,6 +20,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: { 
 
   const isOwner = profile.role === 'owner';
   const searchU = searchParams.u;
+  const isCollective = isOwner && searchU === 'all';
   const viewUserId = isOwner && searchU && searchU !== 'all' ? searchU : profile.id;
 
   let allUsers: any[] = [];
@@ -37,13 +38,18 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: { 
   since.setMonth(since.getMonth() - 12);
   const sinceStr = since.toISOString().split('T')[0];
 
-  const { data: transactions } = await supabase
+  let q = supabase
     .from('transactions')
     .select('amount, type, date, categories(name, icon)')
-    .eq('user_id', viewUserId)
     .eq('is_deleted', false)
     .gte('date', sinceStr)
     .order('date', { ascending: true });
+
+  if (!isCollective) {
+    q = q.eq('user_id', viewUserId);
+  }
+
+  const { data: transactions } = await q;
 
   return (
     <div>

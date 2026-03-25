@@ -20,6 +20,7 @@ export default async function GoalsPage({ searchParams }: { searchParams: { u?: 
 
   const isOwner = profile.role === 'owner';
   const searchU = searchParams.u;
+  const isCollective = isOwner && searchU === 'all';
   const viewUserId = isOwner && searchU && searchU !== 'all' ? searchU : profile.id;
 
   let allUsers: any[] = [];
@@ -32,12 +33,17 @@ export default async function GoalsPage({ searchParams }: { searchParams: { u?: 
     allUsers = data ?? [];
   }
 
-  const { data: goals } = await supabase
+  let q = supabase
     .from('goals')
     .select('*')
-    .eq('user_id', viewUserId)
     .order('priority', { ascending: true })
     .order('created_at', { ascending: true });
+
+  if (!isCollective) {
+    q = q.eq('user_id', viewUserId);
+  }
+
+  const { data: goals } = await q;
 
   return (
     <div>

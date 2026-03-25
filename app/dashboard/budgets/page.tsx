@@ -20,6 +20,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { u?
 
   const isOwner = profile.role === 'owner';
   const searchU = searchParams.u;
+  const isCollective = isOwner && searchU === 'all';
   const viewUserId = isOwner && searchU && searchU !== 'all' ? searchU : profile.id;
 
   let allUsers: any[] = [];
@@ -38,20 +39,30 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { u?
   const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const prevMonthStr = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;
 
-  const [{ data: budgets }, { data: prevBudgets }] = await Promise.all([
-    supabase.from('monthly_budgets').select('id, limit_amount, month, categories(id, name, icon, type)')
-      .eq('user_id', viewUserId).eq('month', month),
-    supabase.from('monthly_budgets').select('limit_amount, category_id')
-      .eq('user_id', viewUserId).eq('month', prevMonthStr),
-  ]);
+  let bq = supabase.from('monthly_budgets').select('id, limit_amount, month, categories(id, name, icon, type)')
+    .eq('month', month);
+  let pbq = supabase.from('monthly_budgets').select('limit_amount, category_id')
+    .eq('month', prevMonthStr);
 
-  const { data: transactions } = await supabase
+  if (!isCollective) {
+    bq = bq.eq('user_id', viewUserId);
+    pbq = pbq.eq('user_id', viewUserId);
+  }
+
+  const [{ data: budgets }, { data: prevBudgets }] = await Promise.all([bq, pbq]);
+
+  let tq = supabase
     .from('transactions')
     .select('amount, categories(id, name)')
-    .eq('user_id', viewUserId)
     .eq('type', 'expense')
     .eq('is_deleted', false)
     .gte('date', monthStart);
+
+  if (!isCollective) {
+    tq = tq.eq('user_id', viewUserId);
+  }
+
+  const { data: transactions } = await tq;
 
   const { data: categories } = await supabase
     .from('categories')

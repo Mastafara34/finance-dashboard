@@ -20,6 +20,7 @@ export default async function NetWorthPage({ searchParams }: { searchParams: { u
 
   const isOwner = profile.role === 'owner';
   const searchU = searchParams.u;
+  const isCollective = isOwner && searchU === 'all';
   const viewUserId = isOwner && searchU && searchU !== 'all' ? searchU : profile.id;
 
   let allUsers: any[] = [];
@@ -32,12 +33,17 @@ export default async function NetWorthPage({ searchParams }: { searchParams: { u
     allUsers = data ?? [];
   }
 
-  const { data: assets } = await supabase
+  let q = supabase
     .from('assets')
     .select('*')
-    .eq('user_id', viewUserId)
     .order('is_liability', { ascending: true })
     .order('value', { ascending: false });
+
+  if (!isCollective) {
+    q = q.eq('user_id', viewUserId);
+  }
+
+  const { data: assets } = await q;
 
   return (
     <div>

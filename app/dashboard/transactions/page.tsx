@@ -21,6 +21,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
   const isOwner = profile.role === 'owner';
   
   const searchU = searchParams.u;
+  const isCollective = isOwner && searchU === 'all';
   const viewUserId = isOwner && searchU && searchU !== 'all' ? searchU : profile.id;
 
   let allUsers: any[] = [];
@@ -40,21 +41,29 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
   let query = supabase
     .from('transactions')
     .select('id, amount, type, note, date, source, created_at, categories(id, name, icon)')
-    .eq('user_id', viewUserId)
     .eq('is_deleted', false)
     .gte('date', since.toISOString().split('T')[0])
     .order('date', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(200);
 
+  if (!isCollective) {
+    query = query.eq('user_id', viewUserId);
+  }
+
   const { data: transactions } = await query;
 
   // Fetch kategori viewUserId
-  const { data: categories } = await supabase
+  let catQuery = supabase
     .from('categories')
     .select('id, name, type, icon')
-    .or(`user_id.eq.${viewUserId},user_id.is.null`)
     .order('sort_order', { ascending: true });
+
+  if (!isCollective) {
+    catQuery = catQuery.or(`user_id.eq.${viewUserId},user_id.is.null`);
+  }
+
+  const { data: categories } = await catQuery;
 
   return (
     <div style={{ padding: '0px' }}>
