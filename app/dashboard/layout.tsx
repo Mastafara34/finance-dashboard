@@ -15,7 +15,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const { data: profile } = await supabase
     .from('users')
     .select('id, display_name, telegram_chat_id, role')
-    .eq('email', user.email!)
+    .eq('id', user.id)
     .maybeSingle();
 
   // Fetch all users for the sidebar selector if owner

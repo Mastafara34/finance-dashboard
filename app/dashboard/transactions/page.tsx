@@ -12,10 +12,10 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
   const { data: profile } = await supabase
     .from('users')
     .select('id, role')
-    .eq('email', user.email!)
+    .eq('id', user.id)
     .maybeSingle();
 
-  if (!profile) redirect('/login');
+  if (!profile) return null;
 
   const myUserId = profile.id;
   const isOwner = profile.role === 'owner';

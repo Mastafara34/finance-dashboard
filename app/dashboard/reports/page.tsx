@@ -10,8 +10,8 @@ export default async function ReportsPage() {
 
   const { data: profile } = await supabase
     .from('users').select('id')
-    .eq('email', user.email!).maybeSingle();
-  if (!profile) redirect('/login');
+    .eq('id', user.id).maybeSingle();
+  if (!profile) return null;
 
   const { data: reports } = await supabase
     .from('financial_reports')

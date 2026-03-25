@@ -13,10 +13,10 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: { 
   const { data: profile } = await supabase
     .from('users')
     .select('id, role')
-    .eq('email', user.email!)
+    .eq('id', user.id)
     .maybeSingle();
 
-  if (!profile) redirect('/login');
+  if (!profile) return null;
 
   const isOwner = profile.role === 'owner';
   const searchU = searchParams.u;

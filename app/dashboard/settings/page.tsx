@@ -11,15 +11,15 @@ export default async function SettingsPage() {
   const { data: profile } = await supabase
     .from('users')
     .select('id, display_name, email, telegram_chat_id, monthly_income, timezone, currency, role')
-    .eq('email', user.email!)
+    .eq('id', user.id)
     .maybeSingle();
 
-  if (!profile) redirect('/login');
+  if (!profile) return null;
 
   // Fetch kategori milik user + sistem
   const { data: categories } = await supabase
     .from('categories')
-    .select('id, display_name, email, telegram_chat_id, monthly_income, timezone, currency, role')
+    .select('id, name, type, icon, sort_order')
     .or(`user_id.eq.${profile.id},user_id.is.null`)
     .order('type', { ascending: true })
     .order('sort_order', { ascending: true });

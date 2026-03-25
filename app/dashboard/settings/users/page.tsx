@@ -13,10 +13,10 @@ export default async function UsersPage() {
   const { data: profile } = await supabase
     .from('users')
     .select('id, role')
-    .eq('email', user.email!)
+    .eq('id', user.id)
     .maybeSingle();
 
-  if (!profile) redirect('/login');
+  if (!profile) return null;
 
   // Hanya owner dan admin yang boleh akses halaman ini
   if (!['owner', 'admin'].includes(profile.role)) {

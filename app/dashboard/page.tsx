@@ -39,10 +39,14 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   const { data: myProfile, error: profileError } = await supabase
     .from('users')
     .select('id, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
-    .eq('email', user.email!)
+    .eq('id', user.id)
     .maybeSingle();
 
-  if (!myProfile) redirect('/login');
+  if (!myProfile) {
+    // Biarkan layout yang handle error Profil Tidak Ditemukan
+    // agar tidak terjadi redirect loop dengan middleware
+    return null; 
+  }
 
   const myUserId = myProfile.id;
   const isOwner = myProfile.role === 'owner';
