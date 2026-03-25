@@ -189,6 +189,7 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
   const [showAdd,   setShowAdd]   = useState(false);
   const [toast,     setToast]     = useState<{ msg: string; ok: boolean } | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [loadingToggleId, setLoadingToggleId] = useState<string | null>(null);
 
   const whitelistMap = new Map(wlData.map(w => [w.chat_id, w]));
 
@@ -282,6 +283,8 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
     const target = userList.find(u => u.id === userId);
     if (!target) return;
 
+    setLoadingToggleId(userId);
+
     const { error } = await supabase
       .from('whitelisted_users')
       .upsert({
@@ -291,7 +294,11 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
         is_active: !currentActive,
       }, { onConflict: 'chat_id' });
 
-    if (error) { showToast('Gagal update akses bot', false); return; }
+    if (error) { 
+      showToast('Gagal update akses bot', false); 
+      setLoadingToggleId(null);
+      return; 
+    }
 
     // Update local state to reflect change immediately
     const updatedWl: WhitelistRow = { 
@@ -304,6 +311,7 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
       return [...filtered, updatedWl];
     });
 
+    setLoadingToggleId(null);
     showToast(!currentActive ? 'Akses bot diaktifkan' : 'Akses bot dinonaktifkan');
   }
 
@@ -441,13 +449,21 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
                     {u.telegram_chat_id && (
                       <button
                         onClick={() => handleToggleBot(u.id, u.telegram_chat_id!, botActive)}
+                        disabled={loadingToggleId === u.id}
                         style={{
-                          padding: '6px 10px', background: 'transparent', cursor: 'pointer',
-                          border: `1px solid ${botActive ? '#3d2a00' : '#166534'}`,
-                          borderRadius: '7px', fontSize: '11px',
-                          color: botActive ? '#fbbf24' : '#4ade80',
+                          padding: '6px 12px', background: botActive ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)',
+                          border: `1px solid ${botActive ? '#ef4444' : '#10b981'}`,
+                          borderRadius: '8px', fontSize: '12px', fontWeight: '600',
+                          color: botActive ? '#ef4444' : '#10b981',
+                          cursor: loadingToggleId === u.id ? 'wait' : 'pointer',
+                          display: 'flex', alignItems: 'center', gap: '6px',
+                          transition: 'all 0.2s ease',
+                          opacity: loadingToggleId === u.id ? 0.6 : 1,
                         }}
                       >
+                        {loadingToggleId === u.id ? (
+                           <div style={{ width: '12px', height: '12px', border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+                        ) : null}
                         {botActive ? 'Nonaktifkan Bot' : 'Aktifkan Bot'}
                       </button>
                     )}
@@ -458,6 +474,12 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
           );
         })}
       </div>
+
+      <style jsx>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
 
       {/* Info box */}
       <div style={{

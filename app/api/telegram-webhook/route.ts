@@ -45,6 +45,7 @@ interface User {
   id: string;
   telegram_chat_id: number;
   display_name: string | null;
+  role: string | null;
 }
 
 interface Goal {
@@ -119,7 +120,7 @@ async function getOrCreateUser(msg: TelegramMessage): Promise<User> {
         ignoreDuplicates: false,
       }
     )
-    .select('id, telegram_chat_id, display_name')
+    .select('id, telegram_chat_id, display_name, role')
     .single();
 
   if (error || !data) {
@@ -374,17 +375,22 @@ async function cmdHelp(chatId: number): Promise<void> {
 }
 
 // ─── Command: /status ─────────────────────────────────────────────────────────
-async function cmdStatus(chatId: number, userId: string): Promise<void> {
+async function cmdStatus(chatId: number, user: User): Promise<void> {
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const monthName = now.toLocaleString('id-ID', { month: 'long', year: 'numeric' });
 
-  const { data: txs } = await supabase
+  let query = supabase
     .from('transactions')
     .select('amount, type, categories(name)')
-    .eq('user_id', userId)
     .eq('is_deleted', false)
     .gte('date', startOfMonth);
+
+  if (user.role !== 'owner') {
+    query = query.eq('user_id', user.id);
+  }
+
+  const { data: txs } = await query;
 
   const rows = txs ?? [];
   const income  = rows.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + t.amount, 0);
@@ -426,13 +432,18 @@ async function cmdStatus(chatId: number, userId: string): Promise<void> {
 }
 
 // ─── Command: /goals ──────────────────────────────────────────────────────────
-async function cmdGoals(chatId: number, userId: string): Promise<void> {
-  const { data: goals } = await supabase
+async function cmdGoals(chatId: number, user: User): Promise<void> {
+  let query = supabase
     .from('goals')
     .select('*')
-    .eq('user_id', userId)
     .eq('status', 'active')
     .order('priority', { ascending: true });
+
+  if (user.role !== 'owner') {
+    query = query.eq('user_id', user.id);
+  }
+
+  const { data: goals } = await query;
 
   if (!goals || goals.length === 0) {
     await sendMessage(
@@ -643,13 +654,18 @@ async function cmdGoalsUpdate(chatId: number, userId: string, args: string): Pro
 }
 
 // ─── Command: /networth ───────────────────────────────────────────────────────
-async function cmdNetWorth(chatId: number, userId: string): Promise<void> {
-  const { data: assets } = await supabase
+async function cmdNetWorth(chatId: number, user: User): Promise<void> {
+  let query = supabase
     .from('assets')
     .select('name, type, value, is_liability, institution')
-    .eq('user_id', userId)
     .order('is_liability', { ascending: true })
     .order('value', { ascending: false });
+
+  if (user.role !== 'owner') {
+    query = query.eq('user_id', user.id);
+  }
+
+  const { data: assets } = await query;
 
   if (!assets || assets.length === 0) {
     await sendMessage(
@@ -694,17 +710,22 @@ async function cmdNetWorth(chatId: number, userId: string): Promise<void> {
 }
 
 // ─── Command: /laporan ────────────────────────────────────────────────────────
-async function cmdLaporan(chatId: number, userId: string): Promise<void> {
+async function cmdLaporan(chatId: number, user: User): Promise<void> {
   // 7 hari terakhir
   const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const now = new Date();
 
-  const { data: txs } = await supabase
+  let query = supabase
     .from('transactions')
     .select('amount, type, categories(name)')
-    .eq('user_id', userId)
     .eq('is_deleted', false)
     .gte('date', since);
+
+  if (user.role !== 'owner') {
+    query = query.eq('user_id', user.id);
+  }
+
+  const { data: txs } = await query;
 
   const rows = txs ?? [];
   const income  = rows.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + t.amount, 0);
@@ -722,7 +743,7 @@ async function cmdLaporan(chatId: number, userId: string): Promise<void> {
   const { data: goals } = await supabase
     .from('goals')
     .select('name, icon, current_amount, target_amount')
-    .eq('user_id', userId)
+    .eq('user_id', user.id)
     .eq('status', 'active')
     .order('priority', { ascending: true })
     .limit(3);
@@ -1022,19 +1043,24 @@ async function markTelegramUpdateProcessed(params: {
 }
 
 // ─── Command: /forecast ──────────────────────────────────────────────────────
-async function cmdForecast(chatId: number, userId: string): Promise<void> {
+async function cmdForecast(chatId: number, user: User): Promise<void> {
   const now         = new Date();
   const monthStart  = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const daysPassed  = now.getDate();
   const daysLeft    = daysInMonth - daysPassed;
 
-  const { data: txs } = await supabase
+  let query = supabase
     .from('transactions')
     .select('amount, type')
-    .eq('user_id', userId)
     .eq('is_deleted', false)
     .gte('date', monthStart);
+
+  if (user.role !== 'owner') {
+    query = query.eq('user_id', user.id);
+  }
+
+  const { data: txs } = await query;
 
   const rows    = txs ?? [];
   const income  = rows.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + t.amount, 0);
@@ -1049,7 +1075,7 @@ async function cmdForecast(chatId: number, userId: string): Promise<void> {
   const { data: hist } = await supabase
     .from('transactions')
     .select('amount')
-    .eq('user_id', userId)
+    .eq('user_id', user.id)
     .eq('type', 'expense')
     .eq('is_deleted', false)
     .gte('date', threeMonthsAgo)
@@ -1096,13 +1122,13 @@ async function routeCommand(
 
   if (lower === '/start')          { await cmdStart(chatId, user); return true; }
   if (lower === '/help')           { await cmdHelp(chatId); return true; }
-  if (lower === '/status')         { await cmdStatus(chatId, userId); return true; }
-  if (lower === '/networth')       { await cmdNetWorth(chatId, userId); return true; }
-  if (lower === '/laporan')        { await cmdLaporan(chatId, userId); return true; }
-  if (lower === '/forecast')       { await cmdForecast(chatId, userId); return true; }
+  if (lower === '/status')         { await cmdStatus(chatId, user); return true; }
+  if (lower === '/networth')       { await cmdNetWorth(chatId, user); return true; }
+  if (lower === '/laporan')        { await cmdLaporan(chatId, user); return true; }
+  if (lower === '/forecast')       { await cmdForecast(chatId, user); return true; }
 
   if (lower === '/goals') {
-    await cmdGoals(chatId, userId);
+    await cmdGoals(chatId, user);
     return true;
   }
   if (lower.startsWith('/goals tambah')) {

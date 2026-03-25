@@ -74,26 +74,59 @@ export default async function DashboardPage() {
   const olderMonthStart = new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString().split('T')[0];
   const olderMonthEnd = new Date(now.getFullYear(), now.getMonth() - 1, 0).toISOString().split('T')[0];
 
+  const isOwner = userRole === 'owner';
+
   const [txMonth, txPrev, txOlder, txLast30, txYear, goals, assets, history] = await Promise.all([
-    supabase.from('transactions').select('amount, type, date, categories(name)')
-      .eq('user_id', userId).eq('is_deleted', false).gte('date', monthStart),
-    supabase.from('transactions').select('amount, type')
-      .eq('user_id', userId).eq('is_deleted', false)
-      .gte('date', prevMonthStart).lte('date', prevMonthEnd),
-    supabase.from('transactions').select('amount, type')
-      .eq('user_id', userId).eq('is_deleted', false)
-      .gte('date', olderMonthStart).lte('date', olderMonthEnd),
-    supabase.from('transactions').select('amount, type, date')
-      .eq('user_id', userId).eq('is_deleted', false)
-      .gte('date', new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0])
-      .order('date', { ascending: true }),
-    supabase.from('transactions').select('amount, type')
-      .eq('user_id', userId).eq('is_deleted', false).gte('date', yearStart),
-    supabase.from('goals').select('*').eq('user_id', userId).eq('status', 'active')
-      .order('priority', { ascending: true }).limit(3),
-    supabase.from('assets').select('id, name, value, is_liability, type').eq('user_id', userId),
-    supabase.from('net_worth_history').select('date, net_worth')
-      .eq('user_id', userId).order('date', { ascending: true }).limit(30),
+    // Monthly transactions
+    (() => {
+      let q = supabase.from('transactions').select('amount, type, date, categories(name)').eq('is_deleted', false).gte('date', monthStart);
+      if (!isOwner) q = q.eq('user_id', userId);
+      return q;
+    })(),
+    // Previous Month
+    (() => {
+      let q = supabase.from('transactions').select('amount, type').eq('is_deleted', false).gte('date', prevMonthStart).lte('date', prevMonthEnd);
+      if (!isOwner) q = q.eq('user_id', userId);
+      return q;
+    })(),
+    // Older Month
+    (() => {
+      let q = supabase.from('transactions').select('amount, type').eq('is_deleted', false).gte('date', olderMonthStart).lte('date', olderMonthEnd);
+      if (!isOwner) q = q.eq('user_id', userId);
+      return q;
+    })(),
+    // Last 30 days
+    (() => {
+      let q = supabase.from('transactions').select('amount, type, date').eq('is_deleted', false)
+        .gte('date', new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0])
+        .order('date', { ascending: true });
+      if (!isOwner) q = q.eq('user_id', userId);
+      return q;
+    })(),
+    // Yearly transactions
+    (() => {
+      let q = supabase.from('transactions').select('amount, type').eq('is_deleted', false).gte('date', yearStart);
+      if (!isOwner) q = q.eq('user_id', userId);
+      return q;
+    })(),
+    // Goals (Keep Goals personal for now, or see all active?)
+    (() => {
+      let q = supabase.from('goals').select('*').eq('status', 'active').order('priority', { ascending: true }).limit(3);
+      if (!isOwner) q = q.eq('user_id', userId);
+      return q;
+    })(),
+    // Assets
+    (() => {
+      let q = supabase.from('assets').select('id, name, value, is_liability, type');
+      if (!isOwner) q = q.eq('user_id', userId);
+      return q;
+    })(),
+    // History
+    (() => {
+      let q = supabase.from('net_worth_history').select('date, net_worth').order('date', { ascending: true }).limit(30);
+      if (!isOwner) q = q.eq('user_id', userId);
+      return q;
+    })(),
   ]);
 
   const txs      = (txMonth.data ?? []) as unknown as Transaction[];
