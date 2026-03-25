@@ -10,7 +10,8 @@ export default async function ReportsPage() {
 
   const { data: profile } = await supabase
     .from('users').select('id')
-    .eq('id', user.id).maybeSingle();
+    .or(`email.eq."${user.email}",id.eq."${user.id}"`)
+    .maybeSingle();
   if (!profile) return null;
 
   const { data: reports } = await supabase

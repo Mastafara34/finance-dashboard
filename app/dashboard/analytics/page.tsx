@@ -13,7 +13,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: { 
   const { data: profile } = await supabase
     .from('users')
     .select('id, role')
-    .eq('id', user.id)
+    .or(`email.eq."${user.email}",id.eq."${user.id}"`)
     .maybeSingle();
 
   if (!profile) return null;

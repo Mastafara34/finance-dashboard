@@ -39,7 +39,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   const { data: myProfile, error: profileError } = await supabase
     .from('users')
     .select('id, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
-    .eq('id', user.id)
+    .or(`email.eq."${user.email}",id.eq."${user.id}"`)
     .maybeSingle();
 
   if (!myProfile) {
