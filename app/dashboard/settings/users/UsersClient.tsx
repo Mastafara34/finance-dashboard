@@ -447,25 +447,31 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
 
                     {/* Toggle bot */}
                     {u.telegram_chat_id && (
-                      <button
-                        onClick={() => handleToggleBot(u.id, u.telegram_chat_id!, botActive)}
-                        disabled={loadingToggleId === u.id}
-                        style={{
-                          padding: '6px 12px', background: botActive ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)',
-                          border: `1px solid ${botActive ? '#ef4444' : '#10b981'}`,
-                          borderRadius: '8px', fontSize: '12px', fontWeight: '600',
-                          color: botActive ? '#ef4444' : '#10b981',
-                          cursor: loadingToggleId === u.id ? 'wait' : 'pointer',
-                          display: 'flex', alignItems: 'center', gap: '6px',
-                          transition: 'all 0.2s ease',
-                          opacity: loadingToggleId === u.id ? 0.6 : 1,
-                        }}
-                      >
-                        {loadingToggleId === u.id ? (
-                           <div style={{ width: '12px', height: '12px', border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
-                        ) : null}
-                        {botActive ? 'Nonaktifkan Bot' : 'Aktifkan Bot'}
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ fontSize: '11px', color: botActive ? '#4ade80' : '#6b7280', fontWeight: '600' }}>
+                          {botActive ? 'Sertifikat Aktif' : 'Belum Aktif'}
+                        </div>
+                        <button
+                          onClick={() => handleToggleBot(u.id, u.telegram_chat_id!, botActive)}
+                          disabled={loadingToggleId === u.id}
+                          style={{
+                            padding: '6px 12px', 
+                            background: botActive ? '#2d0f0f' : '#0f2d1a',
+                            border: `1px solid ${botActive ? '#7f1d1d' : '#166534'}`,
+                            borderRadius: '8px', fontSize: '12px', fontWeight: '600',
+                            color: botActive ? '#f87171' : '#4ade80',
+                            cursor: loadingToggleId === u.id ? 'wait' : 'pointer',
+                            display: 'flex', alignItems: 'center', gap: '6px',
+                            transition: 'all 0.2s ease',
+                            opacity: loadingToggleId === u.id ? 0.6 : 1,
+                          }}
+                        >
+                          {loadingToggleId === u.id ? (
+                             <div style={{ width: '12px', height: '12px', border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+                          ) : null}
+                          {botActive ? 'Nonaktifkan' : 'Aktifkan'}
+                        </button>
+                      </div>
                     )}
                   </div>
                 )}

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Card, KpiCard, ProgressCard } from './components/DashboardComponents';
 import { KpiGridClient } from './components/KpiGridClient';
+import { UserSelector } from './components/UserSelector';
 import { 
   fmt, pct, 
   calculateMonthlyExpBase, 
@@ -28,7 +29,7 @@ interface Goal {
 }
 interface Asset { id: string; name: string; value: number; is_liability: boolean; type: string }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: { u?: string } }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
@@ -64,8 +65,21 @@ export default async function DashboardPage() {
   // Double check for TS satisfaction
   if (!safeProfile) redirect('/login');
 
-  const userId = safeProfile.id;
+  const myUserId = safeProfile.id;
   const userRole = safeProfile.role || 'user';
+  const isOwner = userRole === 'owner';
+  
+  // Handle user view selection for owner
+  const searchU = searchParams.u;
+  const viewUserId = isOwner && searchU && searchU !== 'all' ? searchU : myUserId;
+  const isCollective = isOwner && searchU === 'all';
+
+  let allUsers: any[] = [];
+  if (isOwner) {
+    const { data } = await supabase.from('users').select('id, display_name').order('display_name');
+    allUsers = data ?? [];
+  }
+
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
   const yearStart = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
@@ -74,25 +88,23 @@ export default async function DashboardPage() {
   const olderMonthStart = new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString().split('T')[0];
   const olderMonthEnd = new Date(now.getFullYear(), now.getMonth() - 1, 0).toISOString().split('T')[0];
 
-  const isOwner = userRole === 'owner';
-
   const [txMonth, txPrev, txOlder, txLast30, txYear, goals, assets, history] = await Promise.all([
     // Monthly transactions
     (() => {
       let q = supabase.from('transactions').select('amount, type, date, categories(name)').eq('is_deleted', false).gte('date', monthStart);
-      if (!isOwner) q = q.eq('user_id', userId);
+      if (!isCollective) q = q.eq('user_id', viewUserId);
       return q;
     })(),
     // Previous Month
     (() => {
       let q = supabase.from('transactions').select('amount, type').eq('is_deleted', false).gte('date', prevMonthStart).lte('date', prevMonthEnd);
-      if (!isOwner) q = q.eq('user_id', userId);
+      if (!isCollective) q = q.eq('user_id', viewUserId);
       return q;
     })(),
     // Older Month
     (() => {
       let q = supabase.from('transactions').select('amount, type').eq('is_deleted', false).gte('date', olderMonthStart).lte('date', olderMonthEnd);
-      if (!isOwner) q = q.eq('user_id', userId);
+      if (!isCollective) q = q.eq('user_id', viewUserId);
       return q;
     })(),
     // Last 30 days
@@ -100,31 +112,31 @@ export default async function DashboardPage() {
       let q = supabase.from('transactions').select('amount, type, date').eq('is_deleted', false)
         .gte('date', new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0])
         .order('date', { ascending: true });
-      if (!isOwner) q = q.eq('user_id', userId);
+      if (!isCollective) q = q.eq('user_id', viewUserId);
       return q;
     })(),
     // Yearly transactions
     (() => {
       let q = supabase.from('transactions').select('amount, type').eq('is_deleted', false).gte('date', yearStart);
-      if (!isOwner) q = q.eq('user_id', userId);
+      if (!isCollective) q = q.eq('user_id', viewUserId);
       return q;
     })(),
-    // Goals (Keep Goals personal for now, or see all active?)
+    // Goals
     (() => {
       let q = supabase.from('goals').select('*').eq('status', 'active').order('priority', { ascending: true }).limit(3);
-      if (!isOwner) q = q.eq('user_id', userId);
+      if (!isCollective) q = q.eq('user_id', viewUserId);
       return q;
     })(),
     // Assets
     (() => {
       let q = supabase.from('assets').select('id, name, value, is_liability, type');
-      if (!isOwner) q = q.eq('user_id', userId);
+      if (!isCollective) q = q.eq('user_id', viewUserId);
       return q;
     })(),
     // History
     (() => {
       let q = supabase.from('net_worth_history').select('date, net_worth').order('date', { ascending: true }).limit(30);
-      if (!isOwner) q = q.eq('user_id', userId);
+      if (!isCollective) q = q.eq('user_id', viewUserId);
       return q;
     })(),
   ]);
@@ -366,6 +378,14 @@ export default async function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {isOwner && (
+        <UserSelector 
+          users={allUsers} 
+          currentViewId={viewUserId} 
+          isCollective={isCollective} 
+        />
+      )}
 
       {/* Step A: Anomaly Alert */}
       {anomaly.isAnomaly && (
