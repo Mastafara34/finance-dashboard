@@ -58,7 +58,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
 
   // 3. Ambil profil user yang sedang dilihat (untuk target & nama di dashboard)
   let viewProfile = myProfile;
-  if (isOwner && searchU && searchU !== 'all' && searchU !== myUserId) {
+  if (isCollective) {
+    viewProfile = { ...myProfile, display_name: 'Kolektif (Semua)' };
+  } else if (isOwner && searchU && searchU !== 'all' && searchU !== myUserId) {
     const { data: selectedProfile } = await supabase
       .from('users')
       .select('id, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
@@ -103,19 +105,19 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
     })(),
     // Previous Month
     (() => {
-      let q = supabase.from('transactions').select('amount, type').eq('is_deleted', false).gte('date', prevMonthStart).lte('date', prevMonthEnd);
+      let q = supabase.from('transactions').select('amount, type, date, categories(name)').eq('is_deleted', false).gte('date', prevMonthStart).lte('date', prevMonthEnd);
       if (!isCollective) q = q.eq('user_id', viewUserId);
       return q;
     })(),
     // Older Month
     (() => {
-      let q = supabase.from('transactions').select('amount, type').eq('is_deleted', false).gte('date', olderMonthStart).lte('date', olderMonthEnd);
+      let q = supabase.from('transactions').select('amount, type, date, categories(name)').eq('is_deleted', false).gte('date', olderMonthStart).lte('date', olderMonthEnd);
       if (!isCollective) q = q.eq('user_id', viewUserId);
       return q;
     })(),
     // Last 30 days
     (() => {
-      let q = supabase.from('transactions').select('amount, type, date').eq('is_deleted', false)
+      let q = supabase.from('transactions').select('amount, type, date, categories(name)').eq('is_deleted', false)
         .gte('date', new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0])
         .order('date', { ascending: true });
       if (!isCollective) q = q.eq('user_id', viewUserId);
@@ -123,7 +125,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
     })(),
     // Yearly transactions
     (() => {
-      let q = supabase.from('transactions').select('amount, type').eq('is_deleted', false).gte('date', yearStart);
+      let q = supabase.from('transactions').select('amount, type, date, categories(name)').eq('is_deleted', false).gte('date', yearStart);
       if (!isCollective) q = q.eq('user_id', viewUserId);
       return q;
     })(),
@@ -160,13 +162,13 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   const income   = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
   const expense  = txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
   const balance  = income - expense;
-  const savingRate = income > 0 ? ((income - expense) / income) * 100 : 0;
+  const savingRate = income > 0 ? pct(balance, income) : 0;
 
-  const prevExp  = prevTxs.filter((t: any) => t.type === 'expense').reduce((s: number, t: any) => s + t.amount, 0);
-  const prevInc  = prevTxs.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + t.amount, 0);
-  const prevSavRate = prevInc > 0 ? ((prevInc - prevExp) / prevInc) * 100 : 0;
+  const prevExp  = prevTxs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const prevInc  = prevTxs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const prevSavRate = prevInc > 0 ? pct(prevInc - prevExp, prevInc) : 0;
   
-  const olderExp = olderTxs.filter((t: any) => t.type === 'expense').reduce((s: number, t: any) => s + t.amount, 0);
+  const olderExp = olderTxs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
 
   // Logic Upgrade: Stable Monthly Expense (Average of last 3 months)
   const monthlyExpBase = calculateMonthlyExpBase(expense, prevExp, olderExp);
@@ -183,7 +185,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   const investments = assetList.filter(a => !a.is_liability && a.type === 'investment').reduce((s, a) => s + a.value, 0);
   const liquidAssets = assetList.filter(a => !a.is_liability && a.type === 'cash').reduce((s, a) => s + a.value, 0);
   
-  const monthlyInvRatio = income > 0 ? (txs.filter(t => t.type === 'expense' && t.categories?.name?.toLowerCase().includes('invest')).reduce((s, t) => s + t.amount, 0) / income) * 100 : 0;
+  const monthlyInvRatio = income > 0 ? (txs.filter(t => t.type === 'expense' && (t.categories?.name ?? '').toLowerCase().includes('invest')).reduce((s, t) => s + t.amount, 0) / income) * 100 : 0;
   const investmentRatio = income > 0 ? (investments / (income * 12)) * 100 : 0;
 
   // Emergency Fund
@@ -194,7 +196,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   // Health Score & Archetype using Utility
   const { score: healthScore, label: healthLabel, color: healthColor } = calculateHealthScore({
     savingRate, monthsCovered, 
-    debtRatio: income > 0 ? (txs.filter(t => t.type === 'expense' && t.categories?.name?.toLowerCase().includes('cicilan')).reduce((s, t) => s + t.amount, 0) / income) * 100 : 0,
+    debtRatio: income > 0 ? (txs.filter(t => t.type === 'expense' && (t.categories?.name ?? '').toLowerCase().includes('cicilan')).reduce((s, t) => s + t.amount, 0) / income) * 100 : 0,
     monthlyInvRatio,
     isSurplus: balance > 0,
     targets: {
@@ -256,7 +258,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   const totalLiabVal = totalLiab;
 
   // New: Step A, B, C Analysis
-  const debtRatio = income > 0 ? (txs.filter(t => t.type === 'expense' && t.categories?.name?.toLowerCase().includes('cicilan')).reduce((s, t) => s + t.amount, 0) / income) * 100 : 0;
+  const debtRatio = income > 0 ? (txs.filter(t => t.type === 'expense' && (t.categories?.name ?? '').toLowerCase().includes('cicilan')).reduce((s, t) => s + t.amount, 0) / income) * 100 : 0;
   const dailyBudget = monthlyExpBase > 0 ? (monthlyExpBase / 30) : 0;
   const anomaly = detectAnomalies(txs, dailyBudget * 1.5); // 50% di atas budget harian dianggap anomali
   const forecast = forecastEndOfMonth(income, expense);
@@ -296,6 +298,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   const monthLabel = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
   const dateLabel  = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const firstName  = safeProfile.display_name?.split(' ')[0] ?? 'Kamu';
+  const welcomeText = isCollective ? 'Statistik Kolektif Keluarga' : `Halo, ${firstName}!`;
 
   // CSS Variables for Theme
   // Spending Efficiency Logic Replacement for Ratio Visualization
@@ -305,7 +308,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   // KPI Grid Data (Monthly vs Yearly)
   const incomeYear = yearTxs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
   const expenseYear = yearTxs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-  const savingRateYear = incomeYear > 0 ? ((incomeYear - expenseYear) / incomeYear) * 100 : 0;
+  const savingRateYear = incomeYear > 0 ? pct(incomeYear - expenseYear, incomeYear) : 0;
 
   const monthlyKpis = [
     { label: "Kekayaan Bersih", value: fmt(Math.abs(netWorth)), subValue: `Aset: ${fmt(totalAsset)}`, valueColor: netWorth >= 0 ? '#10b981' : '#ef4444' },
@@ -362,7 +365,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
       <div className="ov-header">
         <div>
           <h1 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 4px', letterSpacing: '-0.5px', color: 'var(--text-main)' }}>
-            Selamat datang, {firstName} 👋
+            {welcomeText} 👋
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: 0, fontWeight: '500' }}>{dateLabel}</p>
         </div>
