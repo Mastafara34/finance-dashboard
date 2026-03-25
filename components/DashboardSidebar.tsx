@@ -99,8 +99,12 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram, cur
           {NAV.map(item => {
             const isActive = pathname === item.href ||
               (item.href !== '/dashboard' && pathname.startsWith(item.href));
+            
+            // Fix: Pertahankan parameter 'u' saat navigasi antar tab
+            const href = uParam ? `${item.href}?u=${uParam}` : item.href;
+
             return (
-              <a key={item.href} href={item.href} style={{
+              <a key={item.href} href={href} style={{
                 display: 'flex', alignItems: 'center', gap: '10px',
                 padding: '9px 12px', borderRadius: '8px', marginBottom: '2px',
                 textDecoration: 'none', transition: 'all .15s',

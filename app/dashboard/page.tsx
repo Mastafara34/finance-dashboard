@@ -1,4 +1,5 @@
 // app/dashboard/page.tsx
+export const dynamic = 'force-dynamic';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Card, KpiCard, ProgressCard } from './components/DashboardComponents';
@@ -34,45 +35,41 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const { data: profile, error: profileError } = await supabase
+  // 1. Ambil profil login asli (selalu Agus)
+  const { data: myProfile, error: profileError } = await supabase
     .from('users')
     .select('id, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
     .eq('email', user.email!)
     .maybeSingle();
 
-  // Jika error (misal kolom belum ada), coba fetch tanpa kolom target baru
-  let safeProfile = profile;
-  if (profileError || !profile) {
-    const { data: retryProfile } = await supabase
+  if (!myProfile) redirect('/login');
+
+  const myUserId = myProfile.id;
+  const isOwner = myProfile.role === 'owner';
+  const searchU = searchParams.u;
+  const isCollective = isOwner && searchU === 'all';
+  
+  // 2. Tentukan User mana yang datanya mau dilihat
+  const viewUserId = isOwner && searchU && searchU !== 'all' ? searchU : myUserId;
+
+  // 3. Ambil profil user yang sedang dilihat (untuk target & nama di dashboard)
+  let viewProfile = myProfile;
+  if (isOwner && searchU && searchU !== 'all' && searchU !== myUserId) {
+    const { data: selectedProfile } = await supabase
       .from('users')
-      .select('id, display_name, telegram_chat_id, role')
-      .eq('email', user.email!)
+      .select('id, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
+      .eq('id', searchU)
       .maybeSingle();
-    
-    if (!retryProfile) redirect('/login');
-    
-    safeProfile = {
-      id: retryProfile.id,
-      display_name: retryProfile.display_name,
-      telegram_chat_id: retryProfile.telegram_chat_id,
-      role: retryProfile.role,
-      saving_target: 20,
-      wants_target: 30,
-      needs_target: 50
-    };
+    if (selectedProfile) viewProfile = selectedProfile;
   }
 
-  // Double check for TS satisfaction
-  if (!safeProfile) redirect('/login');
-
-  const myUserId = safeProfile.id;
-  const userRole = safeProfile.role || 'user';
-  const isOwner = userRole === 'owner';
-  
-  // Handle user view selection for owner
-  const searchU = searchParams.u;
-  const viewUserId = isOwner && searchU && searchU !== 'all' ? searchU : myUserId;
-  const isCollective = isOwner && searchU === 'all';
+  // Fallback targets for TS
+  const safeProfile = {
+    ...viewProfile,
+    saving_target: viewProfile.saving_target ?? 20,
+    wants_target: viewProfile.wants_target ?? 30,
+    needs_target: viewProfile.needs_target ?? 50
+  };
 
   let allUsers: any[] = [];
   if (isOwner) {

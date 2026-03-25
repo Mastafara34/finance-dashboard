@@ -1,4 +1,5 @@
 // app/dashboard/networth/page.tsx
+export const dynamic = 'force-dynamic';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import NetWorthClient from './NetWorthClient';
@@ -18,9 +19,8 @@ export default async function NetWorthPage({ searchParams }: { searchParams: { u
   if (!profile) redirect('/login');
 
   const isOwner = profile.role === 'owner';
-  const viewUserId = (isOwner && searchParams.u && searchParams.u !== 'all')
-    ? searchParams.u
-    : profile.id;
+  const searchU = searchParams.u;
+  const viewUserId = isOwner && searchU && searchU !== 'all' ? searchU : profile.id;
 
   let allUsers: any[] = [];
   if (isOwner) {

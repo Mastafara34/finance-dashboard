@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { UserSelector } from '../components/UserSelector';
@@ -19,8 +20,8 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
   const myUserId = profile.id;
   const isOwner = profile.role === 'owner';
   
-  const searchU = searchParams.u || myUserId;
-  const viewUserId = searchU;
+  const searchU = searchParams.u;
+  const viewUserId = isOwner && searchU && searchU !== 'all' ? searchU : profile.id;
 
   let allUsers: any[] = [];
   if (isOwner) {
