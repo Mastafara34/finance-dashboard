@@ -90,6 +90,43 @@ export default async function DashboardLayout({ children }: { children: React.Re
         @media (min-width: 769px) and (max-width: 1024px) {
           .fintrack-content { padding: 24px; }
         }
+
+        /* Overview Specific Utility Classes */
+        .ov-grid6 {
+          display: grid;
+          grid-template-columns: repeat(6, 1fr);
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+        .ov-grid2 {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 24px;
+          margin-bottom: 24px;
+        }
+        .ov-section-title {
+          font-size: 14px;
+          font-weight: 800;
+          color: var(--text-muted);
+          margin: 32px 0 16px 0;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+        }
+        .ov-card {
+          background: var(--card-bg);
+          border: 1px solid var(--border-color);
+          border-radius: 16px;
+          padding: 20px;
+          box-shadow: var(--card-shadow);
+        }
+
+        @media (max-width: 1200px) {
+          .ov-grid6 { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 768px) {
+          .ov-grid6 { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+          .ov-grid2 { grid-template-columns: 1fr; gap: 16px; }
+        }
       `}</style>
 
       <div className="fintrack-layout">

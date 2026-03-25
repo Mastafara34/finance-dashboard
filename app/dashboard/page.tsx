@@ -44,9 +44,13 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     .maybeSingle();
 
   if (!myProfile) {
-    // Biarkan layout yang handle error Profil Tidak Ditemukan
-    // agar tidak terjadi redirect loop dengan middleware
-    return null; 
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <h2>Profil Tidak Ditemukan</h2>
+        <p>Gagal memuat profil untuk {user.email}. Hubungi admin untuk akses.</p>
+        <a href="/login" style={{ color: '#2563eb' }}>Kembali Login</a>
+      </div>
+    );
   }
 
   const myUserId = myProfile.id;
@@ -275,7 +279,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     const d = new Date(Date.now() - i * 86400000).toISOString().split('T')[0];
     chartMap[d] = { income: 0, expense: 0 };
   }
-  last30.forEach(t => { if (chartMap[t.date]) chartMap[t.date][t.type] += t.amount; });
+  last30.forEach(t => { 
+    if (!t.date || !t.type) return;
+    const d = t.date.includes('T') ? t.date.split('T')[0] : t.date;
+    if (chartMap[d]) chartMap[d][t.type] += t.amount; 
+  });
   const chartData = Object.entries(chartMap).map(([date, v]) => ({ date, ...v }));
   const maxVal    = Math.max(...chartData.map(d => Math.max(d.income, d.expense)), 1);
 
