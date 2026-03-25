@@ -12,11 +12,32 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const { data: profile } = await supabase
+  // 1. Profile fetching with resilience: try ID first, then Email (ilike)
+  let { data: profile } = await supabase
     .from('users')
     .select('id, email, display_name, telegram_chat_id, role')
-    .or(`email.eq.${user.email},id.eq.${user.id}`)
+    .or(`id.eq.${user.id},email.ilike.${user.email}`)
     .maybeSingle();
+
+  // 2. Auto-register: If authenticated but no record in `users` table, create one!
+  if (!profile && user.email) {
+    const { data: newProfile, error: createError } = await supabase
+      .from('users')
+      .insert([{
+        id: user.id,
+        email: user.email,
+        display_name: user.email.split('@')[0],
+        role: 'user'
+      }])
+      .select('id, email, display_name, telegram_chat_id, role')
+      .single();
+
+    if (!createError) {
+      profile = newProfile;
+    } else {
+      console.error('Failed to auto-register user:', createError);
+    }
+  }
 
   // Fetch all users for the sidebar selector if owner
   let allUsers: any[] = [];
@@ -45,12 +66,18 @@ export default async function DashboardLayout({ children }: { children: React.Re
     return (
       <div style={{ 
         height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', 
-        background: '#0a0a0f', color: '#f0f0f5', flexDirection: 'column', gap: '16px' 
+        background: '#0a0a0f', color: '#f0f0f5', flexDirection: 'column', gap: '16px', padding: '24px', textAlign: 'center' 
       }}>
-        <div style={{ fontSize: '40px' }}>⚠️</div>
+        <div style={{ fontSize: '48px' }}>👤</div>
         <h2 style={{ margin: 0 }}>Profil Tidak Ditemukan</h2>
-        <p style={{ color: '#6b7280', fontSize: '14px' }}>Akun anda belum terdaftar di database kami.</p>
-        <a href="/login" style={{ color: '#2563eb', textDecoration: 'none', fontWeight: '600' }}>Kembali ke Login</a>
+        <p style={{ color: '#6b7280', fontSize: '14px', maxWidth: '400px' }}>
+          Akun <strong>{user.email}</strong> belum terdaftar atau belum memiliki profil di database Supabase kami.
+        </p>
+        <p style={{ color: '#6b7280', fontSize: '11px', marginTop: '-8px' }}>UID: {user.id}</p>
+        <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+          <a href="/login" style={{ padding: '8px 16px', background: '#1f1f2e', borderRadius: '8px', color: '#f0f0f5', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>Ke Login</a>
+          <a href="https://t.me/your_bot" style={{ padding: '8px 16px', background: '#2563eb', borderRadius: '8px', color: '#fff', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>Hubungi Admin</a>
+        </div>
       </div>
     );
   }

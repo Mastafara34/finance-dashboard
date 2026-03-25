@@ -36,19 +36,40 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  // 1. Ambil profil login asli (selalu Agus)
-  const { data: myProfile, error: profileError } = await supabase
+  // 1. Ambil profil login asli (mendukung ID mismatch via email)
+  let { data: myProfile, error: profileError } = await supabase
     .from('users')
     .select('id, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
-    .or(`email.eq.${user.email},id.eq.${user.id}`)
+    .or(`id.eq.${user.id},email.ilike.${user.email}`)
     .maybeSingle();
+
+  // 2. Auto-register if missing (Server side fallback)
+  if (!myProfile && user.email) {
+    const { data: newProfile } = await supabase
+      .from('users')
+      .insert([{
+        id: user.id,
+        email: user.email,
+        display_name: user.email.split('@')[0],
+        role: 'user'
+      }])
+      .select('id, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
+      .single();
+    if (newProfile) myProfile = newProfile;
+  }
 
   if (!myProfile) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
+      <div style={{ 
+        height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+        background: '#0a0a0f', color: '#f0f0f5', flexDirection: 'column', gap: '16px', padding: '24px', textAlign: 'center' 
+      }}>
+        <div style={{ fontSize: '48px' }}>👤</div>
         <h2>Profil Tidak Ditemukan</h2>
-        <p>Gagal memuat profil untuk {user.email}. Hubungi admin untuk akses.</p>
-        <a href="/login" style={{ color: '#2563eb' }}>Kembali Login</a>
+        <p style={{ color: '#6b7280', fontSize: '14px', maxWidth: '400px' }}>
+          Gagal memuat profil untuk {user.email}. Hubungi admin untuk akses.
+        </p>
+        <a href="/login" style={{ padding: '8px 16px', background: '#1f1f2e', borderRadius: '8px', color: '#f0f0f5', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>Kembali Login</a>
       </div>
     );
   }
