@@ -26,8 +26,9 @@ export function UserSelector({ users, currentViewId, isCollective = false, showC
     } else {
       params.set('u', val);
     }
-    // Hard refresh to ensure data is fetched fresh
-    window.location.href = `${pathname}?${params.toString()}`;
+    const targetUrl = `${pathname}?${params.toString()}`;
+    router.push(targetUrl);
+    // Remove hard refresh to prevent continuous reloading
   }
 
   const activeVal = isCollective ? 'all' : currentViewId;
