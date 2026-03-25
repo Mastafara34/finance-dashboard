@@ -39,7 +39,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   // 1. Ambil profil login asli (mendukung ID mismatch via email)
   let { data: myProfile, error: profileError } = await supabase
     .from('users')
-    .select('id, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
+    .select('id, display_name, telegram_chat_id, role')
     .or(`id.eq.${user.id},email.ilike.${user.email}`)
     .maybeSingle();
 
@@ -53,7 +53,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         display_name: user.email.split('@')[0],
         role: 'user'
       }])
-      .select('id, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
+      .select('id, display_name, telegram_chat_id, role')
       .single();
     if (newProfile) myProfile = newProfile;
   }
@@ -88,18 +88,19 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   } else if (isOwner && searchU && searchU !== 'all' && searchU !== myUserId) {
     const { data: selectedProfile } = await supabase
       .from('users')
-      .select('id, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
+      .select('id, display_name, telegram_chat_id, role')
       .eq('id', searchU)
       .maybeSingle();
     if (selectedProfile) viewProfile = selectedProfile;
   }
 
   // Fallback targets for TS
+  const vAny = viewProfile as any;
   const safeProfile = {
-    ...viewProfile,
-    saving_target: viewProfile.saving_target ?? 20,
-    wants_target: viewProfile.wants_target ?? 30,
-    needs_target: viewProfile.needs_target ?? 50
+    ...vAny,
+    saving_target: vAny.saving_target ?? 20,
+    wants_target: vAny.wants_target ?? 30,
+    needs_target: vAny.needs_target ?? 50
   };
 
   const now = new Date();
