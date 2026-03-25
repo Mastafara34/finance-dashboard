@@ -30,7 +30,8 @@ interface Goal {
 }
 interface Asset { id: string; name: string; value: number; is_liability: boolean; type: string }
 
-export default async function DashboardPage({ searchParams }: { searchParams: { u?: string } }) {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ u?: string }> }) {
+  const { u: searchU } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
@@ -50,7 +51,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
 
   const myUserId = myProfile.id;
   const isOwner = myProfile.role === 'owner';
-  const searchU = searchParams.u;
   const isCollective = isOwner && searchU === 'all';
   
   // 2. Tentukan User mana yang datanya mau dilihat

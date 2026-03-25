@@ -5,7 +5,8 @@ import { createClient } from '@/lib/supabase/server';
 import BudgetsClient from './BudgetsClient';
 import { UserSelector } from '../components/UserSelector';
 
-export default async function BudgetsPage({ searchParams }: { searchParams: { u?: string } }) {
+export default async function BudgetsPage({ searchParams }: { searchParams: Promise<{ u?: string }> }) {
+  const { u: searchU } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
@@ -19,7 +20,6 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { u?
   if (!profile) return null;
 
   const isOwner = profile.role === 'owner';
-  const searchU = searchParams.u;
   const isCollective = isOwner && searchU === 'all';
   const viewUserId = isOwner && searchU && searchU !== 'all' ? searchU : profile.id;
 

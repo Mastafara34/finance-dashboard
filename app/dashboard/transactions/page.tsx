@@ -4,7 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 import { UserSelector } from '../components/UserSelector';
 import TransactionsClient from './TransactionsClient';
 
-export default async function TransactionsPage({ searchParams }: { searchParams: { u?: string } }) {
+export default async function TransactionsPage({ searchParams }: { searchParams: Promise<{ u?: string }> }) {
+  const { u: searchU } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
@@ -19,8 +20,6 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
 
   const myUserId = profile.id;
   const isOwner = profile.role === 'owner';
-  
-  const searchU = searchParams.u;
   const isCollective = isOwner && searchU === 'all';
   const viewUserId = isOwner && searchU && searchU !== 'all' ? searchU : profile.id;
 
