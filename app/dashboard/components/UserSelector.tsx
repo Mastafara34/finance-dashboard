@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 interface Props {
@@ -17,6 +17,11 @@ export function UserSelector({ users, currentViewId, isCollective = false, showC
 
   const [isNavigating, setIsNavigating] = useState(false);
 
+  // Reset loading state when searchParams change (navigation finished)
+  useEffect(() => {
+    setIsNavigating(false);
+  }, [searchParams]);
+
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const val = e.target.value;
     setIsNavigating(true);
@@ -28,7 +33,6 @@ export function UserSelector({ users, currentViewId, isCollective = false, showC
     }
     const targetUrl = `${pathname}?${params.toString()}`;
     router.push(targetUrl);
-    // Remove hard refresh to prevent continuous reloading
   }
 
   const activeVal = isCollective ? 'all' : currentViewId;
