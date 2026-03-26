@@ -1,7 +1,14 @@
 // components/MobileHeader.tsx
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { UserSelector } from '@/app/dashboard/components/UserSelector';
+
+interface Props {
+  allUsers: { id: string; display_name: string | null }[];
+  currentUserId: string;
+  userRole: string;
+}
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard':              'Overview',
@@ -13,9 +20,15 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/settings':     'Pengaturan',
 };
 
-export default function MobileHeader() {
+export default function MobileHeader({ allUsers, currentUserId, userRole }: Props) {
   const pathname = usePathname();
   const router   = useRouter();
+  const searchParams = useSearchParams();
+
+  const isOwner = userRole === 'owner';
+  const uParam = searchParams.get('u');
+  const viewUserId = (isOwner && uParam && uParam !== 'all') ? uParam : currentUserId;
+  const isCollective = isOwner && uParam === 'all';
 
   // Cari title — exact match dulu, lalu prefix match
   const title = PAGE_TITLES[pathname] ??
@@ -84,6 +97,18 @@ export default function MobileHeader() {
           }}>
             {title}
           </span>
+        )}
+
+        {/* Global User Selector (Mobile) — only for owner */}
+        {isOwner && (
+          <div style={{ width: '150px', flexShrink: 0 }}>
+            <UserSelector 
+              users={allUsers} 
+              currentViewId={viewUserId} 
+              isCollective={isCollective} 
+              showCollective={true} 
+            />
+          </div>
         )}
       </div>
     </>

@@ -108,6 +108,8 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
   const [catTab,         setCatTab]         = useState<'expense' | 'income'>('expense');
   const [showCatForm,    setShowCatForm]    = useState(false);
   const [editCat,        setEditCat]        = useState<Category | null>(null);
+  const [catPage,        setCatPage]        = useState(1);
+  const CAT_PAGE_SIZE = 6;
   const [catForm,        setCatForm]        = useState({
     name: '', icon: '📦', color: '#6b7280', type: 'expense' as 'income' | 'expense',
   });
@@ -548,7 +550,10 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
           border: '1px solid var(--border-color)'
         }}>
           {(['expense', 'income'] as const).map(t => (
-            <button key={t} onClick={() => setCatTab(t)} style={{
+            <button key={t} onClick={() => {
+    setCatTab(t);
+    setCatPage(1); // Reset page
+}} style={{
               flex: 1,
               padding: '8px 12px', borderRadius: '8px', border: 'none',
               fontSize: '13px', cursor: 'pointer', fontWeight: '600',
@@ -689,54 +694,94 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
           </div>
         )}
 
-        {/* Category Grid */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', 
-          gap: '12px',
-          marginBottom: '20px'
-        }}>
-          {userCats.map(cat => (
-            <div key={cat.id} style={{
-              position: 'relative',
-              background: 'var(--card-bg)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '16px',
-              padding: '16px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
-              gap: '10px',
-              transition: 'all 0.2s',
-              cursor: 'default',
-              boxShadow: 'var(--card-shadow)'
-            }}>
-              <div style={{ 
-                width: '48px', height: '48px', borderRadius: '14px',
-                background: cat.color + '15', border: `1px solid ${cat.color}33`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '24px'
+        {/* Category Grid with Professional Scroll */}
+        <div style={{
+          maxHeight: '440px',
+          overflowY: 'auto',
+          padding: '4px',
+          margin: '0 -4px 16px',
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'var(--border-color) transparent',
+        }} className="premium-scrollbar">
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', 
+            gap: '12px',
+          }}>
+            {userCats.slice((catPage - 1) * CAT_PAGE_SIZE, catPage * CAT_PAGE_SIZE).map(cat => (
+              <div key={cat.id} style={{
+                position: 'relative',
+                background: 'var(--card-bg)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '16px',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                gap: '10px',
+                transition: 'all 0.2s',
+                cursor: 'default',
+                boxShadow: 'var(--card-shadow)'
               }}>
-                {cat.icon}
+                <div style={{ 
+                  width: '48px', height: '48px', borderRadius: '14px',
+                  background: cat.color + '15', border: `1px solid ${cat.color}33`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '24px'
+                }}>
+                  {cat.icon}
+                </div>
+                <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {cat.name}
+                </div>
+                
+                <div style={{ display: 'flex', gap: '6px', width: '100%', marginTop: '4px' }}>
+                  <button onClick={() => openEditCat(cat)} style={{
+                    flex: 1, padding: '6px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', 
+                    borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)'
+                  }}>Edit</button>
+                  <button onClick={() => setDeletingCat(cat)} style={{
+                    aspectRatio: '1', padding: '6px', background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.1)', 
+                    borderRadius: '8px', cursor: 'pointer', color: '#ef4444'
+                  }}>✕</button>
+                </div>
               </div>
-              <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {cat.name}
-              </div>
-              
-              <div style={{ display: 'flex', gap: '6px', width: '100%', marginTop: '4px' }}>
-                <button onClick={() => openEditCat(cat)} style={{
-                  flex: 1, padding: '6px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', 
-                  borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)'
-                }}>Edit</button>
-                <button onClick={() => setDeletingCat(cat)} style={{
-                  aspectRatio: '1', padding: '6px', background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.1)', 
-                  borderRadius: '8px', cursor: 'pointer', color: '#ef4444'
-                }}>✕</button>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
+
+        {/* Pagination Bar */}
+        {userCats.length > CAT_PAGE_SIZE && (
+          <div style={{ 
+            display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', 
+            padding: '12px 0', borderTop: '1px solid var(--border-color)', marginBottom: '20px' 
+          }}>
+            <button 
+              onClick={() => setCatPage(p => Math.max(1, p - 1))}
+              disabled={catPage === 1}
+              style={{
+                width: '32px', height: '32px', borderRadius: '8px', border: '1px solid var(--border-color)',
+                background: 'var(--card-bg)', color: 'var(--text-main)', cursor: catPage === 1 ? 'not-allowed' : 'pointer',
+                opacity: catPage === 1 ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '16px'
+              }}
+            >‹</button>
+            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>
+              Halaman {catPage} dari {Math.ceil(userCats.length / CAT_PAGE_SIZE)}
+            </span>
+            <button 
+              onClick={() => setCatPage(p => Math.min(Math.ceil(userCats.length / CAT_PAGE_SIZE), p + 1))}
+              disabled={catPage >= Math.ceil(userCats.length / CAT_PAGE_SIZE)}
+              style={{
+                width: '32px', height: '32px', borderRadius: '8px', border: '1px solid var(--border-color)',
+                background: 'var(--card-bg)', color: 'var(--text-main)', cursor: catPage >= Math.ceil(userCats.length / CAT_PAGE_SIZE) ? 'not-allowed' : 'pointer',
+                opacity: catPage >= Math.ceil(userCats.length / CAT_PAGE_SIZE) ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '16px'
+              }}
+            >›</button>
+          </div>
+        )}
 
         {userCats.length === 0 && (
           <div style={{ 

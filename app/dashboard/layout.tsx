@@ -147,7 +147,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
         <main className="fintrack-content">
           <DemoBanner email={user.email ?? null} />
-          <MobileHeader />
+          <MobileHeader 
+            allUsers={allUsers}
+            currentUserId={profile.id}
+            userRole={profile.role || 'user'}
+          />
           {children}
         </main>
 
