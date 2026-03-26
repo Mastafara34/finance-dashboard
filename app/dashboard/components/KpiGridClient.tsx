@@ -70,7 +70,7 @@ export const KpiGridClient = ({ monthly, yearly }: KpiGridClientProps) => {
         </button>
       </div>
 
-      <div className="ov-grid6">
+      <div className="ov-grid6" key={view} style={{ animation: 'scaleIn 0.3s ease-out' }}>
         {data.map((item, i) => (
           <KpiCard
             key={i}

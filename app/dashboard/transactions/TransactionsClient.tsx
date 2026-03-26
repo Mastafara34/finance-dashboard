@@ -208,6 +208,16 @@ export default function TransactionsClient({ transactions, categories, userId }:
             </option>
           ))}
         </select>
+        <button 
+          onClick={() => showToast('Mengekspor data ke CSV...')}
+          style={{ 
+            padding: '10px 16px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', 
+            borderRadius: '10px', color: 'var(--text-main)', fontSize: '14px', fontWeight: '700', 
+            boxShadow: 'var(--card-shadow)', display: 'flex', alignItems: 'center', gap: '8px' 
+          }}
+        >
+          <span>📥</span> <span className="hide-mobile">Export CSV</span>
+        </button>
       </div>
 
       {/* Table */}

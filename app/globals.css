@@ -51,7 +51,7 @@ body {
   color: var(--text-main);
   overscroll-behavior: none;
   padding-bottom: env(safe-area-inset-bottom);
-  transition: background 0.3s, color 0.3s;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* ─── Scrollbar ────────────────────────────────────────────────────── */
@@ -108,7 +108,7 @@ code {
   border-radius: 12px;
   padding: 20px;
   box-shadow: var(--card-shadow);
-  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
 }
 
 @media (max-width: 768px) {
@@ -152,6 +152,11 @@ button {
 @keyframes slideUp {
   from { transform: translateY(20px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0.8; }
+  to   { transform: scale(1);    opacity: 1; }
 }
 
 /* ─── Utilities ──────────────────────────────────────────────────────────────── */

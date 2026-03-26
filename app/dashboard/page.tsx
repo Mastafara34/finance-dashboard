@@ -252,6 +252,17 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const nextMilestone = netWorth <= 0 ? 100000000 : Math.pow(10, Math.ceil(Math.log10(netWorth + 1)));
   const milestoneProgress = Math.min(pct(netWorth, nextMilestone), 100);
 
+  // Collective Breakdown
+  const userSpendMap: Record<string, number> = {};
+  if (isCollective) {
+    txs.filter(t => t.type === 'expense').forEach(t => {
+      const uId = (t as any).user_id || 'Unknown';
+      const uName = allUsers.find(u => u.id === uId)?.display_name || 'Lainnya';
+      userSpendMap[uName] = (userSpendMap[uName] || 0) + t.amount;
+    });
+  }
+  const collectiveBreakdown = Object.entries(userSpendMap).sort((a, b) => b[1] - a[1]);
+
   // Chart data setup
   const chartMap: Record<string, { income: number; expense: number }> = {};
   for (let i = 29; i >= 0; i--) {
@@ -441,6 +452,24 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           footerRight={<span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>{efProgress >= 100 ? 'Aman ✅' : `${fmt(efTargetMin - liquidAssets)} lagi`}</span>} 
         />
       </div>
+
+      {/* Collective Distribution Component */}
+      {isCollective && collectiveBreakdown.length > 1 && (
+        <Card style={{ marginBottom: '16px' }}>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase', marginBottom: '12px' }}>DISTRIBUSI PENGELUARAN KELUARGA</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
+            {collectiveBreakdown.map(([name, amount], idx) => (
+              <div key={idx} style={{ padding: '12px', background: 'var(--bg-secondary)', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700', marginBottom: '4px' }}>{name.toUpperCase()}</div>
+                <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-main)' }}>{fmt(amount)}</div>
+                <div style={{ fontSize: '10px', color: '#ef4444', fontWeight: '600', marginTop: '4px' }}>
+                  {pct(amount, expense)}% dari total
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* SECTION 2: THE REALITY (Current Status) */}
       <div className="ov-section-title">The Reality (Kondisi Saat Ini) 📊</div>
