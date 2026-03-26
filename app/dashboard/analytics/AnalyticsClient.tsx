@@ -67,7 +67,7 @@ function BarChart({ data, maxVal, showIncome, showExpense }: {
 // ── Main Client ──────────────────────────────────────────────────────────────
 
 export default function AnalyticsClient({ transactions }: { transactions: Transaction[] }) {
-  const [mode, setMode] = useState<'standard'|'strategic'>('strategic');
+  const [mode, setMode] = useState<'standard'|'strategic'>('standard');
   const [view, setView] = useState<'daily'|'monthly'|'yearly'>('monthly');
   const [showType, setShowType] = useState<'both'|'income'|'expense'>('both');
   const [catType,  setCatType]  = useState<'expense'|'income'>('expense');
@@ -175,8 +175,8 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
         <div>
             <h1 style={{ fontSize:'24px', fontWeight:'800', margin:'0 0 4px', letterSpacing: '-0.5px' }}>Audit & Strategi</h1>
             <div style={{ display:'flex', gap:'8px', marginTop:'8px' }}>
-                <button onClick={() => setMode('strategic')} style={btnStyle(mode==='strategic')}>Elite Strategic Review</button>
                 <button onClick={() => setMode('standard')} style={btnStyle(mode==='standard')}>Classic Audit</button>
+                <button onClick={() => setMode('strategic')} style={btnStyle(mode==='strategic')}>Elite Strategic Review</button>
             </div>
         </div>
         <select 
