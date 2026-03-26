@@ -123,40 +123,40 @@ export async function checkWhitelist(
     return { allowed: true, role: cached.role };
   }
 
-  // ③ Cache miss — query Supabase
-  const [whitelistResult, blockedResult] = await Promise.all([
+  // ③ Cache miss — query Supabase (check BOTH whitelist and users table)
+  const [whitelistResult, userResult, blockedResult] = await Promise.all([
     supabase
       .from('whitelisted_users')
       .select('role')
       .eq('chat_id', chatId)
       .eq('is_active', true)
-      .single(),
+      .maybeSingle(),
+    supabase
+      .from('users')
+      .select('role')
+      .eq('telegram_chat_id', chatId)
+      .maybeSingle(),
     supabase
       .from('blocked_users')
       .select('blocked_until')
       .eq('chat_id', chatId)
-      .single(),
+      .maybeSingle(),
   ]);
 
   // Check if blocked in DB
   if (blockedResult.data) {
-    const until = blockedResult.data.blocked_until
-      ? new Date(blockedResult.data.blocked_until).getTime()
-      : Infinity;
+    const until = blockedResult.data.blocked_until ? new Date(blockedResult.data.blocked_until).getTime() : Infinity;
     blockedCache.set(chatId, until);
-    if (now < until) {
-      void writeAuditLog(chatId, 'blocked_user_attempt', 'warn', { username });
-      return { allowed: false, reason: 'blocked' };
-    }
+    if (now < until) return { allowed: false, reason: 'blocked' };
   }
 
-  // Check whitelist
-  if (whitelistResult.error || !whitelistResult.data) {
+  // Determine role: prioritize whitelisted_users, then users table
+  const role = (whitelistResult.data?.role || userResult.data?.role) as UserRole | undefined;
+
+  if (!role) {
     void writeAuditLog(chatId, 'blocked_not_whitelisted', 'warn', { username });
     return { allowed: false, reason: 'not_whitelisted' };
   }
-
-  const role = whitelistResult.data.role as UserRole;
 
   // ④ Populate cache
   whitelistCache.set(chatId, { role, expiry: now + WHITELIST_TTL_MS });
@@ -324,7 +324,7 @@ export async function sendSecurityReply(
 ): Promise<void> {
   const messages: Record<string, string> = {
     not_whitelisted:
-      '🔒 Maaf, bot ini bersifat privat.\n\nHubungi admin untuk mendapatkan akses.',
+      '🔒 Bot ini bersifat privat.\n\nJika Anda adalah pemilik dashboard, silakan lihat nomor ID Anda dengan mengetik */id* lalu masukkan nomor tersebut di halaman Pengaturan Web.',
     blocked:
       '🚫 Akun kamu sedang diblokir.\n\nHubungi admin jika ini kesalahan.',
     rate_limit: retryAfterMs
@@ -397,14 +397,16 @@ export async function runSecurityGate(
     ? 'text'
     : 'unknown';
 
-  // ──── Layer 2: Whitelist ──────────────────────────────────────────────────
+  // ──── Layer 2: Whitelist (Special exception for /id command) ────────────
+  const isIdCommand = rawText.toLowerCase().trim() === '/id';
+  
   const wl = await checkWhitelist(chatId, username);
-  if (!wl.allowed) {
+  if (!wl.allowed && !isIdCommand) { // Jalankan blokir kecuali untuk perintah /id
     void sendSecurityReply(chatId, wl.reason ?? 'not_whitelisted');
     return { allowed: false, reason: wl.reason };
   }
 
-  const role = wl.role!;
+  const role = wl.role ?? 'user'; // Default role if not on whitelist but allowed (like /id)
 
   // ──── Layer 3: Rate limit ─────────────────────────────────────────────────
   const rl = await checkRateLimit(chatId, role);

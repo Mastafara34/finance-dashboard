@@ -1277,6 +1277,10 @@ async function routeCommand(
   if (lower === '/laporan')        { await cmdLaporan(chatId, user); return true; }
   if (lower === '/forecast')       { await cmdForecast(chatId, user); return true; }
   if (lower === '/akun')           { await cmdAkun(chatId, user); return true; }
+  if (lower === '/id') {
+    await sendMessage(chatId, `🆔 *Telegram Chat ID:*\n\`${chatId}\`\n\n_Salin nomor di atas dan tempel di halaman Pengaturan Dashboard._`);
+    return true;
+  }
 
   if (lower === '/goals') {
     await cmdGoals(chatId, user);

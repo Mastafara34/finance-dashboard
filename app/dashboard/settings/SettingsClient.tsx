@@ -115,6 +115,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
   const [notifyBudget,   setNotifyBudget]   = useState(profile.notify_budget_alert ?? true);
   const [notifyAnomaly,  setNotifyAnomaly]  = useState(profile.notify_anomaly_alert ?? true);
   const [notifyForecast, setNotifyForecast] = useState(profile.notify_forecast_alert ?? true);
+  const [telegramId,     setTelegramId]     = useState(profile.telegram_chat_id?.toString() ?? '');
   const [savingProfile,  setSavingProfile]  = useState(false);
 
   // ── Category state ────────────────────────────────────────────────────────
@@ -197,6 +198,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
       notify_budget_alert: notifyBudget,
       notify_anomaly_alert: notifyAnomaly,
       notify_forecast_alert: notifyForecast,
+      telegram_chat_id: telegramId ? parseInt(telegramId) : null,
       updated_at: new Date().toISOString(),
     }).eq('id', profile.id);
     setSavingProfile(false);
@@ -414,9 +416,23 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
           ))}
         </div>
         
-        <div style={{ marginTop: '24px', padding: '12px', background: 'rgba(37,99,235,0.05)', borderRadius: '10px', border: '1px dashed var(--accent-primary)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-primary)', fontSize: '12px', fontWeight: '700' }}>
-             🆔 Telegram ID: {profile.telegram_chat_id || 'Belum Terhubung'}
+        <div style={{ marginTop: '24px', padding: '16px', background: 'rgba(37,99,235,0.05)', borderRadius: '12px', border: '1px dashed var(--accent-primary)' }}>
+          <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: 'var(--accent-primary)', marginBottom: '8px', letterSpacing: '0.05em' }}>🔗 LINK AKUN TELEGRAM</label>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input 
+              type="text" 
+              value={telegramId}
+              placeholder="Masukkan Chat ID Anda..."
+              onChange={(e) => setTelegramId(e.target.value.replace(/[^0-9-]/g, ''))}
+              style={{
+                flex: 1, padding: '10px 12px', background: 'var(--card-bg)', 
+                border: '1px solid var(--border-color)', borderRadius: '8px',
+                fontSize: '13px', color: 'var(--text-main)', outline: 'none'
+              }}
+            />
+          </div>
+          <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+            Ketik <b>/id</b> ke Bot Telegram Anda untuk melihat nomor ID Anda, lalu masukkan di sini.
           </div>
         </div>
         <button onClick={saveProfile} disabled={savingProfile} style={{ marginTop:'20px', padding: '10px 20px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>Simpan Pengaturan Notifikasi</button>
