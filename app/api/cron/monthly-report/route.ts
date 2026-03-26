@@ -119,7 +119,7 @@ export async function GET(req: Request) {
   const auth = req.headers.get('authorization');
   if (auth !== `Bearer ${process.env.CRON_SECRET}`) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { data: users } = await supabase.from('users').select('id, telegram_chat_id, display_name').not('telegram_chat_id', 'is', null).not('onboarded_at', 'is', null);
+  const { data: users } = await supabase.from('users').select('id, telegram_chat_id, display_name').not('telegram_chat_id', 'is', null).not('onboarded_at', 'is', null).eq('notify_monthly', true);
   if (!users) return NextResponse.json({ ok: true, sent: 0 });
 
   for (const u of users) {

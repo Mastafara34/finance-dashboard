@@ -15,6 +15,9 @@ interface Profile {
   monthly_income: number | null;
   timezone: string;
   currency: string;
+  notify_weekly: boolean;
+  notify_monthly: boolean;
+  notify_ai: boolean;
 }
 
 interface Category {
@@ -101,6 +104,9 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
     profile.monthly_income ? profile.monthly_income.toLocaleString('id-ID') : ''
   );
   const [timezone,       setTimezone]       = useState(profile.timezone ?? 'Asia/Jakarta');
+  const [notifyWeekly,   setNotifyWeekly]   = useState(profile.notify_weekly ?? true);
+  const [notifyMonthly,  setNotifyMonthly]  = useState(profile.notify_monthly ?? true);
+  const [notifyAi,       setNotifyAi]       = useState(profile.notify_ai ?? true);
   const [savingProfile,  setSavingProfile]  = useState(false);
 
   // ── Category state ────────────────────────────────────────────────────────
@@ -176,6 +182,9 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
       display_name: displayName.trim() || null,
       monthly_income: monthlyIncome || null,
       timezone,
+      notify_weekly: notifyWeekly,
+      notify_monthly: notifyMonthly,
+      notify_ai: notifyAi,
       updated_at: new Date().toISOString(),
     }).eq('id', profile.id);
     setSavingProfile(false);
@@ -336,6 +345,44 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
           </Field>
         </div>
         <button onClick={changePassword} disabled={savingPass || !newPassword || newPassword !== confirmPass} style={{ padding: '10px 20px', background: !newPassword || newPassword !== confirmPass ? 'var(--bg-secondary)' : '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>Ubah Password</button>
+      </Section>
+
+      <Section title="Notifikasi Telegram" subtitle="Aktifkan laporan otomatis ke akun Telegram">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {[
+            { label: 'Laporan Mingguan', sub: 'Ringkasan performa setiap Sabtu pagi', value: notifyWeekly, set: setNotifyWeekly },
+            { label: 'Laporan Bulanan', sub: 'Tinjauan mendalam setiap tanggal 1', value: notifyMonthly, set: setNotifyMonthly },
+            { label: 'Vonis Strategis AI', sub: 'Insight tajam tentang pola belanja Anda', value: notifyAi, set: setNotifyAi },
+          ].map(opt => (
+            <div key={opt.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)' }}>{opt.label}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{opt.sub}</div>
+              </div>
+              <div 
+                onClick={() => opt.set(!opt.value)}
+                style={{
+                  width: '44px', height: '24px', borderRadius: '12px',
+                  background: opt.value ? 'var(--accent-primary)' : 'var(--bg-secondary)',
+                  border: `1px solid ${opt.value ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+                  position: 'relative', cursor: 'pointer', transition: 'all 0.2s'
+                }}
+              >
+                <div style={{
+                  position: 'absolute', top: '2px', left: opt.value ? '22px' : '2px',
+                  width: '18px', height: '18px', borderRadius: '50%',
+                  background: '#fff', transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                }} />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: '20px', padding: '12px', background: 'rgba(37,99,235,0.05)', borderRadius: '10px', border: '1px dashed var(--accent-primary)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-primary)', fontSize: '12px', fontWeight: '700' }}>
+             🆔 Telegram ID: {profile.telegram_chat_id || 'Belum Terhubung'}
+          </div>
+        </div>
+        <button onClick={saveProfile} disabled={savingProfile} style={{ marginTop:'20px', padding: '10px 20px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>Simpan Pengaturan Notifikasi</button>
       </Section>
 
       {/* ── GROUP 2: APLIKASI & DATA ─────────────────────────────────── */}

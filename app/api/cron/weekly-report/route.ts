@@ -287,7 +287,8 @@ export async function GET(request: Request) {
     .from('users')
     .select('id, telegram_chat_id, display_name')
     .not('telegram_chat_id', 'is', null)
-    .not('onboarded_at', 'is', null); // hanya user yang sudah selesai onboarding
+    .not('onboarded_at', 'is', null)
+    .eq('notify_weekly', true); // Hanya kirim jika user mengaktifkan
 
   if (error) {
     console.error('[CRON] Failed to fetch users:', error.message);

@@ -3,14 +3,22 @@
 
 import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { 
+  LayoutDashboard, 
+  ArrowUpDown, 
+  Target, 
+  BarChart3, 
+  GraduationCap, 
+  Settings 
+} from 'lucide-react';
 
 const NAV = [
-  { href: '/dashboard',              icon: '◉', label: 'Overview'  },
-  { href: '/dashboard/transactions', icon: '↕', label: 'Transaksi' },
-  { href: '/dashboard/goals',        icon: '◎', label: 'Goals'     },
-  { href: '/dashboard/analytics',    icon: '📊', label: 'Analitik' },
-  { href: '/dashboard/academy',      icon: '📚', label: 'Akademi'  },
-  { href: '/dashboard/settings',     icon: '◌', label: 'Lainnya'   },
+  { href: '/dashboard',              icon: <LayoutDashboard size={20} />, label: 'Overview'  },
+  { href: '/dashboard/transactions', icon: <ArrowUpDown size={20} />,      label: 'Transaksi' },
+  { href: '/dashboard/goals',        icon: <Target size={20} />,           label: 'Goals'     },
+  { href: '/dashboard/analytics',    icon: <BarChart3 size={20} />,        label: 'Analitik'  },
+  { href: '/dashboard/academy',      icon: <GraduationCap size={20} />,    label: 'Akademi'   },
+  { href: '/dashboard/settings',     icon: <Settings size={20} />,         label: 'Lainnya'   },
 ];
 
 export default function BottomNav() {
@@ -87,7 +95,7 @@ export default function BottomNav() {
                   background: 'var(--accent-primary)',
                 }} />
               )}
-              <span style={{ fontSize: '20px', lineHeight: 1 }}>{item.icon}</span>
+              <span style={{ height: '20px', display: 'flex', alignItems: 'center' }}>{item.icon}</span>
               <span style={{
                 fontSize: '10px',
                 fontWeight: active ? '600' : '400',
