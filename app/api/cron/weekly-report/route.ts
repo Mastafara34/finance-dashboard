@@ -164,16 +164,17 @@ async function generateAndSendReport(user: {
     let aiInsight = '';
     if (txs.length >= 3) {
       try {
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
-        const prompt = `Kamu adalah financial advisor yang berbicara dalam Bahasa Indonesia informal tapi profesional.
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+        const prompt = `Kamu adalah financial advisor yang berbicara dalam Bahasa Indonesia informal tapi profesional. 
+Saran kamu fokus hanya pada angka dan pola belanja agar user tidak 'miss' polanya.
 Berdasarkan data keuangan minggu ini:
 - Total pengeluaran: ${fmt(weekExpense)}
 - Total pemasukan: ${fmt(weekIncome)}
 - Kategori terbesar: ${topCats.map(([c, a]) => `${c} (${fmt(a)})`).join(', ') || 'tidak ada'}
 ${prevExpense > 0 ? `- Pengeluaran minggu lalu: ${fmt(prevExpense)}` : ''}
 
-Berikan SATU kalimat insight yang spesifik, actionable, dan tidak generik. 
-Maksimal 100 karakter. Tanpa emoji. Tanpa tanda petik.`;
+Berikan SATU kalimat insight yang sangat spesifik tentang POLA belanja, actionable, dan tidak generik. 
+Maksimal 120 karakter. Tanpa emoji. Tanpa tanda petik.`;
 
         const geminiRes = await fetch(geminiUrl, {
           method: 'POST',
@@ -246,7 +247,7 @@ Maksimal 100 karakter. Tanpa emoji. Tanpa tanda petik.`;
 
     // AI Insight
     if (aiInsight) {
-      msg += `\n💡 *Insight minggu ini:*\n`;
+      msg += `\n💡 *Insight pola minggu ini:*\n`;
       msg += `_${aiInsight}_\n`;
     }
 
