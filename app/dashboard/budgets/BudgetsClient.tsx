@@ -634,8 +634,10 @@ export default function BudgetsClient({
       {/* Alerts */}
       {overBudget.length > 0 && (
         <div style={{
-          padding: '12px 16px', background: '#2d0f0f', border: '1px solid #7f1d1d',
-          borderRadius: '10px', marginBottom: '12px', fontSize: '13px', color: '#f87171',
+          padding: '12px 16px',
+          background: 'rgba(239, 68, 68, 0.08)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          borderRadius: '10px', marginBottom: '12px', fontSize: '13px', color: '#ef4444',
           display: 'flex', alignItems: 'center', gap: '8px',
         }}>
           🚨 {overBudget.length} kategori melebihi budget:{' '}
@@ -644,8 +646,10 @@ export default function BudgetsClient({
       )}
       {nearLimit.length > 0 && (
         <div style={{
-          padding: '12px 16px', background: '#1a1000', border: '1px solid #3d2a00',
-          borderRadius: '10px', marginBottom: '12px', fontSize: '13px', color: '#fbbf24',
+          padding: '12px 16px',
+          background: 'rgba(245, 158, 11, 0.08)',
+          border: '1px solid rgba(245, 158, 11, 0.3)',
+          borderRadius: '10px', marginBottom: '12px', fontSize: '13px', color: '#d97706',
           display: 'flex', alignItems: 'center', gap: '8px',
         }}>
           ⚠️ {nearLimit.length} kategori hampir habis:{' '}
@@ -664,7 +668,10 @@ export default function BudgetsClient({
               Total Budget {monthLabel}
             </span>
             <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)' }}>
-              {fmt(totalSpent)} <span style={{ color: 'var(--border-color)', fontWeight: '400' }}>/ {fmt(totalLimit)}</span>
+              {fmt(totalSpent)}{' '}
+              <span style={{ color: 'var(--text-muted)', fontWeight: '400', fontSize: '13px' }}>
+                / {fmt(totalLimit)}
+              </span>
             </span>
           </div>
           <div style={{ height: '8px', background: 'var(--bg-secondary)', borderRadius: '99px', overflow: 'hidden' }}>
