@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { createAuthUser, updateAuthUser } from './actions';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Role = 'owner' | 'admin' | 'user' | 'readonly';
@@ -71,12 +72,13 @@ function RoleSelector({ value, onChange }: { value: Role; onChange: (r: Role) =>
 
 // ─── Add User Modal ───────────────────────────────────────────────────────────
 function AddUserModal({ onSave, onClose }: {
-  onSave: (chatId: number | null, displayName: string, email: string, role: Role) => Promise<void>;
+  onSave: (chatId: number | null, displayName: string, email: string, role: Role, password?: string) => Promise<void>;
   onClose: () => void;
 }) {
   const [chatId,      setChatId]      = useState('');
   const [displayName, setDisplayName] = useState('');
   const [email,       setEmail]       = useState('');
+  const [password,    setPassword]    = useState('');
   const [role,        setRole]        = useState<Role>('user');
   const [saving,      setSaving]      = useState(false);
   const [error,       setError]       = useState('');
@@ -92,7 +94,7 @@ function AddUserModal({ onSave, onClose }: {
 
     setSaving(true); setError('');
     try {
-      await onSave(numId, displayName.trim(), email.trim(), role);
+      await onSave(numId, displayName.trim(), email.trim(), role, password.trim());
     } catch (err: any) {
       setError(err.message);
       setSaving(false);
@@ -145,6 +147,23 @@ function AddUserModal({ onSave, onClose }: {
               Wajib jika user ingin akses dashboard via web
             </div>
           </div>
+
+          {/* Password (if email provided) */}
+          {email.trim() && (
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500', marginBottom: '6px' }}>
+                Password Dashboard
+              </label>
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+                placeholder="Minimal 6 karakter"
+                style={inpStyle}
+                onFocus={e => e.target.style.borderColor = '#2563eb'}
+                onBlur={e  => e.target.style.borderColor = '#2a2a3a'} />
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                Password awal untuk user ini login di web
+              </div>
+            </div>
+          )}
 
           {/* Chat ID */}
           <div style={{ marginBottom: '14px' }}>
@@ -199,11 +218,12 @@ function AddUserModal({ onSave, onClose }: {
 // ─── Edit User Modal ──────────────────────────────────────────────────────────
 function EditUserModal({ user, onSave, onClose }: {
   user: UserRow;
-  onSave: (userId: string, data: { display_name: string; email: string; telegram_chat_id: number | null; role: Role }) => Promise<void>;
+  onSave: (userId: string, data: { display_name: string; email: string; telegram_chat_id: number | null; role: Role; password?: string }) => Promise<void>;
   onClose: () => void;
 }) {
   const [displayName, setDisplayName] = useState(user.display_name ?? '');
   const [email,       setEmail]       = useState(user.email ?? '');
+  const [password,    setPassword]    = useState('');
   const [chatId,      setChatId]      = useState(user.telegram_chat_id?.toString() ?? '');
   const [role,        setRole]        = useState<Role>(user.role);
   const [saving,      setSaving]      = useState(false);
@@ -224,6 +244,7 @@ function EditUserModal({ user, onSave, onClose }: {
         email: email.trim(),
         telegram_chat_id: numId,
         role,
+        password: password.trim() || undefined,
       });
     } catch (err: any) {
       setError(err.message);
@@ -274,17 +295,21 @@ function EditUserModal({ user, onSave, onClose }: {
               onBlur={e  => e.target.style.borderColor = '#2a2a3a'} />
           </div>
 
-          {/* Chat ID */}
-          <div style={{ marginBottom: '14px' }}>
-            <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', fontWeight: '500', marginBottom: '6px' }}>
-              Telegram Chat ID
-            </label>
-            <input type="text" inputMode="numeric" value={chatId}
-              onChange={e => setChatId(e.target.value.replace(/[^0-9]/g, ''))}
-              placeholder="cth: 123456789" style={inpStyle}
-              onFocus={e => e.target.style.borderColor = '#2563eb'}
-              onBlur={e  => e.target.style.borderColor = '#2a2a3a'} />
-          </div>
+          {/* Password (optional update) */}
+          {email.trim() && (
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', fontWeight: '500', marginBottom: '6px' }}>
+                Reset Password
+              </label>
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+                placeholder="Isi jika ingin ganti password" style={inpStyle}
+                onFocus={e => e.target.style.borderColor = '#2563eb'}
+                onBlur={e  => e.target.style.borderColor = '#2a2a3a'} />
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                Kosongkan jika tidak ingin mengubah password
+              </div>
+            </div>
+          )}
 
           {/* Role — tidak bisa set ke owner */}
           {user.role !== 'owner' && (
@@ -342,7 +367,7 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
   }
 
   // ── Add user ──────────────────────────────────────────────────────────────
-  async function handleAddUser(chatId: number | null, displayName: string, email: string, role: Role) {
+  async function handleAddUser(chatId: number | null, displayName: string, email: string, role: Role, password?: string) {
     if (chatId) {
       const existing = userList.find(u => u.telegram_chat_id === chatId);
       if (existing) throw new Error(`Chat ID ${chatId} sudah terdaftar sebagai "${existing.display_name}"`);
@@ -352,9 +377,17 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
       if (existing) throw new Error(`Email ${email} sudah terdaftar sebagai "${existing.display_name}"`);
     }
 
+    let authUserId: string | null = null;
+    if (email && password) {
+       const res = await createAuthUser(email, password);
+       if (res.error) throw new Error('Gagal membuat Auth user: ' + res.error);
+       authUserId = res.data?.id || null;
+    }
+
     const { data: newUser, error: userErr } = await supabase
       .from('users')
       .insert([{
+        id: authUserId || undefined, // Gunakan ID auth jika dibuat
         telegram_chat_id: chatId,
         display_name: displayName,
         email: email || null,
@@ -364,7 +397,7 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
       .select()
       .single();
 
-    if (userErr) throw new Error('Gagal tambah user: ' + userErr.message);
+    if (userErr) throw new Error('Gagal tambah ke tabel users: ' + userErr.message);
 
     // Jika ada chat ID, tambahkan ke whitelist
     if (chatId) {
@@ -378,11 +411,11 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
 
     setUserList(prev => [...prev, newUser as unknown as UserRow]);
     setShowAdd(false);
-    showToast(`User "${displayName}" berhasil ditambahkan`);
+    showToast(`User "${displayName}" berhasil ditambahkan` + (authUserId ? ' & Auth account created' : ''));
   }
 
   // ── Edit user ─────────────────────────────────────────────────────────────
-  async function handleEditUser(userId: string, data: { display_name: string; email: string; telegram_chat_id: number | null; role: Role }) {
+  async function handleEditUser(userId: string, data: { display_name: string; email: string; telegram_chat_id: number | null; role: Role; password?: string }) {
     setUpdatingId(userId);
     const target = userList.find(u => u.id === userId);
     if (!target) return;
@@ -391,6 +424,12 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
     if (data.email) {
       const conflict = userList.find(u => u.id !== userId && u.email?.toLowerCase() === data.email.toLowerCase());
       if (conflict) throw new Error(`Email ${data.email} sudah dipakai "${conflict.display_name}"`);
+    }
+
+    // Update Auth user if password provided
+    if (data.password) {
+      const res = await updateAuthUser(userId, { password: data.password });
+      if (res.error) { showToast('Gagal update Auth password: ' + res.error, false); setUpdatingId(null); return; }
     }
 
     const { error: userErr } = await supabase
@@ -403,7 +442,7 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
       })
       .eq('id', userId);
 
-    if (userErr) { showToast('Gagal edit user: ' + userErr.message, false); setUpdatingId(null); return; }
+    if (userErr) { showToast('Gagal edit tabel users: ' + userErr.message, false); setUpdatingId(null); return; }
 
     // Sync whitelist jika chat id berubah atau ada
     const newChatId = data.telegram_chat_id;
@@ -434,7 +473,7 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
 
     setUpdatingId(null);
     setEditingUser(null);
-    showToast(`"${data.display_name}" berhasil diperbarui`);
+    showToast(`"${data.display_name}" diperbarui` + (data.password ? ' & password diubah' : ''));
   }
 
   // ── Toggle bot access ─────────────────────────────────────────────────────

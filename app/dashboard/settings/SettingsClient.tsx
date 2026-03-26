@@ -371,8 +371,49 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
           {savingProfile ? 'Menyimpan...' : 'Simpan Profil'}
         </button>
       </Section>
+ 
+      {/* ── 2. Keamanan (Password) ────────────────────────────────────────── */}
+      <Section title="Keamanan" subtitle="Ubah password akun kamu">
+        <Field label="Password baru">
+          <input type="password" value={newPassword}
+            onChange={e => setNewPassword(e.target.value)}
+            placeholder="Minimal 6 karakter"
+            style={inputStyle}
+            onFocus={e => e.target.style.borderColor = '#2563eb'}
+            onBlur={e  => e.target.style.borderColor = '#2a2a3a'}
+          />
+        </Field>
+        <Field label="Konfirmasi password">
+          <input type="password" value={confirmPass}
+            onChange={e => setConfirmPass(e.target.value)}
+            placeholder="Ulangi password baru"
+            style={inputStyle}
+            onFocus={e => e.target.style.borderColor = '#2563eb'}
+            onBlur={e  => e.target.style.borderColor = '#2a2a3a'}
+          />
+        </Field>
+        {newPassword && confirmPass && newPassword !== confirmPass && (
+          <div style={{ fontSize: '12px', color: '#f87171', marginBottom: '10px' }}>
+            Password tidak cocok
+          </div>
+        )}
+        <button
+          onClick={changePassword}
+          disabled={savingPass || !newPassword || newPassword !== confirmPass}
+          style={{
+            padding: '10px 24px', border: 'none', borderRadius: '9px',
+            color: '#fff', fontSize: '13px', fontWeight: '600',
+            background: savingPass || !newPassword || newPassword !== confirmPass
+              ? '#1f1f2e' : '#2563eb',
+            cursor: savingPass || !newPassword || newPassword !== confirmPass
+              ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {savingPass ? 'Menyimpan...' : 'Ubah Password'}
+        </button>
+      </Section>
 
-      {/* ── 2. Tampilan ───────────────────────────────────────────────────── */}
+      {/* ── 3. Tampilan ───────────────────────────────────────────────────── */}
       <Section title="Tampilan" subtitle="Pilih tema aplikasi">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
           <div 
@@ -495,32 +536,56 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
       {/* ── 3. Kategori ───────────────────────────────────────────────────── */}
       <Section
         title="Manajemen Kategori"
-        subtitle="Tambah dan kelola kategori transaksi kustom"
+        subtitle="Personalisasi kategori transaksi kamu"
       >
-        {/* Tab */}
-        <div style={{ display: 'flex', gap: '4px', marginBottom: '16px' }}>
+        {/* Modern Segmented Tab */}
+        <div style={{ 
+          display: 'flex', 
+          background: 'var(--bg-secondary)', 
+          padding: '4px', 
+          borderRadius: '12px', 
+          marginBottom: '20px',
+          border: '1px solid var(--border-color)'
+        }}>
           {(['expense', 'income'] as const).map(t => (
             <button key={t} onClick={() => setCatTab(t)} style={{
-              padding: '7px 16px', borderRadius: '99px', border: '1px solid',
-              fontSize: '12px', cursor: 'pointer', fontWeight: '500',
-              borderColor: catTab === t ? '#2563eb' : '#2a2a3a',
-              background: catTab === t ? '#0c1f3a' : 'transparent',
-              color: catTab === t ? '#60a5fa' : '#6b7280',
+              flex: 1,
+              padding: '8px 12px', borderRadius: '8px', border: 'none',
+              fontSize: '13px', cursor: 'pointer', fontWeight: '600',
+              transition: 'all 0.2s',
+              background: catTab === t ? 'var(--card-bg)' : 'transparent',
+              color: catTab === t ? 'var(--accent-primary)' : 'var(--text-muted)',
+              boxShadow: catTab === t ? 'var(--card-shadow)' : 'none',
             }}>
-              {t === 'expense' ? '🔴 Pengeluaran' : '💚 Pemasukan'}
-              <span style={{ marginLeft: '6px', fontSize: '11px', opacity: .7 }}>
+              {t === 'expense' ? '💸 Pengeluaran' : '💰 Pemasukan'}
+              <span style={{ 
+                marginLeft: '8px', 
+                fontSize: '11px', 
+                opacity: 0.6,
+                background: catTab === t ? 'rgba(37, 99, 235, 0.1)' : 'transparent',
+                padding: '2px 6px',
+                borderRadius: '6px'
+              }}>
                 {cats.filter(c => c.type === t).length}
               </span>
             </button>
           ))}
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            {catTab === 'expense' ? 'Daftar Pengeluaran' : 'Daftar Pemasukan'}
+          </div>
           <button onClick={openNewCat} style={{
-            marginLeft: 'auto', padding: '7px 14px',
-            background: '#2563eb', border: 'none', borderRadius: '99px',
-            color: '#fff', fontSize: '12px', fontWeight: '600', cursor: 'pointer',
+            padding: '6px 12px',
+            background: 'rgba(37, 99, 235, 0.1)', border: '1px solid rgba(37, 99, 235, 0.3)', 
+            borderRadius: '8px',
+            color: '#3b82f6', fontSize: '12px', fontWeight: '700', cursor: 'pointer',
+            transition: 'all 0.2s'
           }}
-            onMouseEnter={e => (e.currentTarget).style.background = '#1d4ed8'}
-            onMouseLeave={e => (e.currentTarget).style.background = '#2563eb'}
-          >+ Tambah</button>
+            onMouseEnter={e => (e.currentTarget).style.background = 'rgba(37, 99, 235, 0.2)'}
+            onMouseLeave={e => (e.currentTarget).style.background = 'rgba(37, 99, 235, 0.1)'}
+          >+ Baru</button>
         </div>
 
         {/* Category form inline */}
@@ -624,112 +689,96 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
           </div>
         )}
 
-        {/* User categories */}
-        {userCats.length > 0 && (
-          <div style={{ marginBottom: '16px' }}>
-            <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: '500',
-              marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '.05em' }}>
-              Kategori kustom kamu ({userCats.length})
-            </div>
-            {userCats.map(cat => (
-              <div key={cat.id} style={{
-                display: 'flex', alignItems: 'center', gap: '12px',
-                padding: '10px 12px', borderRadius: '8px',
-                border: '1px solid var(--border-color)', marginBottom: '6px',
-                background: 'var(--card-bg)',
+        {/* Category Grid */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', 
+          gap: '12px',
+          marginBottom: '20px'
+        }}>
+          {userCats.map(cat => (
+            <div key={cat.id} style={{
+              position: 'relative',
+              background: 'var(--card-bg)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '16px',
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              gap: '10px',
+              transition: 'all 0.2s',
+              cursor: 'default',
+              boxShadow: 'var(--card-shadow)'
+            }}>
+              <div style={{ 
+                width: '48px', height: '48px', borderRadius: '14px',
+                background: cat.color + '15', border: `1px solid ${cat.color}33`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '24px'
               }}>
-                <span style={{ fontSize: '18px' }}>{cat.icon}</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '13px', fontWeight: '500' }}>{cat.name}</div>
-                </div>
-                <div style={{ width: '12px', height: '12px', borderRadius: '99px',
-                  background: cat.color, flexShrink: 0 }}/>
-                <button onClick={() => openEditCat(cat)} style={{
-                  padding: '4px 10px', background: 'transparent',
-                  border: '1px solid var(--border-color)', borderRadius: '6px',
-                  color: 'var(--text-muted)', fontSize: '11px', cursor: 'pointer',
-                }}
-                  onMouseEnter={e => { (e.currentTarget).style.borderColor = 'var(--accent-primary)'; (e.currentTarget).style.color = 'var(--accent-primary)'; }}
-                  onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; }}
-                >Edit</button>
-                <button onClick={() => setDeletingCat(cat)} style={{
-                  padding: '4px 8px', background: 'transparent',
-                  border: '1px solid var(--border-color)', borderRadius: '6px',
-                  color: 'var(--text-muted)', fontSize: '11px', cursor: 'pointer',
-                }}
-                  onMouseEnter={e => { (e.currentTarget).style.borderColor = '#b91c1c'; (e.currentTarget).style.color = '#b91c1c'; }}
-                  onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; }}
-                >✕</button>
+                {cat.icon}
               </div>
-            ))}
+              <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {cat.name}
+              </div>
+              
+              <div style={{ display: 'flex', gap: '6px', width: '100%', marginTop: '4px' }}>
+                <button onClick={() => openEditCat(cat)} style={{
+                  flex: 1, padding: '6px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', 
+                  borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)'
+                }}>Edit</button>
+                <button onClick={() => setDeletingCat(cat)} style={{
+                  aspectRatio: '1', padding: '6px', background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.1)', 
+                  borderRadius: '8px', cursor: 'pointer', color: '#ef4444'
+                }}>✕</button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {userCats.length === 0 && (
+          <div style={{ 
+            textAlign: 'center', padding: '32px 0', color: 'var(--text-muted)', fontSize: '13px',
+            background: 'var(--bg-secondary)', borderRadius: '16px', marginBottom: '20px', border: '1px dashed var(--border-color)'
+          }}>
+            Belum ada kategori kustom.
           </div>
         )}
 
-        {/* System categories - collapsed */}
-        <details style={{ cursor: 'pointer' }}>
+        {/* System categories - Modern list */}
+        <details className="system-cats-details" style={{ cursor: 'pointer' }}>
           <summary style={{
-            fontSize: '12px', color: '#6b7280', fontWeight: '500',
-            padding: '8px 0', userSelect: 'none', listStyle: 'none',
-            display: 'flex', alignItems: 'center', gap: '6px',
+            fontSize: '12px', color: 'var(--text-muted)', fontWeight: '700',
+            padding: '12px 0', userSelect: 'none', listStyle: 'none',
+            display: 'flex', alignItems: 'center', gap: '8px',
+            textTransform: 'uppercase', letterSpacing: '0.05em'
           }}>
-            <span style={{ fontSize: '10px' }}>▶</span>
-            Kategori sistem ({systemCats.length}) — tidak bisa dihapus
+            <span style={{ fontSize: '10px', transition: 'transform 0.2s' }}>▶</span>
+            Kategori Bawaan ({systemCats.length})
           </summary>
-          <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          <div style={{ 
+            marginTop: '12px', 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', 
+            gap: '8px' 
+          }}>
             {systemCats.map(cat => (
               <div key={cat.id} style={{
-                display: 'inline-flex', alignItems: 'center', gap: '6px',
-                padding: '5px 10px', borderRadius: '99px',
-                background: 'var(--bg-secondary)', fontSize: '12px', color: '#9ca3af',
+                display: 'flex', alignItems: 'center', gap: '10px',
+                padding: '8px 12px', borderRadius: '10px',
+                background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+                fontSize: '12px', color: 'var(--text-muted)', opacity: 0.8
               }}>
-                <span>{cat.icon}</span>
-                <span>{cat.name}</span>
+                <span style={{ fontSize: '16px' }}>{cat.icon}</span>
+                <span style={{ fontWeight: '500' }}>{cat.name}</span>
               </div>
             ))}
           </div>
         </details>
       </Section>
 
-      {/* ── 4. Keamanan ───────────────────────────────────────────────────── */}
-      <Section title="Keamanan" subtitle="Ubah password akun">
-        <Field label="Password baru">
-          <input type="password" value={newPassword}
-            onChange={e => setNewPassword(e.target.value)}
-            placeholder="Minimal 6 karakter"
-            style={inputStyle}
-            onFocus={e => e.target.style.borderColor = '#2563eb'}
-            onBlur={e  => e.target.style.borderColor = '#2a2a3a'}
-          />
-        </Field>
-        <Field label="Konfirmasi password">
-          <input type="password" value={confirmPass}
-            onChange={e => setConfirmPass(e.target.value)}
-            placeholder="Ulangi password baru"
-            style={inputStyle}
-            onFocus={e => e.target.style.borderColor = '#2563eb'}
-            onBlur={e  => e.target.style.borderColor = '#2a2a3a'}
-          />
-        </Field>
-        {newPassword && confirmPass && newPassword !== confirmPass && (
-          <div style={{ fontSize: '12px', color: '#f87171', marginBottom: '10px' }}>
-            Password tidak cocok
-          </div>
-        )}
-        <button
-          onClick={changePassword}
-          disabled={savingPass || !newPassword || newPassword !== confirmPass}
-          style={{
-            padding: '10px 24px', border: 'none', borderRadius: '9px',
-            color: '#fff', fontSize: '13px', fontWeight: '600',
-            background: savingPass || !newPassword || newPassword !== confirmPass
-              ? '#1f1f2e' : '#2563eb',
-            cursor: savingPass || !newPassword || newPassword !== confirmPass
-              ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {savingPass ? 'Menyimpan...' : 'Ubah Password'}
-        </button>
-      </Section>
 
       {/* ── 5. Danger zone ────────────────────────────────────────────────── */}
       <div style={{
