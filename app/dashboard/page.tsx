@@ -86,13 +86,30 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const olderMonthEnd = new Date(now.getFullYear(), now.getMonth() - 1, 0).toISOString().split('T')[0];
   const last30Start = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
 
-  // 4. BIG CONSOLIDATED FETCH
+  // 4. PRE-FETCH AUTHORIZED USERS (for owner)
+  let allUsers: { id: string; display_name: string | null }[] = [];
+  if (isOwner) {
+    const { data } = await supabase
+      .from('users')
+      .select('id, display_name')
+      .or('email.is.null,email.neq.demo@fintrack.app')
+      .order('display_name');
+    allUsers = data ?? [];
+  }
+
+  // 5. BIG CONSOLIDATED FETCH
   // Mengurangi roundtrip dari 9+ menjadi 1 roundtrip paralel
-  const [yearResult, goals, assets, history, usersResult, demoFetch] = await Promise.all([
+  const [yearResult, goals, assets, history, demoFetch] = await Promise.all([
     // YEAR DATA: Mengambil modal data tahunan sebagai basis semua filter memori
     (() => {
       let q = supabase.from('transactions').select('amount, type, date, user_id, categories(name)').eq('is_deleted', false).gte('date', yearStart);
-      if (!isCollective) q = q.eq('user_id', viewUserId);
+      if (isCollective) {
+        // PERBAIKAN BUG A: Scope query ke user keluarga saja
+        const userIds = allUsers.map(u => u.id);
+        if (userIds.length > 0) q = q.in('user_id', userIds);
+      } else {
+        q = q.eq('user_id', viewUserId);
+      }
       return q;
     })(),
     // Goals
@@ -113,25 +130,22 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       if (!isCollective) q = q.eq('user_id', viewUserId);
       return q;
     })(),
-    // Users for Owner
-    isOwner ? supabase.from('users').select('id, display_name').or('email.is.null,email.neq.demo@fintrack.app').order('display_name') : Promise.resolve({ data: [] }),
     // Fetch demo account ID to filter out in collective view (if not known)
     supabase.from('users').select('id').eq('email', 'demo@fintrack.app').maybeSingle()
   ]);
 
   const demoId = demoFetch.data?.id;
-  const rawYearTxs = (yearResult.data ?? []) as any[];
+  const yearTxs = (yearResult.data ?? []) as any[];
   
-  // Memori filter: Jauh lebih cepat daripada 5 query terpisah ke database
-  const yearTxs = (isCollective && demoId) ? rawYearTxs.filter(t => t.user_id !== demoId) : rawYearTxs;
-  const txs      = yearTxs.filter(t => t.date >= monthStart) as unknown as Transaction[];
-  const prevTxs  = yearTxs.filter(t => t.date >= prevMonthStart && t.date <= prevMonthEnd) as unknown as Transaction[];
-  const olderTxs = yearTxs.filter(t => t.date >= olderMonthStart && t.date <= olderMonthEnd) as unknown as Transaction[];
-  const last30   = yearTxs.filter(t => t.date >= last30Start) as unknown as Transaction[];
+  // Memori filter: demo ID tetap difilter untuk kebersihan data
+  const filteredYearTxs = (isCollective && demoId) ? yearTxs.filter(t => t.user_id !== demoId) : yearTxs;
+  const txs      = filteredYearTxs.filter(t => t.date >= monthStart) as unknown as Transaction[];
+  const prevTxs  = filteredYearTxs.filter(t => t.date >= prevMonthStart && t.date <= prevMonthEnd) as unknown as Transaction[];
+  const olderTxs = filteredYearTxs.filter(t => t.date >= olderMonthStart && t.date <= olderMonthEnd) as unknown as Transaction[];
+  const last30   = filteredYearTxs.filter(t => t.date >= last30Start) as unknown as Transaction[];
   const goalList = (goals.data ?? []) as Goal[];
   const assetList = (assets.data ?? []) as Asset[];
   const nwHistory = (history.data ?? []) as { date: string; net_worth: number }[];
-  const allUsers  = (usersResult?.data ?? []) as any[];
 
   // Basic Totals
   const income   = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);

@@ -3,7 +3,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 interface Category { id: string; name: string; icon: string; type: string }
@@ -16,6 +16,9 @@ interface Props {
 export default function QuickAdd({ userId, categories }: Props) {
   const supabase = createClient();
   const router    = useRouter();
+  const searchParams = useSearchParams();
+  const uParam = searchParams.get('u');
+  const targetUserId = (uParam && uParam !== 'all') ? uParam : userId;
 
   const [open,    setOpen]    = useState(false);
   const [type,    setType]    = useState<'expense'|'income'>('expense');
@@ -56,7 +59,7 @@ export default function QuickAdd({ userId, categories }: Props) {
     }
 
     const { error } = await supabase.from('transactions').insert([{
-      user_id:     userId,
+      user_id:     targetUserId,
       category_id: finalCatId,
       type,
       amount,

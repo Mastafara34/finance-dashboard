@@ -23,34 +23,61 @@ export default async function BudgetsPage({ searchParams }: { searchParams: Prom
   const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const prevMonthStr = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;
 
-  // CONSOLIDATED FETCH
-  const [budgetsRes, prevBudgetsRes, transactionsRes, categoriesRes, targetsRes, demoRes, usersRes] = await Promise.all([
-    // 1. Current Budgets
+  // ── 1. Fetch Authorized Users (Owner privilege) ───────────────────────────
+  let allUsers: { id: string; display_name: string | null }[] = [];
+  if (isOwner) {
+    const { data } = await supabase
+      .from('users')
+      .select('id, display_name')
+      .or('email.is.null,email.neq.demo@fintrack.app')
+      .order('display_name');
+    allUsers = data ?? [];
+  }
+
+  // ── 2. Consolidated Fetch ───────────────────────────────────────────
+  const [budgetsRes, prevBudgetsRes, transactionsRes, categoriesRes, targetsRes, demoRes] = await Promise.all([
+    // A. Current Budgets
     (() => {
       let q = supabase.from('monthly_budgets').select('id, limit_amount, month, user_id, categories(id, name, icon, type)').eq('month', month);
-      if (!isCollective) q = q.eq('user_id', viewUserId);
+      if (isCollective) {
+        const userIds = allUsers.map(u => u.id);
+        if (userIds.length > 0) q = q.in('user_id', userIds);
+        else q = q.eq('user_id', 'none');
+      } else {
+        q = q.eq('user_id', viewUserId);
+      }
       return q;
     })(),
-    // 2. Previous Budgets
+    // B. Previous Budgets
     (() => {
       let q = supabase.from('monthly_budgets').select('limit_amount, category_id, user_id').eq('month', prevMonthStr);
-      if (!isCollective) q = q.eq('user_id', viewUserId);
+      if (isCollective) {
+        const userIds = allUsers.map(u => u.id);
+        if (userIds.length > 0) q = q.in('user_id', userIds);
+        else q = q.eq('user_id', 'none');
+      } else {
+        q = q.eq('user_id', viewUserId);
+      }
       return q;
     })(),
-    // 3. Transactions
+    // C. Transactions
     (() => {
       let q = supabase.from('transactions').select('amount, user_id, categories(id, name)').eq('type', 'expense').eq('is_deleted', false).gte('date', monthStart);
-      if (!isCollective) q = q.eq('user_id', viewUserId);
+      if (isCollective) {
+        const userIds = allUsers.map(u => u.id);
+        if (userIds.length > 0) q = q.in('user_id', userIds);
+        else q = q.eq('user_id', 'none');
+      } else {
+        q = q.eq('user_id', viewUserId);
+      }
       return q;
     })(),
-    // 4. Categories
+    // D. Categories
     supabase.from('categories').select('id, name, icon, type').eq('type', 'expense').or(`user_id.eq.${viewUserId},user_id.is.null`).order('sort_order', { ascending: true }),
-    // 5. User Targets (Cached profile handles this mostly but let's be sure for viewed user)
+    // E. User Targets 
     supabase.from('users').select('role, saving_target, wants_target, needs_target').eq('id', viewUserId).maybeSingle(),
-    // 6. Demo ID
+    // F. Demo ID
     supabase.from('users').select('id').eq('email', 'demo@fintrack.app').maybeSingle(),
-    // 7. All Users (for selector)
-    isOwner ? supabase.from('users').select('id, display_name').or('email.is.null,email.neq.demo@fintrack.app').order('display_name') : Promise.resolve({ data: [] })
   ]);
 
   const demoId = demoRes.data?.id;

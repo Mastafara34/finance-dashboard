@@ -50,10 +50,14 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
     .order('created_at', { ascending: false })
     .limit(200);
 
-  if (!isCollective) {
+  if (isCollective) {
+    const userIds = allUsers.map(u => u.id);
+    if (userIds.length > 0) query = query.in('user_id', userIds);
+    else query = query.eq('user_id', 'none'); 
+
+    if (demoId) query = query.neq('user_id', demoId);
+  } else {
     query = query.eq('user_id', viewUserId);
-  } else if (demoId) {
-    query = query.neq('user_id', demoId);
   }
 
   const { data: transactions } = await query;
