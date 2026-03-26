@@ -66,7 +66,6 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
     <div>
       <AnalyticsClient
         transactions={(transactions ?? []) as unknown as any[]}
-        profile={profile}
       />
     </div>
   );
