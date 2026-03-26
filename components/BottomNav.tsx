@@ -1,7 +1,7 @@
 // components/BottomNav.tsx
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 const NAV = [
@@ -14,6 +14,8 @@ const NAV = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const uParam = searchParams.get('u');
 
   return (
     <>
@@ -32,7 +34,7 @@ export default function BottomNav() {
             border-top: 1px solid var(--border-color);
             align-items: stretch;
             z-index: 100;
-            transition: background 0.3s, border-color 0.3s;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
           }
           .fintrack-bottom-spacer {
             display: block;
@@ -58,9 +60,10 @@ export default function BottomNav() {
             );
 
           const active = isActive || isLainnya;
+          const href = uParam ? `${item.href}?u=${uParam}` : item.href;
 
           return (
-            <Link key={item.href} href={item.href} style={{
+            <Link key={item.href} href={href} style={{
               flex: 1,
               display: 'flex',
               flexDirection: 'column',

@@ -401,7 +401,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <div style={{ fontSize: '14px', fontWeight: '800', color: '#d97706' }}>Rekomendasi Konsultan Finansial</div>
-              <a href="/dashboard/intelligence" style={{ fontSize: '12px', color: '#3b82f6', textDecoration: 'none', fontWeight: '600' }}>Lihat Detail →</a>
+              <a href={`/dashboard/intelligence${searchU ? `?u=${searchU}` : ''}`} style={{ fontSize: '12px', color: '#3b82f6', textDecoration: 'none', fontWeight: '600' }}>Lihat Detail →</a>
             </div>
             <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.6', fontWeight: '500' }}>
               {healthRecs.map((rec, i) => <li key={i} style={{ marginBottom: '4px' }}>{rec}</li>)}
@@ -546,7 +546,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
             <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)' }}>TRANSAKSI TERAKHIR</span>
-            <a href="/dashboard/transactions" style={{ fontSize: '12px', color: '#3b82f6', textDecoration: 'none', fontWeight: '600' }}>Semua →</a>
+            <a href={`/dashboard/transactions${searchU ? `?u=${searchU}` : ''}`} style={{ fontSize: '12px', color: '#3b82f6', textDecoration: 'none', fontWeight: '600' }}>Semua →</a>
           </div>
           {txs.length === 0 ? (
             <EmptyState message="Belum ada riwayat transaksi." icon="📄" />
@@ -619,7 +619,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
             <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)' }}>GOALS UTAMA</span>
-            <a href="/dashboard/goals" style={{ fontSize: '12px', color: '#3b82f6', textDecoration: 'none', fontWeight: '600' }}>Detail →</a>
+            <a href={`/dashboard/goals${searchU ? `?u=${searchU}` : ''}`} style={{ fontSize: '12px', color: '#3b82f6', textDecoration: 'none', fontWeight: '600' }}>Detail →</a>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {goalList.slice(0, 2).map(g => {
@@ -706,7 +706,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       </div>
 
       <div style={{ padding: '60px 20px', textAlign: 'center' }}>
-        <p style={{ color: 'var(--text-muted)', fontSize: '13px', fontWeight: '500' }}>Dashboard ini menggunakan algoritma finansial profesional. <a href="/dashboard/intelligence" style={{ color: '#3b82f6', fontWeight: '700', textDecoration: 'none' }}>Pelajari selengkapnya.</a></p>
+        <p style={{ color: 'var(--text-muted)', fontSize: '13px', fontWeight: '500' }}>Dashboard ini menggunakan algoritma finansial profesional. <a href={`/dashboard/intelligence${searchU ? `?u=${searchU}` : ''}`} style={{ color: '#3b82f6', fontWeight: '700', textDecoration: 'none' }}>Pelajari selengkapnya.</a></p>
       </div>
     </div>
   );
