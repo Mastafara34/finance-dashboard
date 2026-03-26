@@ -18,6 +18,8 @@ const fmtK = (n: number) => {
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
 const CAT_COLORS  = ['#2563eb','#6366f1','#8b5cf6','#a855f7','#ec4899','#f97316','#eab308','#22c55e','#14b8a6','#06b6d4'];
 
+// ── Components ───────────────────────────────────────────────────────────────
+
 function BarChart({ data, maxVal, showIncome, showExpense }: {
   data:{label:string;income:number;expense:number}[];
   maxVal:number; showIncome:boolean; showExpense:boolean;
@@ -61,8 +63,133 @@ function BarChart({ data, maxVal, showIncome, showExpense }: {
   );
 }
 
-export default function AnalyticsClient({ transactions }: { transactions: Transaction[] }) {
-  const [view,     setView]     = useState<'daily'|'monthly'|'yearly'>('monthly');
+function DailyTab({ dailyData, avgDaily }: { dailyData: any[], avgDaily: number }) {
+  return (
+    <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'12px', padding:'20px', boxShadow: 'var(--card-shadow)' }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'24px' }}>
+        <h3 style={{ fontSize:'15px', fontWeight:'700' }}>Detail Pengeluaran Harian (30 Hari)</h3>
+        <div style={{ padding: '6px 12px', background: 'var(--bg-secondary)', borderRadius: '8px', fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>
+          Avg: {fmt(avgDaily)} / hari
+        </div>
+      </div>
+      <div style={{ height: '240px', display: 'flex', alignItems: 'flex-end', gap: '4px', marginBottom: '40px' }}>
+        {dailyData.map((d, i) => {
+          const maxDaily = Math.max(...dailyData.map(x => x.expense), 1);
+          const h = (d.expense / maxDaily) * 200;
+          const isHigh = d.expense > (avgDaily * 1.5);
+          return (
+            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
+               <div style={{ fontSize: '9px', fontWeight: '700', color: isHigh ? '#ef4444' : 'var(--text-muted)', marginBottom: '4px' }}>
+                {d.expense > 0 ? fmtK(d.expense) : ''}
+              </div>
+              <div style={{ 
+                width: '100%', height: `${Math.max(h, d.expense > 0 ? 4 : 1)}px`, 
+                background: isHigh ? '#ef4444' : 'var(--accent-primary)', 
+                borderRadius: '4px 4px 0 0', opacity: d.expense > 0 ? 1 : 0.2,
+                transition: 'height 0.3s ease'
+              }} />
+              <div style={{ 
+                fontSize: '8px', color: 'var(--text-muted)', marginTop: '10px', 
+                transform: 'rotate(-45deg)', transformOrigin: 'top center', whiteSpace: 'nowrap' 
+              }}>
+                {d.label}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.05)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.1)', fontSize: '12px', color: 'var(--text-muted)' }}>
+        💡 <strong>Analisis Harian:</strong> Bar berwarna merah menunjukkan pengeluaran yang melebihi 150% dari rata-rata harian Anda.
+      </div>
+    </div>
+  );
+}
+
+function EvaluationTab({ transactions }: { transactions: Transaction[] }) {
+  const now = new Date();
+  const yearAgo = new Date(now.getFullYear(), now.getMonth() - 12, 1).toISOString();
+  const txs = transactions.filter(t => t.date >= yearAgo);
+  const totalExpenses = txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const avgMonthlyExpense = totalExpenses / 12 || 1;
+  const fiNumber = avgMonthlyExpense * 12 * 25;
+  const totalIncome = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const savingsRate = Math.round(((totalIncome - totalExpenses) / (totalIncome || 1)) * 100);
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+      <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'12px', padding:'24px', boxShadow: 'var(--card-shadow)' }}>
+        <h3 style={{ fontSize:'16px', fontWeight:'700', marginBottom:'20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>📈</span> Efisiensi Tabungan
+        </h3>
+        <div style={{ padding: '20px', background: 'var(--bg-secondary)', borderRadius: '12px', textAlign: 'center', marginBottom: '16px' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px', fontWeight: 'bold' }}>Rasio Tabungan Rata-rata</div>
+          <div style={{ fontSize: '32px', fontWeight: '900', color: savingsRate > 20 ? '#10b981' : '#f87171' }}>{savingsRate}%</div>
+        </div>
+        <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+          {savingsRate > 20 
+            ? "Rasio tabungan Anda sangat sehat! Anda membangun kekayaan dengan kecepatan tinggi." 
+            : "Rasio tabungan Anda di bawah standar ideal (20%). Pertimbangkan untuk meninjau kembali pengeluaran tersier."}
+        </p>
+      </div>
+      
+      <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'12px', padding:'24px', boxShadow: 'var(--card-shadow)' }}>
+        <h3 style={{ fontSize:'16px', fontWeight:'700', marginBottom:'20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>🚀</span> Target Kebebasan (FI)
+        </h3>
+        <div style={{ padding: '20px', border: '1px dashed var(--border-color)', borderRadius: '12px', marginBottom: '16px' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>MODAL PENSIUN DINI</div>
+          <div style={{ fontSize: '24px', fontWeight: '900', color: 'var(--text-main)', letterSpacing: '-0.5px' }}>{fmt(fiNumber)}</div>
+        </div>
+        <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+          Berdasarkan gaya hidup setahun terakhir ({fmt(avgMonthlyExpense)}/bln), ini adalah jumlah aset yang Anda butuhkan untuk tidak perlu bekerja lagi selamanya.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function LogicTab() {
+  const formulas = [
+    { title: "FI Number", formula: "Expense × 12 × 25", icon: "🏛️", text: "Teori 4% rule untuk kebebasan finansial permanen." },
+    { title: "Savings Rate", formula: "(Income - Expense) / Income", icon: "💰", text: "Indikator utama kecepatan pertumbuhan kekayaan." },
+    { title: "Burn Rate", formula: "Total Expense / Days", icon: "🔥", text: "Kecepatan harian Anda dalam menghabiskan uang." },
+    { title: "Survival Time", formula: "Cash ÷ Burn Rate", icon: "⏳", text: "Napas finansial Anda jika hari ini kehilangan pendapatan." },
+  ];
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+      {formulas.map(f => (
+        <div key={f.title} style={{ padding: '20px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <span style={{ fontSize: '20px' }}>{f.icon}</span>
+            <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)' }}>{f.title}</span>
+          </div>
+          <div style={{ background: 'var(--bg-secondary)', padding: '10px', borderRadius: '8px', fontFamily: 'monospace', fontSize: '13px', marginBottom: '10px', color: '#10b981', border: '1px solid var(--border-color)' }}>
+            {f.formula}
+          </div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.5' }}>{f.text}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Main Client ──────────────────────────────────────────────────────────────
+
+import { useRouter, useSearchParams } from 'next/navigation';
+
+export default function AnalyticsClient({ transactions, profile }: { transactions: Transaction[], profile: any }) {
+  const router = useRouter();
+  const sp = useSearchParams();
+  const initialTab = (sp.get('tab') as any) || 'summary';
+  const [activeTab, setActiveTab] = useState<'summary'|'daily'|'evaluation'|'logic'>(initialTab);
+  
+  const handleTabChange = (t: string) => {
+    setActiveTab(t as any);
+    const params = new URLSearchParams(window.location.search);
+    params.set('tab', t);
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+  const [view,       setView]     = useState<'daily'|'monthly'|'yearly'>('monthly');
   const [showType, setShowType] = useState<'both'|'income'|'expense'>('both');
   const [catType,  setCatType]  = useState<'expense'|'income'>('expense');
   const now = new Date();
@@ -100,14 +227,8 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
     return Object.entries(map).sort().map(([y,v]) => ({label:y,...v}));
   }, [transactions]);
 
-  const chartData = useMemo(() => {
-    if (view === 'daily') return dailyData;
-    if (view === 'monthly') return monthlyData;
-    return yearlyData;
-  }, [view, dailyData, monthlyData, yearlyData]);
-
+  const chartData = useMemo(() => (view === 'daily' ? dailyData : view === 'monthly' ? monthlyData : yearlyData), [view, dailyData, monthlyData, yearlyData]);
   const maxVal    = Math.max(...chartData.map(d=>Math.max(d.income,d.expense)), 1);
-
   const mIncome     = monthlyData[monthlyData.length - 1]?.income ?? 0;
   const mExpense    = monthlyData[monthlyData.length - 1]?.expense ?? 0;
   const avgExpense  = useMemo(() => monthlyData.reduce((s,d) => s + d.expense, 0) / (monthlyData.length || 1), [monthlyData]);
@@ -118,14 +239,8 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
     let count = 0;
     const today = now.toISOString().split('T')[0];
     const yesterday = new Date(now.getTime() - 86400000).toISOString().split('T')[0];
-
-    // Start counting from today, or from yesterday if today's entry is missing
-    let startOffset = 0;
-    if (!days.has(today)) {
-      if (days.has(yesterday)) startOffset = 1;
-      else return 0;
-    }
-
+    let startOffset = !days.has(today) ? (days.has(yesterday) ? 1 : null) : 0;
+    if (startOffset === null) return 0;
     for (let i = startOffset; i < 365; i++) {
       const d = new Date(now.getTime() - i * 86400000).toISOString().split('T')[0];
       if (days.has(d)) count++; else break;
@@ -148,8 +263,8 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
   const catTotal = useMemo(() => catData.reduce((s, d) => s + d.value, 0), [catData]);
 
   const btnStyle = (active: boolean): React.CSSProperties => ({
-    padding:'6px 12px', borderRadius:'99px', border:'1px solid',
-    fontSize:'12px', cursor:'pointer', fontWeight:'500',
+    padding:'7px 14px', borderRadius:'10px', border:'1px solid',
+    fontSize:'12px', cursor:'pointer', fontWeight:'600',
     borderColor: active?'var(--accent-primary)':'var(--border-color)',
     background: active?'rgba(37, 99, 235, 0.1)':'transparent',
     color: active?'var(--accent-primary)':'var(--text-muted)',
@@ -158,139 +273,119 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
 
   return (
     <div style={{ color:'var(--text-main)', fontFamily:'"DM Sans",system-ui,sans-serif' }}>
-      <style>{`
-        .an-kpi { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
-        .an-bottom { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-        @media (max-width:768px) {
-          .an-kpi { grid-template-columns:repeat(2,1fr); gap:8px; }
-          .an-bottom { grid-template-columns:1fr; gap:10px; }
-        }
-      `}</style>
+      <header style={{ marginBottom:'24px' }}>
+        <h1 style={{ fontSize:'24px', fontWeight:'800', margin:'0 0 4px', letterSpacing: '-0.5px' }}>Laporan & Evaluasi</h1>
+        <p style={{ color:'var(--text-muted)', fontSize:'14px', margin:0 }}>Analisis mendalam & evaluasi kesehatan finansial</p>
+      </header>
 
-      <div style={{ marginBottom:'20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ fontSize:'20px', fontWeight:'600', margin:'0 0 4px' }}>Analitik</h1>
-          <p style={{ color:'var(--text-muted)', fontSize:'13px', margin:0 }}>Tren keuangan 12 bulan terakhir</p>
-        </div>
-        <a href="/dashboard/reports" style={{ 
-          padding: '8px 16px', background: 'rgba(37, 99, 235, 0.1)', color: 'var(--accent-primary)', borderRadius: '8px', 
-          fontSize: '12px', fontWeight: '600', textDecoration: 'none', border: '1px solid var(--accent-primary)'
-        }}>
-          📄 Laporan & Evaluasi
-        </a>
-      </div>
-
-      {/* KPI */}
-      <div className="an-kpi">
+      {/* Tabs Navigation */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', overflowX: 'auto', borderBottom: '1px solid var(--border-color)', paddingBottom: '4px' }}>
         {[
-          { label:'Pemasukan Bln Ini', value:fmt(mIncome), color:'#4ade80', sub:`Rata-rata: ${fmt(avgIncome)}` },
-          { label:'Pengeluaran Bln Ini', value:fmt(mExpense), color:'#f87171', sub:`Rata-rata: ${fmt(avgExpense)}` },
-          { label:'Input Streak', value:`${streak} hari`, color:'#fbbf24', sub: streak>0?'Pertahankan!':'Mulai hari ini' },
-          { label:'Bulan Ini vs Avg', value: avgExpense>0?`${((mExpense/avgExpense-1)*100).toFixed(0)}%`:'–',
-            color: mExpense>avgExpense?'#f87171':'#4ade80', sub:'vs rata-rata 12 bln' },
-        ].map(k => (
-          <div key={k.label} style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'10px', padding:'12px 14px', boxShadow: 'var(--card-shadow)' }}>
-            <div style={{ fontSize:'10px', color:'var(--text-muted)', marginBottom:'5px', textTransform:'uppercase', letterSpacing:'.05em' }}>{k.label}</div>
-            <div style={{ fontSize:'16px', fontWeight:'700', color:k.color, marginBottom:'3px' }}>{k.value}</div>
-            <div style={{ fontSize:'10px', color:'var(--text-muted)', opacity: 0.8 }}>{k.sub}</div>
-          </div>
+          { id: 'summary', label: 'Ringkasan', icon: '📊' },
+          { id: 'daily', label: 'Harian', icon: '📅' },
+          { id: 'evaluation', label: 'Evaluasi AI', icon: '✨' },
+          { id: 'logic', label: 'Logika', icon: '🧠' },
+        ].map(t => (
+          <button key={t.id} onClick={() => handleTabChange(t.id)} style={{
+            padding: '10px 18px', borderRadius: '8px 8px 0 0', border: 'none',
+            background: activeTab === t.id ? 'rgba(37, 99, 235, 0.1)' : 'transparent',
+            color: activeTab === t.id ? 'var(--accent-primary)' : 'var(--text-muted)',
+            fontSize: '13px', fontWeight: '700', cursor: 'pointer', whiteSpace: 'nowrap',
+            borderBottom: activeTab === t.id ? '3px solid var(--accent-primary)' : '3px solid transparent',
+          }}>
+            <span style={{ marginRight: '6px' }}>{t.icon}</span> {t.label}
+          </button>
         ))}
       </div>
 
-      {/* Main chart */}
-      <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'12px', padding:'16px', marginBottom:'14px', boxShadow: 'var(--card-shadow)' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px', flexWrap:'wrap', gap:'8px' }}>
-          <div style={{ display:'flex', gap:'4px' }}>
-            {(['daily','monthly','yearly'] as const).map(v => (
-              <button key={v} onClick={()=>setView(v as any)} style={btnStyle(view===v)}>
-                {v==='daily'?'Harian':v==='monthly'?'Bulanan':'Tahunan'}
-              </button>
+      {activeTab === 'summary' && (
+        <>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:'12px', marginBottom:'20px' }}>
+            {[
+              { label:'Masuk Bln Ini', value:fmt(mIncome), color:'#10b981', sub:`Rata-rata: ${fmt(avgIncome)}` },
+              { label:'Keluar Bln Ini', value:fmt(mExpense), color:'#f87171', sub:`Rata-rata: ${fmt(avgExpense)}` },
+              { label:'Streak Input', value:`${streak} Hari`, color:'#fbbf24', sub: 'Kedisiplinan Bot' },
+              { label:'Status vs Avg', value: avgExpense>0?`${((mExpense/avgExpense-1)*100).toFixed(0)}%`:'–', color: mExpense>avgExpense?'#f87171':'#10b981', sub:'terhadap 12 bln' },
+            ].map(k => (
+              <div key={k.label} style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'12px', padding:'16px', boxShadow: 'var(--card-shadow)' }}>
+                <div style={{ fontSize:'10px', color:'var(--text-muted)', fontWeight:'700', marginBottom:'6px', textTransform:'uppercase' }}>{k.label}</div>
+                <div style={{ fontSize:'18px', fontWeight:'800', color:k.color, marginBottom:'2px' }}>{k.value}</div>
+                <div style={{ fontSize:'10px', color:'var(--text-muted)' }}>{k.sub}</div>
+              </div>
             ))}
           </div>
-          <div style={{ display:'flex', gap:'4px' }}>
-            {(['both','income','expense'] as const).map(v => (
-              <button key={v} onClick={()=>setShowType(v)} style={btnStyle(showType===v)}>
-                {v==='both'?'Semua':v==='income'?'↑ Masuk':'↓ Keluar'}
-              </button>
-            ))}
-          </div>
-        </div>
-        <BarChart data={chartData} maxVal={maxVal}
-          showIncome={showType==='both'||showType==='income'}
-          showExpense={showType==='both'||showType==='expense'}
-        />
-      </div>
 
-      {/* Bottom: Donut + Table */}
-      <div className="an-bottom">
-        {/* Kategori */}
-        <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'12px', padding:'16px', boxShadow: 'var(--card-shadow)' }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px' }}>
-            <span style={{ fontSize:'13px', fontWeight:'700', color:'var(--text-main)' }}>Kategori Bulan Ini</span>
-            <div style={{ display:'flex', gap:'4px' }}>
-              {(['expense','income'] as const).map(t => (
-                <button key={t} onClick={()=>setCatType(t)} style={btnStyle(catType===t)}>
-                  {t==='expense'?'Keluar':'Masuk'}
-                </button>
-              ))}
+          <Card style={{ marginBottom:'14px', padding:'20px' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px', flexWrap:'wrap', gap:'10px' }}>
+              <div style={{ display:'flex', gap:'6px' }}>
+                {(['monthly','yearly'] as const).map(v => <button key={v} onClick={()=>setView(v as any)} style={btnStyle(view===v)}>{v==='monthly'?'Bulanan':'Tahunan'}</button>)}
+              </div>
+              <div style={{ display:'flex', gap:'6px' }}>
+                {(['both','income','expense'] as const).map(v => <button key={v} onClick={()=>setShowType(v)} style={btnStyle(showType===v)}>{v==='both'?'Semua':v==='income'?'Masuk':'Keluar'}</button>)}
+              </div>
             </div>
-          </div>
-          {catData.length===0 ? (
-            <div style={{ textAlign:'center', padding:'20px', color:'var(--text-muted)', fontSize:'13px' }}>Tidak ada data</div>
-          ) : (
-            <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
-              {catData.slice(0,6).map((d,i) => {
-                const p = catTotal>0?Math.round((d.value/catTotal)*100):0;
-                return (
-                  <div key={i} style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-                    <span style={{ fontSize:'16px', flexShrink:0 }}>{d.icon}</span>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'3px' }}>
-                        <span style={{ fontSize:'12px', fontWeight:'500', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color: 'var(--text-main)' }}>{d.name}</span>
-                        <span style={{ fontSize:'11px', color:'var(--text-muted)', flexShrink:0, marginLeft:'6px' }}>{p}%</span>
-                      </div>
-                      <div style={{ height:'4px', background:'var(--bg-primary)', borderRadius:'99px', overflow:'hidden' }}>
-                        <div style={{ height:'100%', borderRadius:'99px', width:`${p}%`, background:d.color }}/>
-                      </div>
-                    </div>
-                    <span style={{ fontSize:'11px', color:'var(--text-muted)', flexShrink:0, minWidth:'50px', textAlign:'right' }}>{fmtK(d.value)}</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+            <BarChart data={chartData} maxVal={maxVal} showIncome={showType==='both'||showType==='income'} showExpense={showType==='both'||showType==='expense'} />
+          </Card>
 
-        {/* Monthly table */}
-        <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'12px', padding:'16px', boxShadow: 'var(--card-shadow)' }}>
-          <div style={{ fontSize:'13px', fontWeight:'500', color:'var(--text-main)', marginBottom:'12px' }}>Ringkasan Bulanan</div>
-          <div style={{ display:'flex', flexDirection:'column', gap:'1px' }}>
-            <div style={{ display:'grid', gridTemplateColumns:'50px 1fr 1fr 1fr', padding:'5px 6px',
-              fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'.05em' }}>
-              <span>Bln</span>
-              <span style={{ textAlign:'right' }}>Masuk</span>
-              <span style={{ textAlign:'right' }}>Keluar</span>
-              <span style={{ textAlign:'right' }}>Selisih</span>
-            </div>
-            {monthlyData.slice().reverse().slice(0,8).map((d,i) => {
-              const diff = d.income-d.expense;
-              return (
-                <div key={i} style={{ display:'grid', gridTemplateColumns:'50px 1fr 1fr 1fr',
-                  padding:'7px 6px', borderRadius:'5px', fontSize:'12px',
-                  background: i%2===0?'transparent':'var(--bg-primary)' }}>
-                  <span style={{ color:'var(--text-main)', fontWeight:'500' }}>{d.label}</span>
-                  <span style={{ textAlign:'right', color:'#4ade80' }}>{d.income>0?fmtK(d.income):'–'}</span>
-                  <span style={{ textAlign:'right', color:'#f87171' }}>{d.expense>0?fmtK(d.expense):'–'}</span>
-                  <span style={{ textAlign:'right', fontWeight:'600',
-                    color:diff>0?'#4ade80':diff<0?'#f87171':'var(--text-muted)' }}>
-                    {d.income===0&&d.expense===0?'–':`${diff>0?'+':''}${fmtK(diff)}`}
-                  </span>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))', gap:'14px' }}>
+            <Card style={{ padding:'20px' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px' }}>
+                <span style={{ fontSize:'14px', fontWeight:'800' }}>Dominasi Kategori</span>
+                <div style={{ display:'flex', gap:'4px' }}>
+                  {(['expense','income'] as const).map(t => <button key={t} onClick={()=>setCatType(t)} style={btnStyle(catType===t)}>{t==='expense'?'Keluar':'Masuk'}</button>)}
                 </div>
-              );
-            })}
+              </div>
+              <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+                {catData.slice(0,6).map((d,i) => {
+                  const p = catTotal>0?Math.round((d.value/catTotal)*100):0;
+                  return (
+                    <div key={i} style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                      <span style={{ fontSize:'18px' }}>{d.icon}</span>
+                      <div style={{ flex:1 }}>
+                        <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'4px' }}>
+                          <span style={{ fontSize:'13px', fontWeight:'600' }}>{d.name}</span>
+                          <span style={{ fontSize:'12px', color:'var(--text-muted)' }}>{p}%</span>
+                        </div>
+                        <div style={{ height:'5px', background:'var(--bg-secondary)', borderRadius:'99px', overflow:'hidden' }}>
+                          <div style={{ height:'100%', width:`${p}%`, background:d.color }}/>
+                        </div>
+                      </div>
+                      <span style={{ fontSize:'12px', fontWeight:'700', width:'60px', textAlign:'right' }}>{fmtK(d.value)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+
+            <Card style={{ padding:'20px' }}>
+              <div style={{ fontSize:'14px', fontWeight:'800', marginBottom:'16px' }}>Riwayat Bulanan</div>
+              <div style={{ display:'flex', flexDirection:'column', gap:'1px' }}>
+                {monthlyData.slice().reverse().slice(0,8).map((d,i) => {
+                  const diff = d.income-d.expense;
+                  return (
+                    <div key={i} style={{ display:'grid', gridTemplateColumns:'60px 1fr 1fr 1fr', padding:'10px 8px', borderRadius:'8px', fontSize:'13px', background: i%2===0?'transparent':'var(--bg-secondary)' }}>
+                      <span style={{ fontWeight:'700' }}>{d.label}</span>
+                      <span style={{ textAlign:'right', color:'#10b981' }}>{fmtK(d.income)}</span>
+                      <span style={{ textAlign:'right', color:'#f87171' }}>{fmtK(d.expense)}</span>
+                      <span style={{ textAlign:'right', fontWeight:'800', color:diff>0?'#10b981':'#f87171' }}>{fmtK(diff)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
           </div>
-        </div>
-      </div>
+        </>
+      )}
+
+      {activeTab === 'daily' && <DailyTab dailyData={dailyData} avgDaily={avgExpense / 30} />}
+      {activeTab === 'evaluation' && <EvaluationTab transactions={transactions} />}
+      {activeTab === 'logic' && <LogicTab />}
     </div>
   );
 }
+
+const Card = ({ children, style }: { children: React.ReactNode, style?: React.CSSProperties }) => (
+  <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'14px', boxShadow: 'var(--card-shadow)', ...style }}>
+    {children}
+  </div>
+);

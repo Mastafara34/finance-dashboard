@@ -9,10 +9,9 @@ const NAV = [
   { href: '/dashboard',              icon: '◉', label: 'Overview'   },
   { href: '/dashboard/transactions', icon: '↕', label: 'Transaksi'  },
   { href: '/dashboard/goals',        icon: '◎', label: 'Goals'      },
-  { href: '/dashboard/analytics',    icon: '▦', label: 'Analitik'   },
+  { href: '/dashboard/analytics',    icon: '📊', label: 'Laporan & Analitik' },
   { href: '/dashboard/networth',     icon: '◈', label: 'Net Worth'  },
   { href: '/dashboard/budgets',      icon: '▣', label: 'Budget'     },
-  { href: '/dashboard/intelligence', icon: '🧠', label: 'Evaluasi AI' },
   { href: '/dashboard/academy',      icon: '📚', label: 'Akademi / Tips' },
   { href: '/dashboard/settings',     icon: '◌', label: 'Pengaturan' },
 ];

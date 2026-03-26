@@ -377,7 +377,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </div>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <a href={`/dashboard/intelligence${searchU ? `?u=${searchU}` : ''}`} 
+          <a href={`/dashboard/analytics?tab=evaluation${searchU ? `&u=${searchU}` : ''}`} 
             style={{ 
               padding: '10px 18px', background: 'var(--accent-primary)', color: '#fff', 
               borderRadius: '10px', textDecoration: 'none', fontSize: '13px', fontWeight: '800', 
@@ -429,7 +429,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <div style={{ fontSize: '14px', fontWeight: '800', color: '#d97706' }}>Rekomendasi Konsultan Finansial</div>
-              <a href={`/dashboard/intelligence${searchU ? `?u=${searchU}` : ''}`} style={{ fontSize: '12px', color: '#3b82f6', textDecoration: 'none', fontWeight: '600' }}>Lihat Detail →</a>
+              <a href={`/dashboard/analytics?tab=evaluation${searchU ? `&u=${searchU}` : ''}`} style={{ fontSize: '12px', color: '#3b82f6', textDecoration: 'none', fontWeight: '600' }}>Lihat Detail →</a>
             </div>
             <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.6', fontWeight: '500' }}>
               {healthRecs.map((rec, i) => <li key={i} style={{ marginBottom: '4px' }}>{rec}</li>)}
@@ -734,7 +734,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       </div>
 
       <div style={{ padding: '60px 20px', textAlign: 'center' }}>
-        <p style={{ color: 'var(--text-muted)', fontSize: '13px', fontWeight: '500' }}>Dashboard ini menggunakan algoritma finansial profesional. <a href={`/dashboard/intelligence${searchU ? `?u=${searchU}` : ''}`} style={{ color: '#3b82f6', fontWeight: '700', textDecoration: 'none' }}>Pelajari selengkapnya.</a></p>
+        <p style={{ color: 'var(--text-muted)', fontSize: '13px', fontWeight: '500' }}>Dashboard ini menggunakan algoritma finansial profesional. <a href={`/dashboard/analytics?tab=logic${searchU ? `&u=${searchU}` : ''}`} style={{ color: '#3b82f6', fontWeight: '700', textDecoration: 'none' }}>Pelajari selengkapnya.</a></p>
       </div>
     </div>
   );
