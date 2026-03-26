@@ -26,78 +26,60 @@ export const getCachedUser = cache(async () => {
 export const getCachedProfile = cache(async (userId?: string, email?: string): Promise<{ data: Profile | null; error: any }> => {
   const supabase = await createClient();
   
-  if (userId) {
-    return await supabase
-      .from('users')
-      .select('id, email, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
-      .eq('id', userId)
-      .maybeSingle() as any;
-  }
+  // 1. Explicit ID/Email lookup (used for viewing others)
+  if (userId) return await supabase.from('users').select('*').eq('id', userId).maybeSingle() as any;
+  if (email) return await supabase.from('users').select('*').ilike('email', email).maybeSingle() as any;
 
-  if (email) {
-    return await supabase
-      .from('users')
-      .select('id, email, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
-      .ilike('email', email)
-      .maybeSingle() as any;
-  }
-
-  // Fallback to current authenticated user
+  // 2. Auth context lookup
   const { data: { user } } = await getCachedUser();
   if (!user) return { data: null, error: null };
 
-  // Try fetching by ID first
-  // We use only essential columns that are guaranteed to exist to avoid query failure
-  let result = await supabase
+  // Strategi 1: Cari berdasarkan ID (Paling Aman/RLS)
+  let { data: profile, error: idError } = await supabase
     .from('users')
-    .select('id, email, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
+    .select('*')
     .eq('id', user.id)
     .maybeSingle();
 
-  let profile = result.data as Profile | null;
-  let error = result.error;
-
-  // If ID fails and we have an email, try fetching by Email
-  if (!profile && !error && user.email) {
-    const { data: byEmail } = await supabase
+  // Strategi 2: Cari berdasarkan Email (Resiliensi jika ID berubah)
+  if (!profile && user.email) {
+    const { data: byEmail, error: emailError } = await supabase
       .from('users')
-      .select('id, email, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
+      .select('*')
       .ilike('email', user.email)
       .maybeSingle();
-    if (byEmail) profile = byEmail as Profile;
-  }
-
-  // Fallback: If query fails, let's try WITHOUT the target columns (older schema)
-  if (error || (!profile && user.email)) {
-    const { data: fallback } = await supabase
-      .from('users')
-      .select('id, email, display_name, telegram_chat_id, role')
-      .eq('id', user.id)
-      .maybeSingle();
-    if (fallback) {
-      profile = fallback as Profile;
-      error = null;
+    
+    if (byEmail) {
+      profile = byEmail as Profile;
+      // Jika profil ditemukan via email tapi ID beda, ini anomali (migrasi/reset)
+      // Kita bisa log di sini atau biarkan aplikasi menggunakan profil ini.
     }
   }
 
-  // AUTO-REGISTER: If missing, create it immediately
-  if (!profile && !error) {
+  // Strategi 3: Auto-Register jika benar-benar tidak ada
+  if (!profile) {
     const insertData = {
       id: user.id,
       email: user.email || null,
-      display_name: user?.email ? user.email.split('@')[0] : `User_${user.id.slice(0, 5)}`,
+      display_name: user.email ? user.email.split('@')[0] : `User_${user.id.slice(0, 5)}`,
       role: 'user'
     };
 
     const { data: newProfile, error: createError } = await supabase
       .from('users')
       .insert([insertData])
-      .select('id, email, display_name, telegram_chat_id, role')
+      .select('*')
       .maybeSingle();
     
     if (!createError && newProfile) return { data: newProfile as Profile, error: null };
-    if (createError) console.error('Auto-registration error:', createError);
+    
+    // Jika gagal insert (mungkin karena duplikat email yang terdeteksi di DB tapi tidak terlihat di select karena RLS)
+    // Beritahukan error spesifik jika memungkinkan
+    if (createError) {
+      console.error('Registration failed for:', user.email, createError);
+      return { data: null, error: createError };
+    }
   }
 
-  return { data: profile, error };
+  return { data: profile, error: idError };
 });
