@@ -1,7 +1,6 @@
-// app/dashboard/page.tsx
-export const dynamic = 'force-dynamic';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { getCachedUser, getCachedProfile } from '@/lib/supabase/cached';
 import { Card, KpiCard, ProgressCard } from './components/DashboardComponents';
 import { KpiGridClient } from './components/KpiGridClient';
 import { UserSelector } from './components/UserSelector';
@@ -33,17 +32,13 @@ interface Asset { id: string; name: string; value: number; is_liability: boolean
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ u?: string }> }) {
   const { u: searchU } = await searchParams;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await getCachedUser();
   if (!user) redirect('/login');
 
-  // 1. Ambil profil login asli (mendukung ID mismatch via email)
-  let { data: myProfile, error: profileError } = await supabase
-    .from('users')
-    .select('id, display_name, telegram_chat_id, role')
-    .or(`id.eq.${user.id},email.ilike.${user.email}`)
-    .maybeSingle();
+  // 1. Ambil profil login asli (Shared Cache)
+  let { data: myProfile } = await getCachedProfile();
 
-  // 2. Auto-register if missing (Server side fallback)
+  // 2. Auto-register if missing
   if (!myProfile && user.email) {
     const { data: newProfile } = await supabase
       .from('users')
@@ -55,46 +50,25 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       }])
       .select('id, display_name, telegram_chat_id, role')
       .single();
-    if (newProfile) myProfile = newProfile;
+    if (newProfile) myProfile = newProfile as any;
   }
 
-  if (!myProfile) {
-    return (
-      <div style={{ 
-        height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', 
-        background: '#0a0a0f', color: '#f0f0f5', flexDirection: 'column', gap: '16px', padding: '24px', textAlign: 'center' 
-      }}>
-        <div style={{ fontSize: '48px' }}>👤</div>
-        <h2>Profil Tidak Ditemukan</h2>
-        <p style={{ color: '#6b7280', fontSize: '14px', maxWidth: '400px' }}>
-          Gagal memuat profil untuk {user.email}. Hubungi admin untuk akses.
-        </p>
-        <a href="/login" style={{ padding: '8px 16px', background: '#1f1f2e', borderRadius: '8px', color: '#f0f0f5', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>Kembali Login</a>
-      </div>
-    );
-  }
+  if (!myProfile) return redirect('/login');
 
   const myUserId = myProfile.id;
   const isOwner = myProfile.role === 'owner';
   const isCollective = isOwner && searchU === 'all';
-  
-  // 2. Tentukan User mana yang datanya mau dilihat
   const viewUserId = isOwner && searchU && searchU !== 'all' ? searchU : myUserId;
 
-  // 3. Ambil profil user yang sedang dilihat (untuk target & nama di dashboard)
+  // 3. Ambil profil user yang sedang dilihat (Cached)
   let viewProfile = myProfile;
   if (isCollective) {
-    viewProfile = { ...myProfile, display_name: 'Kolektif (Semua)' };
+    viewProfile = { ...myProfile, display_name: 'Kolektif (Semua)' } as any;
   } else if (isOwner && searchU && searchU !== 'all' && searchU !== myUserId) {
-    const { data: selectedProfile } = await supabase
-      .from('users')
-      .select('id, display_name, telegram_chat_id, role')
-      .eq('id', searchU)
-      .maybeSingle();
-    if (selectedProfile) viewProfile = selectedProfile;
+    const { data: selectedProfile } = await getCachedProfile(searchU);
+    if (selectedProfile) viewProfile = selectedProfile as any;
   }
 
-  // Fallback targets for TS
   const vAny = viewProfile as any;
   const safeProfile = {
     ...vAny,
@@ -110,79 +84,50 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
   const olderMonthStart = new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString().split('T')[0];
   const olderMonthEnd = new Date(now.getFullYear(), now.getMonth() - 1, 0).toISOString().split('T')[0];
+  const last30Start = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
 
-  // Identifikasi akun demo untuk di-exclude dari total keluarga
-  const { data: demo } = await supabase.from('users').select('id').eq('email', 'demo@fintrack.app').maybeSingle();
-  const demoId = demo?.id;
-
-  const [txMonth, txPrev, txOlder, txLast30, txYear, goals, assets, history, usersResult] = await Promise.all([
-    // Monthly transactions
+  // 4. BIG CONSOLIDATED FETCH
+  // Mengurangi roundtrip dari 9+ menjadi 1 roundtrip paralel
+  const [yearResult, goals, assets, history, usersResult, demoFetch] = await Promise.all([
+    // YEAR DATA: Mengambil modal data tahunan sebagai basis semua filter memori
     (() => {
-      let q = supabase.from('transactions').select('amount, type, date, categories(name)').eq('is_deleted', false).gte('date', monthStart);
+      let q = supabase.from('transactions').select('amount, type, date, user_id, categories(name)').eq('is_deleted', false).gte('date', yearStart);
       if (!isCollective) q = q.eq('user_id', viewUserId);
-      else if (demoId) q = q.neq('user_id', demoId);
-      return q;
-    })(),
-    // Previous Month
-    (() => {
-      let q = supabase.from('transactions').select('amount, type, date, categories(name)').eq('is_deleted', false).gte('date', prevMonthStart).lte('date', prevMonthEnd);
-      if (!isCollective) q = q.eq('user_id', viewUserId);
-      else if (demoId) q = q.neq('user_id', demoId);
-      return q;
-    })(),
-    // Older Month
-    (() => {
-      let q = supabase.from('transactions').select('amount, type, date, categories(name)').eq('is_deleted', false).gte('date', olderMonthStart).lte('date', olderMonthEnd);
-      if (!isCollective) q = q.eq('user_id', viewUserId);
-      else if (demoId) q = q.neq('user_id', demoId);
-      return q;
-    })(),
-    // Last 30 days
-    (() => {
-      let q = supabase.from('transactions').select('amount, type, date, categories(name)').eq('is_deleted', false)
-        .gte('date', new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0])
-        .order('date', { ascending: true });
-      if (!isCollective) q = q.eq('user_id', viewUserId);
-      else if (demoId) q = q.neq('user_id', demoId);
-      return q;
-    })(),
-    // Yearly transactions
-    (() => {
-      let q = supabase.from('transactions').select('amount, type, date, categories(name)').eq('is_deleted', false).gte('date', yearStart);
-      if (!isCollective) q = q.eq('user_id', viewUserId);
-      else if (demoId) q = q.neq('user_id', demoId);
       return q;
     })(),
     // Goals
     (() => {
       let q = supabase.from('goals').select('*').eq('status', 'active').order('priority', { ascending: true }).limit(3);
       if (!isCollective) q = q.eq('user_id', viewUserId);
-      else if (demoId) q = q.neq('user_id', demoId);
       return q;
     })(),
     // Assets
     (() => {
       let q = supabase.from('assets').select('id, name, value, is_liability, type');
       if (!isCollective) q = q.eq('user_id', viewUserId);
-      else if (demoId) q = q.neq('user_id', demoId);
       return q;
     })(),
     // History
     (() => {
       let q = supabase.from('net_worth_history').select('date, net_worth').order('date', { ascending: true }).limit(30);
       if (!isCollective) q = q.eq('user_id', viewUserId);
-      else if (demoId) q = q.neq('user_id', demoId);
       return q;
     })(),
     // Users for Owner
-    isOwner ? supabase.from('users').select('id, display_name').or('email.is.null,email.neq.demo@fintrack.app').order('display_name') : Promise.resolve({ data: [] })
+    isOwner ? supabase.from('users').select('id, display_name').or('email.is.null,email.neq.demo@fintrack.app').order('display_name') : Promise.resolve({ data: [] }),
+    // Fetch demo account ID to filter out in collective view (if not known)
+    supabase.from('users').select('id').eq('email', 'demo@fintrack.app').maybeSingle()
   ]);
 
-  const txs      = (txMonth.data ?? []) as unknown as Transaction[];
-  const prevTxs  = (txPrev.data ?? []) as unknown as Transaction[];
-  const olderTxs = (txOlder.data ?? []) as unknown as Transaction[];
-  const last30   = (txLast30.data ?? []) as unknown as Transaction[];
-  const yearTxs  = (txYear.data ?? []) as unknown as Transaction[];
+  const demoId = demoFetch.data?.id;
+  const rawYearTxs = (yearResult.data ?? []) as any[];
+  
+  // Memori filter: Jauh lebih cepat daripada 5 query terpisah ke database
+  const yearTxs = (isCollective && demoId) ? rawYearTxs.filter(t => t.user_id !== demoId) : rawYearTxs;
+  const txs      = yearTxs.filter(t => t.date >= monthStart) as unknown as Transaction[];
+  const prevTxs  = yearTxs.filter(t => t.date >= prevMonthStart && t.date <= prevMonthEnd) as unknown as Transaction[];
+  const olderTxs = yearTxs.filter(t => t.date >= olderMonthStart && t.date <= olderMonthEnd) as unknown as Transaction[];
+  const last30   = yearTxs.filter(t => t.date >= last30Start) as unknown as Transaction[];
   const goalList = (goals.data ?? []) as Goal[];
   const assetList = (assets.data ?? []) as Asset[];
   const nwHistory = (history.data ?? []) as { date: string; net_worth: number }[];

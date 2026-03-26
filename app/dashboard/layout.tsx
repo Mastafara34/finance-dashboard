@@ -1,6 +1,7 @@
 // app/dashboard/layout.tsx
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { getCachedUser, getCachedProfile } from '@/lib/supabase/cached';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import BottomNav from '@/components/BottomNav';
 import MobileHeader from '@/components/MobileHeader';
@@ -9,17 +10,13 @@ import DemoBanner from '@/components/DemoBanner';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await getCachedUser();
   if (!user) redirect('/login');
 
-  // 1. Profile fetching with resilience: try ID first, then Email (ilike)
-  let { data: profile } = await supabase
-    .from('users')
-    .select('id, email, display_name, telegram_chat_id, role')
-    .or(`id.eq.${user.id},email.ilike.${user.email}`)
-    .maybeSingle();
+  // Use cached profile - should be shared if already fetched
+  let { data: profile } = await getCachedProfile();
 
-  // 2. Auto-register: If authenticated but no record in `users` table, create one!
+  // If authenticated but no profile, try auto-register logic (once)
   if (!profile && user.email) {
     const { data: newProfile, error: createError } = await supabase
       .from('users')
@@ -33,7 +30,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       .single();
 
     if (!createError) {
-      profile = newProfile;
+      profile = newProfile as any;
     } else {
       console.error('Failed to auto-register user:', createError);
     }

@@ -1,41 +1,21 @@
-// app/dashboard/budgets/page.tsx
-export const dynamic = 'force-dynamic';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { getCachedUser, getCachedProfile } from '@/lib/supabase/cached';
 import BudgetsClient from './BudgetsClient';
 import { UserSelector } from '../components/UserSelector';
 
 export default async function BudgetsPage({ searchParams }: { searchParams: Promise<{ u?: string }> }) {
   const { u: searchU } = await searchParams;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await getCachedUser();
   if (!user) redirect('/login');
 
-  const { data: profile } = await supabase
-    .from('users')
-    .select('id, role')
-    .or(`email.eq.${user.email},id.eq.${user.id}`)
-    .maybeSingle();
-
-  if (!profile) return null;
-
-  // Fetch demo ID
-  const { data: demo } = await supabase.from('users').select('id').eq('email', 'demo@fintrack.app').maybeSingle();
-  const demoId = demo?.id;
+  const { data: profile } = await getCachedProfile();
+  if (!profile) return redirect('/login');
 
   const isOwner = profile.role === 'owner';
   const isCollective = isOwner && searchU === 'all';
   const viewUserId = isOwner && searchU && searchU !== 'all' ? searchU : profile.id;
-
-  let allUsers: any[] = [];
-  if (isOwner) {
-    const { data } = await supabase
-      .from('users')
-      .select('id, display_name')
-      .or('email.is.null,email.neq.demo@fintrack.app')
-      .order('display_name');
-    allUsers = data ?? [];
-  }
 
   const now     = new Date();
   const month   = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -43,63 +23,59 @@ export default async function BudgetsPage({ searchParams }: { searchParams: Prom
   const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const prevMonthStr = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;
 
-  let bq = supabase.from('monthly_budgets').select('id, limit_amount, month, categories(id, name, icon, type)')
-    .eq('month', month);
-  let pbq = supabase.from('monthly_budgets').select('limit_amount, category_id')
-    .eq('month', prevMonthStr);
+  // CONSOLIDATED FETCH
+  const [budgetsRes, prevBudgetsRes, transactionsRes, categoriesRes, targetsRes, demoRes, usersRes] = await Promise.all([
+    // 1. Current Budgets
+    (() => {
+      let q = supabase.from('monthly_budgets').select('id, limit_amount, month, user_id, categories(id, name, icon, type)').eq('month', month);
+      if (!isCollective) q = q.eq('user_id', viewUserId);
+      return q;
+    })(),
+    // 2. Previous Budgets
+    (() => {
+      let q = supabase.from('monthly_budgets').select('limit_amount, category_id, user_id').eq('month', prevMonthStr);
+      if (!isCollective) q = q.eq('user_id', viewUserId);
+      return q;
+    })(),
+    // 3. Transactions
+    (() => {
+      let q = supabase.from('transactions').select('amount, user_id, categories(id, name)').eq('type', 'expense').eq('is_deleted', false).gte('date', monthStart);
+      if (!isCollective) q = q.eq('user_id', viewUserId);
+      return q;
+    })(),
+    // 4. Categories
+    supabase.from('categories').select('id, name, icon, type').eq('type', 'expense').or(`user_id.eq.${viewUserId},user_id.is.null`).order('sort_order', { ascending: true }),
+    // 5. User Targets (Cached profile handles this mostly but let's be sure for viewed user)
+    supabase.from('users').select('role, saving_target, wants_target, needs_target').eq('id', viewUserId).maybeSingle(),
+    // 6. Demo ID
+    supabase.from('users').select('id').eq('email', 'demo@fintrack.app').maybeSingle(),
+    // 7. All Users (for selector)
+    isOwner ? supabase.from('users').select('id, display_name').or('email.is.null,email.neq.demo@fintrack.app').order('display_name') : Promise.resolve({ data: [] })
+  ]);
 
-  if (!isCollective) {
-    bq = bq.eq('user_id', viewUserId);
-    pbq = pbq.eq('user_id', viewUserId);
-  } else if (demoId) {
-    bq = bq.neq('user_id', demoId);
-    pbq = pbq.neq('user_id', demoId);
-  }
+  const demoId = demoRes.data?.id;
 
-  const [{ data: budgets }, { data: prevBudgets }] = await Promise.all([bq, pbq]);
+  // JS-level filtering for collective view (much faster roundtrips)
+  const budgetsRaw = budgetsRes.data ?? [];
+  const budgets = (isCollective && demoId) ? budgetsRaw.filter((b: any) => b.user_id !== demoId) : budgetsRaw;
 
-  let tq = supabase
-    .from('transactions')
-    .select('amount, categories(id, name)')
-    .eq('type', 'expense')
-    .eq('is_deleted', false)
-    .gte('date', monthStart);
+  const prevBudgetsRaw = prevBudgetsRes.data ?? [];
+  const prevBudgets = (isCollective && demoId) ? prevBudgetsRaw.filter((b: any) => b.user_id !== demoId) : prevBudgetsRaw;
 
-  if (!isCollective) {
-    tq = tq.eq('user_id', viewUserId);
-  } else if (demoId) {
-    tq = tq.neq('user_id', demoId);
-  }
+  const transactionsRaw = transactionsRes.data ?? [];
+  const transactions = (isCollective && demoId) ? transactionsRaw.filter((t: any) => t.user_id !== demoId) : transactionsRaw;
 
-  const { data: transactions } = await tq;
-
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('id, name, icon, type')
-    .eq('type', 'expense')
-    .or(`user_id.eq.${viewUserId},user_id.is.null`)
-    .order('sort_order', { ascending: true });
+  const categories = categoriesRes.data ?? [];
+  const userTargets = targetsRes.data;
 
   const spendMap: Record<string, number> = {};
-  (transactions ?? []).forEach((t: any) => {
+  transactions.forEach((t: any) => {
     const catId = t.categories?.id;
     if (catId) spendMap[catId] = (spendMap[catId] ?? 0) + t.amount;
   });
 
-  const { data: userTargets, error: targetError } = await supabase
-    .from('users')
-    .select('role, saving_target, wants_target, needs_target')
-    .eq('id', viewUserId)
-    .maybeSingle();
-
-  let finalRole = userTargets?.role || 'user';
-  if (targetError) {
-    const { data: roleOnly } = await supabase.from('users').select('role').eq('id', viewUserId).maybeSingle();
-    if (roleOnly) finalRole = roleOnly.role;
-  }
-
   const safeTargets = {
-    role: finalRole,
+    role: userTargets?.role || 'user',
     saving: userTargets?.saving_target ?? 20,
     wants: userTargets?.wants_target ?? 30,
     needs: userTargets?.needs_target ?? 50
