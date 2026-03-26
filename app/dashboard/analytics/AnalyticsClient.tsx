@@ -82,12 +82,10 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
   }, [transactions, now]);
 
   const [tYear, tMonthIdx] = targetMonth.split('-').map(Number);
-
-  // Memoized data for Standard/Classic View
-  const dailyData = useMemo(() => {
+  const chartDaily = useMemo(() => {
     const map: Record<string,{income:number;expense:number}> = {};
-    const totalDays = new Date(tYear, tMonthIdx, 0).getDate();
-    for (let i=1; i<=totalDays; i++) {
+    const days = new Date(tYear, tMonthIdx, 0).getDate();
+    for (let i=1; i<=days; i++) {
         const d = `${tYear}-${String(tMonthIdx).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
         map[d] = {income:0,expense:0};
     }
@@ -105,13 +103,13 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
     return Object.entries(map).map(([k,v]) => ({ label: MONTH_NAMES[parseInt(k.slice(5,7))-1].slice(0,3), ...v }));
   }, [transactions, now]);
 
-  const yearlyData = useMemo(() => {
+  const yearlyHistory = useMemo(() => {
     const map: Record<string,{income:number;expense:number}> = {};
     transactions.forEach(t => { const y=t.date.slice(0,4); if(!map[y]) map[y]={income:0,expense:0}; map[y][t.type]+=t.amount; });
     return Object.entries(map).sort().map(([y,v]) => ({label:y,...v}));
   }, [transactions]);
 
-  const chartData = useMemo(() => (view === 'daily' ? dailyData : view === 'monthly' ? monthlyHistory : yearlyData), [view, dailyData, monthlyHistory, yearlyData]);
+  const chartData = useMemo(() => (view === 'daily' ? chartDaily : view === 'monthly' ? monthlyHistory : yearlyHistory), [view, chartDaily, monthlyHistory, yearlyHistory]);
   const maxVal    = Math.max(...chartData.map(d=>Math.max(d.income,d.expense)), 1);
 
   const mIncome     = useMemo(() => transactions.filter(t => t.date.startsWith(targetMonth) && t.type === 'income').reduce((s,t) => s + t.amount, 0), [transactions, targetMonth]);
@@ -147,18 +145,6 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
   },[transactions,catType,targetMonth]);
 
   const catTotal = useMemo(() => catData.reduce((s, d) => s + d.value, 0), [catData]);
-
-  const strategy = useMemo(() => {
-    const needs = transactions.filter(t => t.date.startsWith(targetMonth) && t.type === 'expense' && ['Makan','Kebutuhan','Transportasi','Kesehatan','Listrik'].includes(t.categories?.name || '')).reduce((s,t)=>s+t.amount,0);
-    const wants = transactions.filter(t => t.date.startsWith(targetMonth) && t.type === 'expense' && ['Hiburan','Hobi','Oleh-oleh','Gadget'].includes(t.categories?.name || '')).reduce((s,t)=>s+t.amount,0);
-    const savings = mIncome - mExpense > 0 ? (mIncome - mExpense) : 0;
-    const nPct = mIncome > 0 ? Math.round((needs/mIncome)*100) : 0;
-    const wPct = mIncome > 0 ? Math.round((wants/mIncome)*100) : 0;
-    const sPct = mIncome > 0 ? Math.round((savings/mIncome)*100) : 0;
-    const workHours = mIncome > 0 ? (mExpense / (mIncome / 160)).toFixed(1) : '–';
-    const lazyCash = mIncome > mExpense * 1.5 ? mIncome - (mExpense * 1.5) : 0;
-    return { nPct, wPct, sPct, workHours, lazyCash };
-  }, [transactions, targetMonth, mIncome, mExpense]);
 
   const btnStyle = (active: boolean): React.CSSProperties => ({
     padding:'7px 14px', borderRadius:'10px', border:'1px solid',
@@ -199,41 +185,13 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
           <StrategicReport transactions={transactions} selectedMonth={targetMonth} />
       ) : (
           <>
-            {/* Smart Insight Bubble */}
-            <div style={{ background: 'rgba(37, 99, 235, 0.05)', border: '1px solid rgba(37, 99, 235, 0.1)', borderRadius: '12px', padding: '14px 18px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ fontSize: '24px' }}>🧠</div>
-                <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--accent-primary)', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.05em' }}>Analysis Mode</div>
-                    <p style={{ fontSize: '13px', margin: 0, fontWeight: '600', color: 'var(--text-main)', lineHeight: '1.4' }}>
-                        {mExpense > avgExpense ? `Pengeluaran bulan ini sudah ${( (mExpense/avgExpense-1)*100 ).toFixed(0)}% di atas rata-rata.` :  `Pola belanja sehat. Pengeluaran masih di bawah rata-rata.`}
-                    </p>
-                </div>
-            </div>
-
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))', gap:'16px', marginBottom:'20px' }}>
-                <Card style={{ padding:'20px' }}>
-                    <div style={{ fontSize:'11px', fontWeight:'800', color:'var(--text-muted)', marginBottom:'16px', textTransform:'uppercase' }}>Alokasi Strategis (50/30/20)</div>
-                    <div style={{ display:'flex', flexDirection:'column', gap:'14px' }}>
-                        {[ { label: 'Needs', val: strategy.nPct, target: 50, color: '#3b82f6' }, { label: 'Wants', val: strategy.wPct, target: 30, color: '#f59e0b' }, { label: 'Savings', val: strategy.sPct, target: 20, color: '#10b981' } ].map(s => (
-                            <div key={s.label}>
-                                <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'4px', fontSize:'12px' }}>
-                                    <span style={{ fontWeight:'600' }}>{s.label}</span>
-                                    <span style={{ fontWeight:'800' }}>{s.val}%</span>
-                                </div>
-                                <div style={{ height:'6px', background:'var(--bg-secondary)', borderRadius:'99px' }}><div style={{ height:'100%', width:`${Math.min(s.val, 100)}%`, background:s.color, borderRadius:'99px' }} /></div>
-                            </div>
-                        ))}
-                    </div>
-                </Card>
-                <Card style={{ padding:'20px', textAlign:'center' }}>
-                    <div style={{ fontSize:'11px', fontWeight:'800', color:'var(--text-muted)', marginBottom:'16px', textTransform:'uppercase' }}>Burn Rate</div>
-                    <div style={{ fontSize:'24px', fontWeight:'900', color:'var(--text-main)' }}>{strategy.workHours} Jam Kerja</div>
-                    <p style={{ fontSize:'11px', color:'var(--text-muted)', marginTop:'8px' }}>Biaya hidup bulan ini setara {strategy.workHours} jam kerja Anda.</p>
-                </Card>
-            </div>
-
+            {/* KPI Overview */}
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:'12px', marginBottom:'20px' }}>
-                {[ { label:'Total Income', value:fmt(mIncome), color:'#10b981' }, { label:'Total Expense', value:fmt(mExpense), color:'#f87171' }, { label:'Net Surplus', value:fmt(mIncome - mExpense), color:(mIncome-mExpense)>0?'#10b981':'#f87171' } ].map(k => (
+                {[ 
+                  { label:'Total Masuk', value:fmt(mIncome), color:'#10b981' }, 
+                  { label:'Total Keluar', value:fmt(mExpense), color:'#f87171' }, 
+                  { label:'Net Surplus', value:fmt(mIncome - mExpense), color:(mIncome-mExpense)>0?'#10b981':'#f87171' } 
+                ].map(k => (
                     <Card key={k.label} style={{ padding:'16px' }}>
                         <div style={{ fontSize:'10px', color:'var(--text-muted)', fontWeight:'700', marginBottom:'6px', textTransform:'uppercase' }}>{k.label}</div>
                         <div style={{ fontSize:'18px', fontWeight:'800', color:k.color }}>{k.value}</div>
@@ -241,39 +199,83 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
                 ))}
             </div>
 
+            {/* Chart Block */}
             <Card style={{ marginBottom:'20px', padding:'20px' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'16px' }}>
                     <div style={{ display:'flex', gap:'6px' }}>
-                        {(['daily','monthly','yearly'] as const).map(v => <button key={v} onClick={()=>setView(v)} style={btnStyle(view===v)}>{v==='daily'?'Hari':v==='monthly'?'Bulan':'Tahun'}</button>)}
+                        {(['daily','monthly','yearly'] as const).map(v => <button key={v} onClick={()=>setView(v)} style={btnStyle(view===v)}>{v==='daily'?'Detail Hari':v==='monthly'?'Tren Bulan':'Sejarah Tahun'}</button>)}
                     </div>
                 </div>
                 <BarChart data={chartData} maxVal={maxVal} showIncome={true} showExpense={true} />
             </Card>
 
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))', gap:'14px' }}>
+                {/* Categories with Labels */}
                 <Card style={{ padding:'20px' }}>
-                    <div style={{ fontSize:'14px', fontWeight:'800', marginBottom:'16px' }}>Dominasi Kategori</div>
-                    <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
-                        {catData.slice(0,6).map((d,i) => (
-                            <div key={i} style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-                                <span style={{ fontSize:'18px' }}>{d.icon}</span>
-                                <div style={{ flex:1 }}>
-                                    <div style={{ height:'5px', background:'var(--bg-secondary)', borderRadius:'99px', overflow:'hidden' }}><div style={{ height:'100%', width:`${Math.round((d.value/catTotal)*100)}%`, background:d.color }}/></div>
+                    <div style={{ fontSize:'14px', fontWeight:'800', marginBottom:'16px' }}>Dominasi Kategori ({MONTH_NAMES[tMonthIdx-1]})</div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
+                        {catData.slice(0,6).map((d,i) => {
+                            const p = Math.round((d.value/catTotal)*100);
+                            return (
+                                <div key={i} style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+                                    <span style={{ fontSize:'24px', width:'30px' }}>{d.icon}</span>
+                                    <div style={{ flex:1 }}>
+                                        <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'4px' }}>
+                                            <span style={{ fontSize:'12px', fontWeight:'700', color:'var(--text-main)' }}>{d.name}</span>
+                                            <span style={{ fontSize:'11px', color:'var(--text-muted)' }}>{p}%</span>
+                                        </div>
+                                        <div style={{ height:'6px', background:'var(--bg-secondary)', borderRadius:'99px', overflow:'hidden' }}>
+                                            <div style={{ height:'100%', width:`${p}%`, background:d.color }}/>
+                                        </div>
+                                    </div>
+                                    <span style={{ fontSize:'12px', fontWeight:'800', width:'65px', textAlign:'right' }}>{fmtK(d.value)}</span>
                                 </div>
-                                <span style={{ fontSize:'12px', fontWeight:'700' }}>{fmtK(d.value)}</span>
+                            );
+                        })}
+                    </div>
+                </Card>
+
+                {/* Weekly Monitor */}
+                <Card style={{ padding:'20px' }}>
+                    <div style={{ fontSize:'14px', fontWeight:'800', marginBottom:'16px' }}>Laporan Mingguan Terperinci</div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:'1px' }}>
+                        <div style={{ display:'grid', gridTemplateColumns:'85px 1fr 1fr', padding:'5px 8px', fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase' }}>
+                            <span>Minggu</span>
+                            <span style={{ textAlign:'right' }}>Masuk</span>
+                            <span style={{ textAlign:'right' }}>Keluar</span>
+                        </div>
+                        {weeklyData.map((d,i) => (
+                            <div key={i} style={{ display:'grid', gridTemplateColumns:'85px 1fr 1fr', padding:'10px 8px', borderRadius:'8px', fontSize:'13px', background: i%2===0?'transparent':'var(--bg-secondary)' }}>
+                                <span style={{ fontWeight:'700' }}>{d.label}</span>
+                                <span style={{ textAlign:'right', color:'#10b981' }}>{fmtK(d.income)}</span>
+                                <span style={{ textAlign:'right', color:'#f87171' }}>{fmtK(d.expense)}</span>
                             </div>
                         ))}
                     </div>
                 </Card>
+
+                {/* Monthly Monitor (New Component Style) */}
                 <Card style={{ padding:'20px' }}>
-                    <div style={{ fontSize:'14px', fontWeight:'800', marginBottom:'16px' }}>Laporan Mingguan</div>
-                    {weeklyData.map((d,i) => (
-                        <div key={i} style={{ display:'grid', gridTemplateColumns:'80px 1fr 1fr', padding:'8px', borderRadius:'8px', fontSize:'13px', background: i%2===0?'transparent':'var(--bg-secondary)' }}>
-                            <span style={{ fontWeight:'700' }}>{d.label}</span>
-                            <span style={{ textAlign:'right', color:'#10b981' }}>{fmtK(d.income)}</span>
-                            <span style={{ textAlign:'right', color:'#f87171' }}>{fmtK(d.expense)}</span>
+                    <div style={{ fontSize:'14px', fontWeight:'800', marginBottom:'16px' }}>Monitor Histori Bulanan</div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:'1px' }}>
+                        <div style={{ display:'grid', gridTemplateColumns:'80px 1fr 1fr 1fr', padding:'5px 8px', fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase' }}>
+                            <span>Bulan</span>
+                            <span style={{ textAlign:'right' }}>In</span>
+                            <span style={{ textAlign:'right' }}>Out</span>
+                            <span style={{ textAlign:'right' }}>Net</span>
                         </div>
-                    ))}
+                        {monthlyHistory.slice().reverse().slice(0,6).map((d,i) => {
+                            const diff = d.income - d.expense;
+                            return (
+                                <div key={i} style={{ display:'grid', gridTemplateColumns:'80px 1fr 1fr 1fr', padding:'10px 8px', borderRadius:'8px', fontSize:'13px', background: i%2===0?'transparent':'var(--bg-secondary)' }}>
+                                    <span style={{ fontWeight:'800' }}>{d.label}</span>
+                                    <span style={{ textAlign:'right', color:'#10b981' }}>{fmtK(d.income)}</span>
+                                    <span style={{ textAlign:'right', color:'#f87171' }}>{fmtK(d.expense)}</span>
+                                    <span style={{ textAlign:'right', fontWeight:'900', color:diff>=0?'#10b981':'#f87171' }}>{fmtK(diff)}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </Card>
             </div>
           </>
