@@ -18,6 +18,7 @@ interface Profile {
   notify_weekly: boolean;
   notify_monthly: boolean;
   notify_ai: boolean;
+  notify_reminders: boolean;
 }
 
 interface Category {
@@ -107,6 +108,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
   const [notifyWeekly,   setNotifyWeekly]   = useState(profile.notify_weekly ?? true);
   const [notifyMonthly,  setNotifyMonthly]  = useState(profile.notify_monthly ?? true);
   const [notifyAi,       setNotifyAi]       = useState(profile.notify_ai ?? true);
+  const [notifyRemind,   setNotifyRemind]   = useState(profile.notify_reminders ?? true);
   const [savingProfile,  setSavingProfile]  = useState(false);
 
   // ── Category state ────────────────────────────────────────────────────────
@@ -185,6 +187,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
       notify_weekly: notifyWeekly,
       notify_monthly: notifyMonthly,
       notify_ai: notifyAi,
+      notify_reminders: notifyRemind,
       updated_at: new Date().toISOString(),
     }).eq('id', profile.id);
     setSavingProfile(false);
@@ -348,36 +351,58 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
       </Section>
 
       <Section title="Notifikasi Telegram" subtitle="Aktifkan laporan otomatis ke akun Telegram">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {[
-            { label: 'Laporan Mingguan', sub: 'Ringkasan performa setiap Sabtu pagi', value: notifyWeekly, set: setNotifyWeekly },
-            { label: 'Laporan Bulanan', sub: 'Tinjauan mendalam setiap tanggal 1', value: notifyMonthly, set: setNotifyMonthly },
-            { label: 'Vonis Strategis AI', sub: 'Insight tajam tentang pola belanja Anda', value: notifyAi, set: setNotifyAi },
+            { id: 'weekly',   label: 'Laporan Mingguan', sub: 'Ringkasan performa setiap Sabtu pagi', value: notifyWeekly, set: setNotifyWeekly },
+            { id: 'monthly',  label: 'Laporan Bulanan', sub: 'Tinjauan mendalam setiap tanggal 1', value: notifyMonthly, set: setNotifyMonthly },
+            { id: 'ai',       label: 'Vonis Strategis AI', sub: 'Insight tajam tentang pola belanja Anda', value: notifyAi, set: setNotifyAi },
+            { id: 'reminder', label: 'Pengingat Tidak Isi', sub: 'Notifikasi jika tidak ada transaksi > 2 hari', value: notifyRemind, set: setNotifyRemind },
           ].map(opt => (
-            <div key={opt.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
+            <div key={opt.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap:'12px' }}>
+              <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)' }}>{opt.label}</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{opt.sub}</div>
               </div>
-              <div 
-                onClick={() => opt.set(!opt.value)}
-                style={{
-                  width: '44px', height: '24px', borderRadius: '12px',
-                  background: opt.value ? 'var(--accent-primary)' : 'var(--bg-secondary)',
-                  border: `1px solid ${opt.value ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-                  position: 'relative', cursor: 'pointer', transition: 'all 0.2s'
-                }}
-              >
-                <div style={{
-                  position: 'absolute', top: '2px', left: opt.value ? '22px' : '2px',
-                  width: '18px', height: '18px', borderRadius: '50%',
-                  background: '#fff', transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                }} />
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <button 
+                  onClick={async (e) => {
+                    const btn = e.currentTarget;
+                    const old = btn.innerText; btn.innerText = 'Testing...';
+                    const res = await fetch('/api/cron/test-report', { method: 'POST', body: JSON.stringify({ type: opt.id }) });
+                    btn.innerText = res.ok ? 'Sukses ✅' : 'Gagal ❌';
+                    setTimeout(() => { btn.innerText = old; }, 2000);
+                  }}
+                  style={{ 
+                    padding: '4px 10px', fontSize: '10px', fontWeight: '800', 
+                    background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', 
+                    color: 'var(--text-muted)', borderRadius: '6px', cursor: 'pointer' 
+                  }}
+                >
+                  TEST
+                </button>
+
+                <div 
+                  onClick={() => opt.set(!opt.value)}
+                  style={{
+                    width: '40px', height: '22px', borderRadius: '12px',
+                    background: opt.value ? 'var(--accent-primary)' : 'var(--bg-secondary)',
+                    border: `1px solid ${opt.value ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+                    position: 'relative', cursor: 'pointer', transition: 'all 0.2s'
+                  }}
+                >
+                  <div style={{
+                    position: 'absolute', top: '2px', left: opt.value ? '20px' : '2px',
+                    width: '16px', height: '16px', borderRadius: '50%',
+                    background: '#fff', transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                  }} />
+                </div>
               </div>
             </div>
           ))}
         </div>
-        <div style={{ marginTop: '20px', padding: '12px', background: 'rgba(37,99,235,0.05)', borderRadius: '10px', border: '1px dashed var(--accent-primary)' }}>
+        
+        <div style={{ marginTop: '24px', padding: '12px', background: 'rgba(37,99,235,0.05)', borderRadius: '10px', border: '1px dashed var(--accent-primary)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-primary)', fontSize: '12px', fontWeight: '700' }}>
              🆔 Telegram ID: {profile.telegram_chat_id || 'Belum Terhubung'}
           </div>

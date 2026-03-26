@@ -97,7 +97,8 @@ export async function GET(request: Request) {
     .from('users')
     .select('id, telegram_chat_id, display_name, onboarded_at')
     .not('telegram_chat_id', 'is', null)
-    .not('onboarded_at', 'is', null);
+    .not('onboarded_at', 'is', null)
+    .eq('notify_reminders', true);
 
   if (!users || users.length === 0) {
     return NextResponse.json({ ok: true, reminded: 0 });
