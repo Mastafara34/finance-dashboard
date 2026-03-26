@@ -367,28 +367,42 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
       {/* Header */}
       <div className="ov-header">
-        <div>
+        <div style={{ flex: 1 }}>
           <h1 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 4px', letterSpacing: '-0.5px', color: 'var(--text-main)' }}>
             {welcomeText} 👋
           </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: 0, fontWeight: '500' }}>{dateLabel}</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: 0, fontWeight: '500' }}>
+            {dateLabel} {isCollective && '• Keluarga (Kolektif)'} {!isCollective && isOwner && viewUserId !== myProfile.id && `• Dashboard ${allUsers.find(u => u.id === viewUserId)?.display_name || 'Member'}`}
+          </p>
         </div>
-        <div style={{ 
-          background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '16px', 
-          padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '16px',
-          boxShadow: 'var(--card-shadow)'
-        }}>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: '2px', fontWeight: '700' }}>{archetype}</div>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: '2px', fontWeight: '700' }}>Financial Health</div>
-            <div style={{ fontSize: '14px', fontWeight: '800', color: healthColor }}>{healthLabel}</div>
-          </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <a href={`/dashboard/intelligence${searchU ? `?u=${searchU}` : ''}`} 
+            style={{ 
+              padding: '10px 18px', background: 'var(--accent-primary)', color: '#fff', 
+              borderRadius: '10px', textDecoration: 'none', fontSize: '13px', fontWeight: '800', 
+              boxShadow: '0 4px 15px rgba(37, 99, 235, 0.3)', display: 'flex', 
+              alignItems: 'center', gap: '8px', border: '1px solid rgba(255,255,255,0.1)' 
+            }}>
+            <span>✨</span> Laporan Evaluasi AI
+          </a>
+
           <div style={{ 
-            width: '48px', height: '48px', borderRadius: '50%', border: `4px solid ${healthColor}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: '900',
-            color: 'var(--text-main)', background: 'var(--bg-primary)'
+            background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '16px', 
+            padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '16px',
+            boxShadow: 'var(--card-shadow)'
           }}>
-            {healthScore}
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: '2px', fontWeight: '700' }}>{archetype}</div>
+              <div style={{ fontSize: '14px', fontWeight: '800', color: healthColor }}>{healthLabel}</div>
+            </div>
+            <div style={{ 
+              width: '48px', height: '48px', borderRadius: '50%', border: `4px solid ${healthColor}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: '900',
+              color: 'var(--text-main)', background: 'var(--bg-primary)'
+            }}>
+              {healthScore}
+            </div>
           </div>
         </div>
       </div>

@@ -12,6 +12,7 @@ const NAV = [
   { href: '/dashboard/analytics',    icon: '▦', label: 'Analitik'   },
   { href: '/dashboard/networth',     icon: '◈', label: 'Net Worth'  },
   { href: '/dashboard/budgets',      icon: '▣', label: 'Budget'     },
+  { href: '/dashboard/intelligence', icon: '🧠', label: 'Evaluasi AI' },
   { href: '/dashboard/settings',     icon: '◌', label: 'Pengaturan' },
 ];
 
