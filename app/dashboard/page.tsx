@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getCachedUser, getCachedProfile } from '@/lib/supabase/cached';
-import { Card, KpiCard, ProgressCard } from './components/DashboardComponents';
+import { Card, KpiCard, ProgressCard, EmptyState } from './components/DashboardComponents';
 import { KpiGridClient } from './components/KpiGridClient';
 import { UserSelector } from './components/UserSelector';
 import { 
@@ -492,8 +492,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </div>
 
         {txs.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '20px', background: 'var(--bg-primary)', borderRadius: '8px', marginTop: '10px' }}>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Belum ada data transaksi bulan ini.</div>
+          <div style={{ marginTop: '20px' }}>
+            <EmptyState message="Belum ada data transaksi bulan ini untuk menampilkan grafik." icon="📈" />
           </div>
         )}
       </Card>
@@ -520,9 +520,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             <a href="/dashboard/transactions" style={{ fontSize: '12px', color: '#3b82f6', textDecoration: 'none', fontWeight: '600' }}>Semua →</a>
           </div>
           {txs.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--text-muted)', fontSize: '13px' }}>
-              Belum ada transaksi di periode ini.
-            </div>
+            <EmptyState message="Belum ada riwayat transaksi." icon="📄" />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {txs.slice(0, 5).map((t, i) => (

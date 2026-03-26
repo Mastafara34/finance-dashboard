@@ -144,10 +144,29 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
   // ── Toast ─────────────────────────────────────────────────────────────────
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const [deletingCat, setDeletingCat] = useState<Category | null>(null);
+  const [passStrength, setPassStrength] = useState<{ score: number; label: string; color: string }>({ score: 0, label: '', color: '' });
 
   function showToast(msg: string, ok = true) {
     setToast({ msg, ok });
     setTimeout(() => setToast(null), 3500);
+  }
+
+  function checkPassStrength(pass: string) {
+    let s = 0;
+    if (pass.length === 0) { setPassStrength({ score: 0, label: '', color: '' }); return; }
+    if (pass.length >= 6) s++;
+    if (/[A-Z]/.test(pass)) s++;
+    if (/[0-9]/.test(pass)) s++;
+    if (/[^A-Za-z0-9]/.test(pass)) s++;
+
+    const map = [
+      { label: 'Sangat Lemah', color: '#ef4444' },
+      { label: 'Lemah', color: '#f97316' },
+      { label: 'Cukup', color: '#eab308' },
+      { label: 'Kuat', color: '#22c55e' },
+      { label: 'Sangat Kuat', color: '#10b981' },
+    ];
+    setPassStrength({ score: s, label: map[s].label, color: map[s].color });
   }
 
   // ── Save profile ──────────────────────────────────────────────────────────
@@ -200,6 +219,23 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
     setDeletingCat(null);
   }
 
+  async function resetAllTransactions() {
+    setReseting(true);
+    const { error } = await supabase.from('transactions').update({ is_deleted: true }).eq('user_id', profile.id);
+    setReseting(false); setConfirmResetTx(false);
+    if (error) { showToast('Gagal reset', false); return; }
+    showToast('Semua transaksi dihapus');
+  }
+
+  async function resetCustomCategories() {
+    setReseting(true);
+    const { error } = await supabase.from('categories').delete().eq('user_id', profile.id);
+    setReseting(false); setConfirmResetCat(false);
+    if (error) { showToast('Gagal reset', false); return; }
+    setCats(prev => prev.filter(c => c.is_default));
+    showToast('Kategori kustom direset');
+  }
+
   const handleLogout = async () => { await supabase.auth.signOut(); window.location.href = '/login'; };
 
   const filteredCats = cats.filter(c => c.type === catTab);
@@ -208,7 +244,31 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
 
   return (
     <div style={{ color: 'var(--text-main)', maxWidth: '720px', margin: '0 auto', paddingBottom: '100px' }}>
-      {toast && <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 200, padding: '12px 18px', borderRadius: '10px', fontSize: '13px', fontWeight: '600', background: toast.ok ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', border: `1px solid ${toast.ok ? '#15803d' : '#b91c1c'}`, color: toast.ok ? '#15803d' : '#b91c1c' }}>{toast.msg}</div>}
+      
+      <style>{`
+        @keyframes slideIn {
+          from { transform: translateX(100px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        .toast-notify {
+          animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+      `}</style>
+
+      {toast && (
+        <div className="toast-notify" style={{ 
+          position: 'fixed', top: '24px', right: '24px', zIndex: 1000, 
+          padding: '14px 20px', borderRadius: '12px', fontSize: '14px', fontWeight: '700', 
+          background: 'var(--card-bg)', 
+          border: `1px solid ${toast.ok ? '#10b981' : '#ef4444'}`, 
+          color: toast.ok ? '#10b981' : '#ef4444',
+          boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+          display: 'flex', alignItems: 'center', gap: '12px'
+        }}>
+          <span style={{ fontSize: '18px' }}>{toast.ok ? '✅' : '❌'}</span>
+          <span>{toast.msg}</span>
+        </div>
+      )}
 
       <div style={{ marginBottom: '32px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: '700', margin: '0 0 4px' }}>Pengaturan</h1>
@@ -245,13 +305,37 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
       <Section title="Keamanan" subtitle="Ganti password untuk perlindungan akun">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
           <Field label="Password Baru">
-            <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} style={inputStyle} />
+            <input 
+              type="password" 
+              value={newPassword} 
+              onChange={e => {
+                setNewPassword(e.target.value);
+                checkPassStrength(e.target.value);
+              }} 
+              style={inputStyle} 
+            />
+            {newPassword && (
+              <div style={{ marginTop: '8px' }}>
+                <div style={{ height: '4px', background: 'var(--border-color)', borderRadius: '2px', overflow: 'hidden', marginBottom: '4px' }}>
+                  <div style={{ 
+                    height: '100%', width: `${(passStrength.score + 1) * 20}%`, 
+                    background: passStrength.color, transition: 'all 0.3s' 
+                  }}/>
+                </div>
+                <div style={{ fontSize: '10px', fontWeight: '800', color: passStrength.color, textTransform: 'uppercase' }}>
+                  Strength: {passStrength.label}
+                </div>
+              </div>
+            )}
           </Field>
           <Field label="Konfirmasi Password">
             <input type="password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} style={inputStyle} />
+            {confirmPass && newPassword !== confirmPass && (
+              <div style={{ fontSize: '10px', color: '#ef4444', marginTop: '6px', fontWeight: '700' }}>⚠️ Password tidak cocok</div>
+            )}
           </Field>
         </div>
-        <button onClick={changePassword} disabled={savingPass || !newPassword} style={{ padding: '10px 20px', background: !newPassword ? 'var(--bg-secondary)' : '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>Ubah Password</button>
+        <button onClick={changePassword} disabled={savingPass || !newPassword || newPassword !== confirmPass} style={{ padding: '10px 20px', background: !newPassword || newPassword !== confirmPass ? 'var(--bg-secondary)' : '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>Ubah Password</button>
       </Section>
 
       {/* ── GROUP 2: APLIKASI & DATA ─────────────────────────────────── */}
@@ -331,13 +415,55 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
           <div><div style={{ fontSize: '14px', fontWeight: '700', color: showDanger ? '#ef4444' : 'var(--text-main)' }}>☢️ Danger Zone</div> {showDanger && <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Hapus data bersifat permanen.</div>}</div>
           <button onClick={() => setShowDanger(!showDanger)} style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', background: 'transparent', border: `1px solid ${showDanger ? 'var(--border-color)' : '#ef4444'}`, color: showDanger ? 'var(--text-muted)' : '#ef4444' }}>{showDanger ? 'Tutup' : 'Buka'}</button>
         </div>
+
+        {showDanger && (
+          <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ height: '1px', background: 'rgba(239, 68, 68, 0.1)' }}></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div><div style={{ fontSize: '13px', fontWeight: '600' }}>Hapus Transaksi</div><div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Bersihkan semua histori transaksi kamu</div></div>
+              <button onClick={() => setConfirmResetTx(true)} style={{ padding: '6px 12px', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>Hapus</button>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div><div style={{ fontSize: '13px', fontWeight: '600' }}>Reset Kategori</div><div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Hapus semua kategori kustom yang Anda buat</div></div>
+              <button onClick={() => setConfirmResetCat(true)} style={{ padding: '6px 12px', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>Reset</button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div style={{ marginTop: '40px', textAlign: 'center' }}>
         <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Sign Out</button>
       </div>
 
-      <ConfirmModal open={deletingCat !== null} title=\"Hapus Kategori?\" message={`Yakin ingin menghapus ${deletingCat?.name}?`} confirmLabel=\"Hapus\" danger onConfirm={deleteCat} onCancel={() => setDeletingCat(null)} />
+      <ConfirmModal 
+        open={confirmResetTx} 
+        title="Hapus Semua Transaksi?" 
+        message="Ini akan menghapus seluruh data transaksi Anda selamanya." 
+        confirmLabel="Ya, Hapus Semua" 
+        danger 
+        onConfirm={resetAllTransactions} 
+        onCancel={() => setConfirmResetTx(false)} 
+      />
+
+      <ConfirmModal 
+        open={confirmResetCat} 
+        title="Reset Kategori Kustom?" 
+        message="Seluruh kategori yang Anda buat akan dihapus." 
+        confirmLabel="Ya, Reset" 
+        danger 
+        onConfirm={resetCustomCategories} 
+        onCancel={() => setConfirmResetCat(false)} 
+      />
+
+      <ConfirmModal 
+        open={deletingCat !== null} 
+        title="Hapus Kategori?" 
+        message={`Yakin ingin menghapus ${deletingCat?.name}?`} 
+        confirmLabel="Hapus" 
+        danger 
+        onConfirm={deleteCat} 
+        onCancel={() => setDeletingCat(null)} 
+      />
     </div>
   );
 }

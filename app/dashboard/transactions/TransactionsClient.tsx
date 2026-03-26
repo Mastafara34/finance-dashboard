@@ -173,29 +173,38 @@ export default function TransactionsClient({ transactions, categories, userId }:
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="tx-filters">
-        <input placeholder="Cari..." value={search} onChange={e => setSearch(e.target.value)}
-          style={{ flex:1, minWidth:'140px', padding:'9px 12px', background:'var(--card-bg)',
-            border:'1px solid var(--border-color)', borderRadius:'8px', color:'var(--text-main)',
-            fontSize:'16px', outline:'none', boxShadow:'var(--card-shadow)' }}
-          onFocus={e => e.target.style.borderColor='var(--accent-primary)'}
-          onBlur={e  => e.target.style.borderColor='var(--border-color)'}
-        />
+      {/* Filters & Search */}
+      <div className="tx-filters" style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '16px' }}>
+        <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
+          <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '14px', pointerEvents: 'none' }}>🔍</span>
+          <input 
+            placeholder="Cari catatan, kategori, atau nominal..." 
+            value={search} 
+            onChange={e => setSearch(e.target.value)}
+            style={{ 
+              width: '100%', padding: '10px 12px 10px 38px', background: 'var(--card-bg)',
+              border: '1px solid var(--border-color)', borderRadius: '10px', color: 'var(--text-main)',
+              fontSize: '14px', outline: 'none', boxShadow: 'var(--card-shadow)',
+              transition: 'all 0.2s'
+            }}
+            onFocus={e => { e.target.style.borderColor = 'var(--accent-primary)'; e.target.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.1)'; }}
+            onBlur={e => { e.target.style.borderColor = 'var(--border-color)'; e.target.style.boxShadow = 'var(--card-shadow)'; }}
+          />
+        </div>
         <select value={filterType} onChange={e => setFilterType(e.target.value as any)}
-          style={{ padding:'9px 10px', background:'var(--card-bg)', border:'1px solid var(--border-color)',
-            borderRadius:'8px', color:'var(--text-main)', fontSize:'16px', outline:'none', boxShadow:'var(--card-shadow)' }}>
-          <option value="all">Semua</option>
+          style={{ padding:'10px 12px', background:'var(--card-bg)', border:'1px solid var(--border-color)',
+            borderRadius:'10px', color:'var(--text-main)', fontSize:'14px', outline:'none', boxShadow:'var(--card-shadow)', cursor: 'pointer' }}>
+          <option value="all">Semua Tipe</option>
           <option value="income">Pemasukan</option>
           <option value="expense">Pengeluaran</option>
         </select>
         <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)}
-          style={{ padding:'9px 10px', background:'var(--card-bg)', border:'1px solid var(--border-color)',
-            borderRadius:'8px', color:'var(--text-main)', fontSize:'16px', outline:'none', boxShadow:'var(--card-shadow)' }}>
-          <option value="all">Semua bulan</option>
+          style={{ padding:'10px 12px', background:'var(--card-bg)', border:'1px solid var(--border-color)',
+            borderRadius:'10px', color:'var(--text-main)', fontSize:'14px', outline:'none', boxShadow:'var(--card-shadow)', cursor: 'pointer' }}>
+          <option value="all">Semua Bulan</option>
           {months.map(m => (
             <option key={m} value={m}>
-              {new Date(m+'-01').toLocaleDateString('id-ID', { month:'long', year:'numeric' })}
+              {new Date(m+'-01').toLocaleDateString('id-ID', { month:'short', year:'numeric' })}
             </option>
           ))}
         </select>

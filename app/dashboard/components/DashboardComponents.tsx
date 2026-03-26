@@ -74,3 +74,14 @@ export const ProgressCard = ({ label, current, target, progress, color = 'var(--
     </div>
   </Card>
 );
+
+export const EmptyState = ({ message = "Belum ada data.", icon = "🔍" }: { message?: string; icon?: string }) => (
+  <div style={{ 
+    padding: '40px 20px', textAlign: 'center', background: 'var(--card-bg)', 
+    border: '1px dashed var(--border-color)', borderRadius: '16px',
+    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px'
+  }}>
+    <div style={{ fontSize: '32px', filter: 'grayscale(0.5)' }}>{icon}</div>
+    <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '600' }}>{message}</div>
+  </div>
+);
