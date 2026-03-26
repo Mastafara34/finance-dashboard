@@ -507,7 +507,7 @@ export default function BudgetsClient({
           <h1 style={{ fontSize: '22px', fontWeight: '600', margin: '0 0 4px', letterSpacing: '-0.4px' }}>
             Budget
           </h1>
-          <p style={{ color: '#6b7280', fontSize: '13px', margin: 0 }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>
             Amplop digital — {monthLabel}
           </p>
         </div>
@@ -517,8 +517,8 @@ export default function BudgetsClient({
               onClick={handleCopyLastMonth} 
               disabled={isCopying}
               style={{
-                padding: '9px 18px', background: '#1f1f2e', border: '1px solid #2a2a3a',
-                borderRadius: '9px', color: '#4ade80', fontSize: '13px', fontWeight: '600', cursor: 'pointer'
+                padding: '9px 18px', background: 'var(--card-bg)', border: '1px solid var(--border-color)',
+                borderRadius: '9px', color: '#10b981', fontSize: '13px', fontWeight: '600', cursor: 'pointer'
               }}
             >
               {isCopying ? 'Menyalin...' : '📋 Salin Bulan Lalu'}
@@ -526,8 +526,8 @@ export default function BudgetsClient({
           )}
           {canEditTargets && (
             <button onClick={() => setIsEditingTargets(true)} style={{
-              padding: '9px 18px', background: 'transparent', border: '1px solid #2a2a3a',
-              borderRadius: '9px', color: '#9ca3af', fontSize: '13px', fontWeight: '600', cursor: 'pointer'
+              padding: '9px 18px', background: 'transparent', border: '1px solid var(--border-color)',
+              borderRadius: '9px', color: 'var(--text-muted)', fontSize: '13px', fontWeight: '600', cursor: 'pointer'
             }}>⚙️ Target</button>
           )}
           <button onClick={() => setShowForm(true)}
@@ -535,11 +535,11 @@ export default function BudgetsClient({
             style={{
               padding: '9px 18px', border: 'none', borderRadius: '9px',
               color: '#fff', fontSize: '13px', fontWeight: '600',
-              background: categories.length === existingCatIds.length ? '#1f1f2e' : '#2563eb',
+              background: categories.length === existingCatIds.length ? 'var(--bg-secondary)' : 'var(--accent-primary)',
               cursor: categories.length === existingCatIds.length ? 'not-allowed' : 'pointer',
             }}
-            onMouseEnter={e => { if (categories.length !== existingCatIds.length) (e.currentTarget).style.background = '#1d4ed8'; }}
-            onMouseLeave={e => { if (categories.length !== existingCatIds.length) (e.currentTarget).style.background = '#2563eb'; }}
+            onMouseEnter={e => { if (categories.length !== existingCatIds.length) (e.currentTarget).style.background = 'var(--accent-primary)'; }}
+            onMouseLeave={e => { if (categories.length !== existingCatIds.length) (e.currentTarget).style.background = 'var(--accent-primary)'; }}
           >+ Set Budget</button>
         </div>
       </div>
@@ -552,11 +552,11 @@ export default function BudgetsClient({
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 150, padding: '20px',
         }}>
           <div style={{
-            background: '#111118', border: '1px solid #1f1f2e', borderRadius: '16px',
+            background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '16px',
             width: '100%', maxWidth: '400px', padding: '24px',
           }}>
             <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '4px' }}>Target Finansial</h2>
-            <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '20px' }}>Atur persentase ideal untuk alokasi budget Anda.</p>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>Atur persentase ideal untuk alokasi budget Anda.</p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
               <div>
@@ -571,31 +571,31 @@ export default function BudgetsClient({
                 <label style={lbl}>Batas Kebutuhan / Needs (%)</label>
                 <input type="number" value={targetNeeds} onChange={e => setTargetNeeds(Number(e.target.value))} style={inp} />
               </div>
-              <div style={{ padding: '10px', background: (targetSaving + targetWants + targetNeeds > 100) ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.1)', borderRadius: '8px', fontSize: '11px', color: (targetSaving + targetWants + targetNeeds > 100) ? '#f87171' : '#4ade80' }}>
+              <div style={{ padding: '10px', background: (targetSaving + targetWants + targetNeeds > 100) ? 'rgba(239,68,68,0.1)' : 'rgba(16, 185, 129, 0.1)', borderRadius: '8px', fontSize: '11px', color: (targetSaving + targetWants + targetNeeds > 100) ? '#ef4444' : '#10b981' }}>
                 Total Alokasi: {targetSaving + targetWants + targetNeeds}% {targetSaving + targetWants + targetNeeds > 100 && '(Melebihi 100%!)'}
               </div>
 
               {/* Benchmark Standar Global */}
               <div style={{ 
-                marginTop: '16px', padding: '12px', background: '#0a0a0f', 
-                border: '1px dashed #1f1f2e', borderRadius: '10px' 
+                marginTop: '16px', padding: '12px', background: 'var(--bg-secondary)', 
+                border: '1px dashed var(--border-color)', borderRadius: '10px' 
               }}>
-                <div style={{ fontSize: '11px', color: '#9ca3af', fontWeight: '600', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <span>📊</span> STANDAR GLOBAL (50/30/20)
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                   {[
-                    { label: 'Kebutuhan', val: '50%', color: '#60a5fa' },
+                    { label: 'Kebutuhan', val: '50%', color: 'var(--accent-primary)' },
                     { label: 'Keinginan', val: '30%', color: '#fbbf24' },
-                    { label: 'Tabungan', val: '20%', color: '#4ade80' },
+                    { label: 'Tabungan', val: '20%', color: '#10b981' },
                   ].map(b => (
                     <div key={b.label} style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '9px', color: '#6b7280', textTransform: 'uppercase' }}>{b.label}</div>
+                      <div style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{b.label}</div>
                       <div style={{ fontSize: '12px', fontWeight: '700', color: b.color }}>{b.val}</div>
                     </div>
                   ))}
                 </div>
-                <div style={{ marginTop: '10px', fontSize: '10px', color: '#6b7280', fontStyle: 'italic', lineHeight: '1.4' }}>
+                <div style={{ marginTop: '10px', fontSize: '10px', color: 'var(--text-muted)', fontStyle: 'italic', lineHeight: '1.4' }}>
                   Aturan 50/30/20 adalah panduan umum: 50% untuk kebutuhan pokok, 30% untuk keinginan pribadi, dan 20% untuk tabungan/investasi.
                 </div>
                 <button 
@@ -607,11 +607,9 @@ export default function BudgetsClient({
                   }}
                   style={{
                     width: '100%', marginTop: '10px', padding: '6px',
-                    background: '#1f1f2e', border: 'none', borderRadius: '6px',
-                    color: '#f0f0f5', fontSize: '11px', fontWeight: '600', cursor: 'pointer'
+                    background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '6px',
+                    color: 'var(--text-main)', fontSize: '11px', fontWeight: '600', cursor: 'pointer'
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#2a2a3a'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#1f1f2e'}
                 >
                   Terapkan Standar 50/30/20
                 </button>
@@ -622,11 +620,11 @@ export default function BudgetsClient({
               <button onClick={handleSaveTargets} disabled={isSavingTargets} style={{
                 flex: 1, padding: '11px', border: 'none', borderRadius: '9px',
                 color: '#fff', fontSize: '14px', fontWeight: '600',
-                background: '#2563eb', cursor: 'pointer',
+                background: 'var(--accent-primary)', cursor: 'pointer',
               }}>{isSavingTargets ? 'Menyimpan...' : 'Simpan'}</button>
               <button onClick={() => setIsEditingTargets(false)} style={{
-                padding: '11px 18px', background: 'transparent', border: '1px solid #2a2a3a',
-                borderRadius: '9px', color: '#9ca3af', fontSize: '14px', cursor: 'pointer',
+                padding: '11px 18px', background: 'transparent', border: '1px solid var(--border-color)',
+                borderRadius: '9px', color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer',
               }}>Batal</button>
             </div>
           </div>
@@ -658,34 +656,34 @@ export default function BudgetsClient({
       {/* Summary bar */}
       {budgets.length > 0 && (
         <div style={{
-          background: '#111118', border: '1px solid #1f1f2e',
+          background: 'var(--card-bg)', border: '1px solid var(--border-color)',
           borderRadius: '12px', padding: '18px 20px', marginBottom: '20px',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>
+            <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>
               Total Budget {monthLabel}
             </span>
-            <span style={{ fontSize: '14px', fontWeight: '700', color: '#f0f0f5' }}>
-              {fmt(totalSpent)} <span style={{ color: '#374151', fontWeight: '400' }}>/ {fmt(totalLimit)}</span>
+            <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)' }}>
+              {fmt(totalSpent)} <span style={{ color: 'var(--border-color)', fontWeight: '400' }}>/ {fmt(totalLimit)}</span>
             </span>
           </div>
-          <div style={{ height: '8px', background: '#1f1f2e', borderRadius: '99px', overflow: 'hidden' }}>
+          <div style={{ height: '8px', background: 'var(--bg-secondary)', borderRadius: '99px', overflow: 'hidden' }}>
             <div style={{
               height: '100%', borderRadius: '99px',
               width: `${totalLimit > 0 ? Math.min((totalSpent / totalLimit) * 100, 100) : 0}%`,
               background: totalSpent / totalLimit >= 1 ? '#ef4444'
-                : totalSpent / totalLimit >= 0.8 ? '#f59e0b' : '#2563eb',
+                : totalSpent / totalLimit >= 0.8 ? '#f59e0b' : 'var(--accent-primary)',
               transition: 'width .5s ease',
             }}/>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginTop: '14px' }}>
             {[
-              { label: 'Total Budget', value: fmt(totalLimit), color: '#9ca3af' },
-              { label: 'Total Terpakai', value: fmt(totalSpent), color: '#f87171' },
-              { label: 'Sisa', value: fmt(Math.max(totalLimit - totalSpent, 0)), color: '#4ade80' },
+              { label: 'Total Budget', value: fmt(totalLimit), color: 'var(--text-muted)' },
+              { label: 'Total Terpakai', value: fmt(totalSpent), color: '#ef4444' },
+              { label: 'Sisa', value: fmt(Math.max(totalLimit - totalSpent, 0)), color: '#10b981' },
             ].map(s => (
               <div key={s.label} style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '3px',
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '3px',
                   textTransform: 'uppercase', letterSpacing: '.04em' }}>{s.label}</div>
                 <div style={{ fontSize: '14px', fontWeight: '700', color: s.color }}>
                   {fmtK(parseFloat(s.value.replace(/[^0-9]/g, '')))}
@@ -700,17 +698,17 @@ export default function BudgetsClient({
       {budgets.length === 0 ? (
         <div style={{
           textAlign: 'center', padding: '60px 20px',
-          background: '#111118', border: '1px solid #1f1f2e', borderRadius: '14px',
+          background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '14px',
         }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>💰</div>
-          <h3 style={{ color: '#f0f0f5', fontSize: '18px', fontWeight: '600', margin: '0 0 8px' }}>
+          <h3 style={{ color: 'var(--text-main)', fontSize: '18px', fontWeight: '600', margin: '0 0 8px' }}>
             Belum ada budget bulan ini
           </h3>
-          <p style={{ color: '#6b7280', fontSize: '14px', margin: '0 0 24px', lineHeight: '1.6' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: '0 0 24px', lineHeight: '1.6' }}>
             Set limit pengeluaran per kategori supaya kamu tahu<br/>kapan harus mulai rem pengeluaran.
           </p>
           <button onClick={() => setShowForm(true)} style={{
-            padding: '10px 24px', background: '#2563eb', border: 'none',
+            padding: '10px 24px', background: 'var(--accent-primary)', border: 'none',
             borderRadius: '9px', color: '#fff', fontSize: '14px',
             fontWeight: '600', cursor: 'pointer',
           }}>
@@ -739,10 +737,10 @@ export default function BudgetsClient({
       {budgets.length > 0 && (
         <div style={{
           marginTop: '20px', padding: '14px 16px',
-          background: '#0a0a0f', border: '1px solid #1f1f2e',
-          borderRadius: '10px', fontSize: '12px', color: '#6b7280', lineHeight: '1.6',
+          background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+          borderRadius: '10px', fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6',
         }}>
-          💡 <strong style={{ color: '#9ca3af' }}>Tips:</strong> Budget ini reset otomatis setiap bulan.
+          💡 <strong style={{ color: 'var(--text-main)' }}>Tips:</strong> Budget ini reset otomatis setiap bulan.
           Bulan depan kamu perlu set ulang — atau salin dari bulan ini via tombol "+ Set Budget".
           Pengeluaran dihitung dari transaksi yang masuk via bot maupun web.
         </div>
@@ -752,6 +750,6 @@ export default function BudgetsClient({
 }
 
 const lbl: React.CSSProperties = {
-  display: 'block', fontSize: '12px', color: '#6b7280',
+  display: 'block', fontSize: '12px', color: 'var(--text-muted)',
   fontWeight: '500', marginBottom: '6px',
 };
