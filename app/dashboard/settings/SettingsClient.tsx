@@ -109,7 +109,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
   const [showCatForm,    setShowCatForm]    = useState(false);
   const [editCat,        setEditCat]        = useState<Category | null>(null);
   const [catPage,        setCatPage]        = useState(1);
-  const CAT_PAGE_SIZE = 6;
+  const CAT_PAGE_SIZE = 8;
   const [catForm,        setCatForm]        = useState({
     name: '', icon: '📦', color: '#6b7280', type: 'expense' as 'income' | 'expense',
   });
@@ -694,56 +694,60 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
           </div>
         )}
 
-        {/* Category Grid with Professional Scroll */}
+        {/* Category List with Professional Scroll */}
         <div style={{
           maxHeight: '440px',
           overflowY: 'auto',
-          padding: '4px',
+          padding: '2px',
           margin: '0 -4px 16px',
           scrollbarWidth: 'thin',
           scrollbarColor: 'var(--border-color) transparent',
         }} className="premium-scrollbar">
           <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', 
-            gap: '12px',
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '8px',
           }}>
             {userCats.slice((catPage - 1) * CAT_PAGE_SIZE, catPage * CAT_PAGE_SIZE).map(cat => (
               <div key={cat.id} style={{
-                position: 'relative',
                 background: 'var(--card-bg)',
                 border: '1px solid var(--border-color)',
-                borderRadius: '16px',
-                padding: '16px',
+                borderRadius: '12px',
+                padding: '10px 14px',
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
-                textAlign: 'center',
-                gap: '10px',
+                gap: '12px',
                 transition: 'all 0.2s',
-                cursor: 'default',
                 boxShadow: 'var(--card-shadow)'
               }}>
                 <div style={{ 
-                  width: '48px', height: '48px', borderRadius: '14px',
+                  width: '36px', height: '36px', borderRadius: '10px',
                   background: cat.color + '15', border: `1px solid ${cat.color}33`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '24px'
+                  fontSize: '18px', flexShrink: 0
                 }}>
                   {cat.icon}
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ 
+                  fontSize: '14px', fontWeight: '600', color: 'var(--text-main)', 
+                  flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' 
+                }}>
                   {cat.name}
                 </div>
                 
-                <div style={{ display: 'flex', gap: '6px', width: '100%', marginTop: '4px' }}>
+                <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                   <button onClick={() => openEditCat(cat)} style={{
-                    flex: 1, padding: '6px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', 
-                    borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)'
-                  }}>Edit</button>
+                    padding: '6px 14px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', 
+                    borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)',
+                    transition: 'all 0.2s'
+                  }}
+                    onMouseEnter={e => (e.currentTarget).style.borderColor = 'var(--accent-primary)'}
+                    onMouseLeave={e => (e.currentTarget).style.borderColor = 'var(--border-color)'}
+                  >Edit</button>
                   <button onClick={() => setDeletingCat(cat)} style={{
-                    aspectRatio: '1', padding: '6px', background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.1)', 
-                    borderRadius: '8px', cursor: 'pointer', color: '#ef4444'
+                    width: '30px', height: '30px', background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.1)', 
+                    borderRadius: '8px', cursor: 'pointer', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '14px'
                   }}>✕</button>
                 </div>
               </div>
