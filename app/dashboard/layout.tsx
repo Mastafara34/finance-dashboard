@@ -13,28 +13,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const { data: { user } } = await getCachedUser();
   if (!user) redirect('/login');
 
-  // Use cached profile - should be shared if already fetched
-  let { data: profile } = await getCachedProfile();
-
-  // If authenticated but no profile, try auto-register logic (once)
-  if (!profile && user.email) {
-    const { data: newProfile, error: createError } = await supabase
-      .from('users')
-      .insert([{
-        id: user.id,
-        email: user.email,
-        display_name: user.email.split('@')[0],
-        role: 'user'
-      }])
-      .select('id, email, display_name, telegram_chat_id, role')
-      .single();
-
-    if (!createError) {
-      profile = newProfile as any;
-    } else {
-      console.error('Failed to auto-register user:', createError);
-    }
-  }
+  // Use cached profile - it now handles auto-registration internally if missing
+  let { data: profile, error: profileError } = await getCachedProfile();
+  if (profileError) console.error('getCachedProfile error in layout:', profileError);
+  console.log('Layout Profile Result:', { hasProfile: !!profile, email: user.email });
 
   // Fetch all users for the sidebar selector if owner
   let allUsers: any[] = [];
