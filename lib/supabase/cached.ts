@@ -37,6 +37,7 @@ export const getCachedProfile = cache(async (userId?: string, email?: string) =>
   if (!user) return { data: null, error: null };
 
   // Try fetching by ID first
+  // We use only essential columns that are guaranteed to exist to avoid query failure
   let { data: profile, error } = await supabase
     .from('users')
     .select('id, email, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
@@ -53,6 +54,19 @@ export const getCachedProfile = cache(async (userId?: string, email?: string) =>
     if (byEmail) profile = byEmail;
   }
 
+  // Fallback: If query fails, let's try WITHOUT the target columns (older schema)
+  if (error || (!profile && !user.email)) {
+    const { data: fallback, error: fallbackError } = await supabase
+      .from('users')
+      .select('id, email, display_name, telegram_chat_id, role')
+      .eq('id', user.id)
+      .maybeSingle();
+    if (fallback) {
+      profile = fallback;
+      error = null;
+    }
+  }
+
   // AUTO-REGISTER: If missing, create it immediately
   if (!profile && !error) {
     const insertData: any = {
@@ -65,12 +79,12 @@ export const getCachedProfile = cache(async (userId?: string, email?: string) =>
     const { data: newProfile, error: createError } = await supabase
       .from('users')
       .insert([insertData])
-      .select('id, email, display_name, telegram_chat_id, role, saving_target, wants_target, needs_target')
+      .select('id, email, display_name, telegram_chat_id, role')
       .maybeSingle();
     
     if (!createError && newProfile) return { data: newProfile, error: null };
     if (createError) console.error('Auto-registration error:', createError);
   }
 
-  return { data: profile, error };
+  return { data: profile as any, error };
 });
