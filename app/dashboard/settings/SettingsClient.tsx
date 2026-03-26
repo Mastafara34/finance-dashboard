@@ -381,11 +381,23 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <button 
                   onClick={async (e) => {
-                    const btn = e.currentTarget;
+                  const btn = e.currentTarget;
                     const old = btn.innerText; btn.innerText = 'Testing...';
-                    const res = await fetch('/api/cron/test-report', { method: 'POST', body: JSON.stringify({ type: opt.id }) });
-                    btn.innerText = res.ok ? 'Sukses ✅' : 'Gagal ❌';
-                    setTimeout(() => { btn.innerText = old; }, 2000);
+                    btn.disabled = true;
+                    const res = await fetch('/api/cron/test-report', { 
+                      method: 'POST', 
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ type: opt.id, chatId: telegramId ? parseInt(telegramId) : undefined }) 
+                    });
+                    btn.disabled = false;
+                    if (res.ok) {
+                      btn.innerText = 'Sukses ✅';
+                    } else {
+                      const err = await res.json().catch(() => ({}));
+                      alert('Gagal: ' + (err.error || 'Unknown error'));
+                      btn.innerText = 'Gagal ❌';
+                    }
+                    setTimeout(() => { btn.innerText = old; }, 3000);
                   }}
                   style={{ 
                     padding: '4px 10px', fontSize: '10px', fontWeight: '800', 
