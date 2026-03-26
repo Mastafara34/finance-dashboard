@@ -4,16 +4,20 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { UserSelector } from '@/app/dashboard/components/UserSelector';
+import {
+  LayoutDashboard, ArrowUpDown, Target, BarChart3,
+  TrendingUp, Wallet, GraduationCap, Settings, LogOut
+} from 'lucide-react';
 
 const NAV = [
-  { href: '/dashboard',              icon: '◉', label: 'Overview'   },
-  { href: '/dashboard/transactions', icon: '↕', label: 'Transaksi'  },
-  { href: '/dashboard/goals',        icon: '◎', label: 'Goals'      },
-  { href: '/dashboard/analytics',    icon: '📊', label: 'Laporan & Analitik' },
-  { href: '/dashboard/networth',     icon: '◈', label: 'Net Worth'  },
-  { href: '/dashboard/budgets',      icon: '▣', label: 'Budget'     },
-  { href: '/dashboard/academy',      icon: '📚', label: 'Akademi / Tips' },
-  { href: '/dashboard/settings',     icon: '◌', label: 'Pengaturan' },
+  { href: '/dashboard',              icon: LayoutDashboard, label: 'Overview'            },
+  { href: '/dashboard/transactions', icon: ArrowUpDown,     label: 'Transaksi'           },
+  { href: '/dashboard/goals',        icon: Target,          label: 'Goals'               },
+  { href: '/dashboard/analytics',    icon: BarChart3,       label: 'Laporan & Analitik'  },
+  { href: '/dashboard/networth',     icon: TrendingUp,      label: 'Net Worth'           },
+  { href: '/dashboard/budgets',      icon: Wallet,          label: 'Budget'              },
+  { href: '/dashboard/academy',      icon: GraduationCap,   label: 'Akademi / Tips'      },
+  { href: '/dashboard/settings',     icon: Settings,        label: 'Pengaturan'          },
 ];
 
 interface Props {
@@ -115,10 +119,11 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram, cur
                 onMouseEnter={e => { if (!isActive) (e.currentTarget).style.background = 'var(--bg-primary)'; }}
                 onMouseLeave={e => { if (!isActive) (e.currentTarget).style.background = 'transparent'; }}
               >
-                <span style={{
-                  fontSize: '14px', width: '18px', textAlign: 'center', flexShrink: 0,
-                  color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)',
-                }}>{item.icon}</span>
+                <item.icon
+                  size={16}
+                  strokeWidth={isActive ? 2.5 : 1.8}
+                  style={{ flexShrink: 0, color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)' }}
+                />
                 <span style={{ fontSize: '13px', fontWeight: isActive ? '600' : '400' }}>
                   {item.label}
                 </span>
@@ -162,7 +167,12 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram, cur
           }}
             onMouseEnter={e => { (e.currentTarget).style.borderColor = '#ef4444'; (e.currentTarget).style.color = '#ef4444'; (e.currentTarget).style.background = 'rgba(239, 68, 68, 0.05)'; }}
             onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; (e.currentTarget).style.background = 'transparent'; }}
-          >Keluar</button>
+          >
+            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              <LogOut size={13} strokeWidth={2} />
+              Keluar
+            </span>
+          </button>
         </div>
       </aside>
     </>
