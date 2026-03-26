@@ -63,7 +63,7 @@ export default function ReportsClient({ initialReports, userId }: { initialRepor
 
   const downloadReport = (report: Report) => {
     const content = `
-LAPORAN KECERDASAN FINANSIAL
+LAPORAN FINANSIAL TERPERINCI
 ---------------------------
 Periode: ${new Date(report.period_start).toLocaleDateString('id-ID')} s/d ${new Date(report.period_end).toLocaleDateString('id-ID')}
 Tipe: ${report.type === 'weekly' ? 'Mingguan' : 'Bulanan'}
@@ -99,8 +99,8 @@ Dicetak pada: ${new Date().toLocaleString('id-ID')}
     <div style={{ color: 'var(--text-main)', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
       <header style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px', color: 'var(--text-main)' }}>Laporan & Evaluasi</h1>
-          <p style={{ color: 'var(--text-muted)' }}>Pusat pertanggungjawaban finansial dan history performa.</p>
+          <h1 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px', color: 'var(--text-main)' }}>Riwayat Laporan Terperinci</h1>
+          <p style={{ color: 'var(--text-muted)' }}>Analisis mendalam arus kas mingguan dan bulanan Anda.</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button 
