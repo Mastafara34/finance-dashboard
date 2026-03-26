@@ -21,6 +21,8 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+const fmt = (n: number) => `Rp ${Math.round(n).toLocaleString('id-ID')}`;
+
 // ─── Pesan reminder bervariasi ────────────────────────────────────────────────
 // Dikelompokkan per durasi gap agar relevan
 const MESSAGES_2_DAYS = [
@@ -92,13 +94,12 @@ export async function GET(request: Request) {
 
   const today = new Date().toISOString().split('T')[0];
 
-  // Fetch semua user aktif dengan telegram_chat_id
+  // Fetch semua user aktif
   const { data: users } = await supabase
     .from('users')
-    .select('id, telegram_chat_id, display_name, onboarded_at')
+    .select('id, telegram_chat_id, display_name, onboarded_at, notify_reminders, notify_forecast_alert')
     .not('telegram_chat_id', 'is', null)
-    .not('onboarded_at', 'is', null)
-    .eq('notify_reminders', true);
+    .not('onboarded_at', 'is', null);
 
   if (!users || users.length === 0) {
     return NextResponse.json({ ok: true, reminded: 0 });
@@ -109,61 +110,75 @@ export async function GET(request: Request) {
 
   for (const user of users) {
     try {
-      // Cari transaksi terakhir user ini
-      const { data: lastTx } = await supabase
-        .from('transactions')
-        .select('date')
-        .eq('user_id', user.id)
-        .eq('is_deleted', false)
-        .order('date', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const { id, telegram_chat_id, display_name, notify_reminders, notify_forecast_alert } = user as any;
+      let alreadySent = false;
 
-      // Kalau ada transaksi hari ini → skip
-      if (lastTx?.date === today) {
-        skipped++;
-        continue;
+      // ── 1. PROJECTION/FORECAST ALERT (Jika ON) ──
+      if (notify_forecast_alert) {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        const dayToday = now.getDate();
+
+        const { data: txs } = await supabase.from('transactions').select('amount, type').eq('user_id', id).eq('is_deleted', false).gte('date', startOfMonth);
+        const income = txs?.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0) || 0;
+        const expense = txs?.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0) || 0;
+
+        if (dayToday >= 10 && expense > 0) { // Cek mulai tanggal 10 agar data cukup
+          const dailyAvg = expense / dayToday;
+          const projTotal = expense + (dailyAvg * (daysInMonth - dayToday));
+          const deficit = projTotal - income;
+
+          if (deficit > 0) {
+            const msg = `🔮 *Peringatan Forecast Defisit*\n\n` +
+              `Halo ${display_name?.split(' ')[0]}, pola belanja saat ini diprediksi akan membuat pengeluaran bulan ini mencapai *${fmt(Math.round(projTotal))}*.\n\n` +
+              `⚠️ Anda berisiko *defisit ${fmt(Math.round(deficit))}* di akhir bulan. Waktunya mengerem pengeluaran strategis Anda! 📉`;
+            
+            await sendTelegram(telegram_chat_id, msg);
+            reminded++;
+            alreadySent = true;
+          }
+        }
       }
 
-      // Hitung gap hari
-      let gapDays: number;
-      if (!lastTx) {
-        // Belum pernah input sama sekali — hitung dari onboarded_at
-        const onboardedDate = new Date(user.onboarded_at).toISOString().split('T')[0];
-        gapDays = Math.floor(
-          (new Date(today).getTime() - new Date(onboardedDate).getTime()) / 86400000
-        );
-      } else {
-        gapDays = Math.floor(
-          (new Date(today).getTime() - new Date(lastTx.date).getTime()) / 86400000
-        );
+      // ── 2. INACTIVE REMINDER (Jika ON & Belum Kirim Forecast & Gap >= 2 hari) ──
+      if (notify_reminders && !alreadySent) {
+        // Cari transaksi terakhir user ini
+        const { data: lastTx } = await supabase
+          .from('transactions')
+          .select('date')
+          .eq('user_id', id)
+          .eq('is_deleted', false)
+          .order('date', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (lastTx?.date !== today) {
+          let gapDays: number;
+          if (!lastTx) {
+            const onboardedDate = new Date(user.onboarded_at).toISOString().split('T')[0];
+            gapDays = Math.floor((new Date(today).getTime() - new Date(onboardedDate).getTime()) / 86400000);
+          } else {
+            gapDays = Math.floor((new Date(today).getTime() - new Date(lastTx.date).getTime()) / 86400000);
+          }
+
+          if (gapDays >= 2 && gapDays <= 30) {
+            const msg = getRandomMessage(display_name?.split(' ')[0] ?? 'Kamu', gapDays);
+            await sendTelegram(telegram_chat_id, msg);
+            reminded++;
+            alreadySent = true;
+          }
+        }
       }
 
-      // Hanya kirim kalau gap >= 2 hari
-      if (gapDays < 2) {
-        skipped++;
-        continue;
-      }
+      if (!alreadySent) skipped++;
 
-      // Cap reminder: jangan kirim kalau gap > 30 hari (mungkin sudah tidak aktif)
-      if (gapDays > 30) {
-        skipped++;
-        continue;
-      }
-
-      const firstName = (user.display_name ?? 'Kamu').split(' ')[0];
-      const msg       = getRandomMessage(firstName, gapDays);
-
-      await sendTelegram(user.telegram_chat_id, msg);
-      reminded++;
-
-      // Delay 300ms antar user — Telegram rate limit
+      // Delay 300ms antar user
       if (users.indexOf(user) < users.length - 1) {
         await new Promise(r => setTimeout(r, 300));
       }
-
     } catch (err: any) {
-      console.error(`[CRON] Failed to remind user ${user.id}:`, err.message);
+      console.error(`[CRON] Error for user ${user.id}:`, err.message);
     }
   }
 

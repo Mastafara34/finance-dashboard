@@ -46,6 +46,8 @@ interface User {
   telegram_chat_id: number;
   display_name: string | null;
   role: string | null;
+  notify_budget_alert?: boolean;
+  notify_anomaly_alert?: boolean;
 }
 
 interface Goal {
@@ -120,7 +122,7 @@ async function getOrCreateUser(msg: TelegramMessage): Promise<User> {
         ignoreDuplicates: false,
       }
     )
-    .select('id, telegram_chat_id, display_name, role')
+    .select('id, telegram_chat_id, display_name, role, notify_anomaly_alert, notify_budget_alert')
     .single();
 
   if (error || !data) {
@@ -860,6 +862,61 @@ async function checkAnomaly(
   }
 }
 
+// ─── Budget Check ─────────────────────────────────────────────────────────────
+async function checkBudget(
+  chatId: number,
+  userId: string,
+  categoryId: string,
+  categoryName: string
+): Promise<void> {
+  try {
+    const now = new Date();
+    const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const monthStart = `${month}-01`;
+
+    // 1. Ambil budget untuk kategori ini
+    const { data: budget } = await supabase
+      .from('monthly_budgets')
+      .select('limit_amount')
+      .eq('user_id', userId)
+      .eq('category_id', categoryId)
+      .eq('month', month)
+      .maybeSingle();
+
+    if (!budget || !budget.limit_amount) return;
+
+    // 2. Hitung total pengeluaran bulan ini di kategori ini
+    const { data: txs } = await supabase
+      .from('transactions')
+      .select('amount')
+      .eq('user_id', userId)
+      .eq('category_id', categoryId)
+      .eq('type', 'expense')
+      .eq('is_deleted', false)
+      .gte('date', monthStart);
+
+    const totalSpent = (txs ?? []).reduce((s, t) => s + t.amount, 0);
+    const pct = (totalSpent / budget.limit_amount) * 100;
+
+    if (pct >= 80) {
+      const remaining = budget.limit_amount - totalSpent;
+      const statusIcon = pct >= 100 ? '🚨' : '⚠️';
+      const statusText = pct >= 100 ? 'SUDAH HABIS' : 'HAMPIR HABIS';
+
+      await sendMessage(
+        chatId,
+        `${statusIcon} *Budget kategori ${categoryName} ${statusText}!*\n\n` +
+        `📊 Terpakai: *${Math.round(pct)}%* (${fmt(totalSpent)})\n` +
+        `🎯 Limit: ${fmt(budget.limit_amount)}\n` +
+        `📉 Sisa: *${fmt(Math.max(0, remaining))}*` +
+        (remaining < 0 ? ` (Over budget ${fmt(Math.abs(remaining))})` : '')
+      );
+    }
+  } catch {
+    // Jangan break flow
+  }
+}
+
 // ─── DB Mapping / Fuzzy Category ──────────────────────────────────────────────
 async function findOrCreateFuzzyCategory(userId: string, targetName: string, type: 'income' | 'expense') {
   const { data: categories } = await supabase
@@ -912,10 +969,11 @@ async function findOrCreateFuzzyCategory(userId: string, targetName: string, typ
 // ─── Transaction handler ──────────────────────────────────────────────────────
 async function handleTransaction(
   chatId: number,
-  userId: string,
+  user: User,
   userText: string,
   messageId?: number
 ): Promise<void> {
+  const userId = user.id;
   let data: Awaited<ReturnType<typeof extractFinancialData>> = null;
   let usedManual = false;
 
@@ -996,9 +1054,14 @@ async function handleTransaction(
     category: sanitizeHtml(data.category_name),
   });
 
-  // Anomaly detection — hanya untuk pengeluaran, run in background
+  // Smart Alerts — Run in background
   if (data.type === 'expense' && categoryId) {
-    waitUntil(checkAnomaly(chatId, userId, categoryId, sanitizeHtml(data.category_name), data.amount));
+    if (user.notify_anomaly_alert !== false) {
+      waitUntil(checkAnomaly(chatId, userId, categoryId, sanitizeHtml(data.category_name), data.amount));
+    }
+    if (user.notify_budget_alert !== false) {
+      waitUntil(checkBudget(chatId, userId, categoryId, sanitizeHtml(data.category_name)));
+    }
   }
 
   const typeEmoji = data.type === 'income' ? '💚' : '🔴';
@@ -1279,7 +1342,7 @@ export async function POST(request: Request) {
     }
 
     // Natural language → transaction
-    await handleTransaction(chatId, userId, userText, msg.message_id);
+    await handleTransaction(chatId, user, userText, msg.message_id);
     return NextResponse.json({ ok: true });
 
   } catch (err: any) {

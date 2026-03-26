@@ -19,6 +19,9 @@ interface Profile {
   notify_monthly: boolean;
   notify_ai: boolean;
   notify_reminders: boolean;
+  notify_budget_alert: boolean;
+  notify_anomaly_alert: boolean;
+  notify_forecast_alert: boolean;
 }
 
 interface Category {
@@ -109,6 +112,9 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
   const [notifyMonthly,  setNotifyMonthly]  = useState(profile.notify_monthly ?? true);
   const [notifyAi,       setNotifyAi]       = useState(profile.notify_ai ?? true);
   const [notifyRemind,   setNotifyRemind]   = useState(profile.notify_reminders ?? true);
+  const [notifyBudget,   setNotifyBudget]   = useState(profile.notify_budget_alert ?? true);
+  const [notifyAnomaly,  setNotifyAnomaly]  = useState(profile.notify_anomaly_alert ?? true);
+  const [notifyForecast, setNotifyForecast] = useState(profile.notify_forecast_alert ?? true);
   const [savingProfile,  setSavingProfile]  = useState(false);
 
   // ── Category state ────────────────────────────────────────────────────────
@@ -188,6 +194,9 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
       notify_monthly: notifyMonthly,
       notify_ai: notifyAi,
       notify_reminders: notifyRemind,
+      notify_budget_alert: notifyBudget,
+      notify_anomaly_alert: notifyAnomaly,
+      notify_forecast_alert: notifyForecast,
       updated_at: new Date().toISOString(),
     }).eq('id', profile.id);
     setSavingProfile(false);
@@ -357,6 +366,9 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
             { id: 'monthly',  label: 'Laporan Bulanan', sub: 'Tinjauan mendalam setiap tanggal 1', value: notifyMonthly, set: setNotifyMonthly },
             { id: 'ai',       label: 'Vonis Strategis AI', sub: 'Insight tajam tentang pola belanja Anda', value: notifyAi, set: setNotifyAi },
             { id: 'reminder', label: 'Pengingat Tidak Isi', sub: 'Notifikasi jika tidak ada transaksi > 2 hari', value: notifyRemind, set: setNotifyRemind },
+            { id: 'budget',   label: 'Peringatan Anggaran', sub: 'Instan jika budget kategori terpakai > 80%', value: notifyBudget, set: setNotifyBudget },
+            { id: 'anomaly',  label: 'Deteksi Anomali Belanja', sub: 'Instan jika pengeluaran tidak wajar terdeteksi', value: notifyAnomaly, set: setNotifyAnomaly },
+            { id: 'forecast', label: 'Prediksi Defisit (Forecast)', sub: 'Peringatan dini saldo minus di akhir bulan', value: notifyForecast, set: setNotifyForecast },
           ].map(opt => (
             <div key={opt.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap:'12px' }}>
               <div style={{ flex: 1 }}>
