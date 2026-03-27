@@ -9,31 +9,29 @@ import { Redis } from '@upstash/redis';
  *   - Telegram deduplication (Low latency idempotency)
  */
 
-// We use a Lazy Proxy to bypass Next.js Turbopack evaluating process.env at compile time.
-// This ensures Redis is only instantiated at runtime when the webhook actually fires,
-// at which point process.env.UPSTASH_REDIS_REST_URL is fully loaded from .env.local.
-export const redis: Redis = new Proxy({} as any, {
-  get: (target, prop) => {
-    // Ignore native module system properties during Next.js SSR build
-    if (prop === 'then' || prop === '__esModule' || typeof prop === 'symbol') {
-      return undefined;
-    }
+let _client: Redis | null = null;
 
+function getClient(): Redis {
+  if (!_client) {
     const url = process.env.UPSTASH_REDIS_REST_URL;
     const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-
     if (!url || !token) {
-      return () => { throw new Error('Redis is disabled (Missing UPSTASH_REDIS variables in runtime).'); }
+      throw new Error('Redis is disabled (Missing UPSTASH_REDIS variables at runtime).');
     }
-
-    if (!target.__real) {
-       target.__real = new Redis({ url, token });
-    }
-
-    const value = target.__real[prop];
-    return typeof value === 'function' ? value.bind(target.__real) : value;
+    _client = new Redis({ url, token });
   }
-}) as Redis;
+  return _client;
+}
+
+// Forward exactly the methods we use to avoid any Proxy "this" binding issues 
+// within the internal structure of the @upstash/redis SDK.
+export const redis = {
+  get: <T>(k: string) => getClient().get<T>(k),
+  set: (k: string, v: any, opts?: any) => getClient().set(k, v, opts),
+  incr: (k: string) => getClient().incr(k),
+  expire: (k: string, ttl: number) => getClient().expire(k, ttl),
+  ttl: (k: string) => getClient().ttl(k),
+} as unknown as Redis;
 
 // Cache keys prefixes (standardized)
 export const KEY_PREFIX = {
