@@ -97,15 +97,14 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     allUsers = data ?? [];
   }
 
-  // 5. BIG CONSOLIDATED FETCH
-  // Mengurangi roundtrip dari 9+ menjadi 1 roundtrip paralel
-  const [yearResult, goals, assets, history, demoFetch] = await Promise.all([
+  const userIds = allUsers.map(u => u.id); // Pure family IDs, excluding demo
+
+  // 5. BIG CONSOLIDATED DATA FETCH
+  const [yearResult, goals, assets, history] = await Promise.all([
     // YEAR DATA: Mengambil modal data tahunan sebagai basis semua filter memori
     (() => {
       let q = supabase.from('transactions').select('amount, type, date, user_id, categories(name)').eq('is_deleted', false).gte('date', yearStart);
       if (isCollective) {
-        // PERBAIKAN BUG A: Scope query ke user keluarga saja
-        const userIds = allUsers.map(u => u.id);
         if (userIds.length > 0) q = q.in('user_id', userIds);
       } else {
         q = q.eq('user_id', viewUserId);
@@ -115,34 +114,42 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     // Goals
     (() => {
       let q = supabase.from('goals').select('*').eq('status', 'active').order('priority', { ascending: true }).limit(3);
-      if (!isCollective) q = q.eq('user_id', viewUserId);
+      if (isCollective) {
+        if (userIds.length > 0) q = q.in('user_id', userIds);
+      } else {
+        q = q.eq('user_id', viewUserId);
+      }
       return q;
     })(),
     // Assets
     (() => {
       let q = supabase.from('assets').select('id, name, value, is_liability, type');
-      if (!isCollective) q = q.eq('user_id', viewUserId);
+      if (isCollective) {
+        if (userIds.length > 0) q = q.in('user_id', userIds);
+      } else {
+        q = q.eq('user_id', viewUserId);
+      }
       return q;
     })(),
     // History
     (() => {
       let q = supabase.from('net_worth_history').select('date, net_worth').order('date', { ascending: true }).limit(30);
-      if (!isCollective) q = q.eq('user_id', viewUserId);
+      if (isCollective) {
+        if (userIds.length > 0) q = q.in('user_id', userIds);
+      } else {
+        q = q.eq('user_id', viewUserId);
+      }
       return q;
-    })(),
-    // Fetch demo account ID to filter out in collective view (if not known)
-    supabase.from('users').select('id').eq('email', 'demo@fintrack.app').maybeSingle()
+    })()
   ]);
 
-  const demoId = demoFetch.data?.id;
   const yearTxs = (yearResult.data ?? []) as any[];
   
-  // Memori filter: demo ID tetap difilter untuk kebersihan data
-  const filteredYearTxs = (isCollective && demoId) ? yearTxs.filter(t => t.user_id !== demoId) : yearTxs;
-  const txs      = filteredYearTxs.filter(t => t.date >= monthStart) as unknown as Transaction[];
-  const prevTxs  = filteredYearTxs.filter(t => t.date >= prevMonthStart && t.date <= prevMonthEnd) as unknown as Transaction[];
-  const olderTxs = filteredYearTxs.filter(t => t.date >= olderMonthStart && t.date <= olderMonthEnd) as unknown as Transaction[];
-  const last30   = filteredYearTxs.filter(t => t.date >= last30Start) as unknown as Transaction[];
+  // Memori filter: Transaksi demo sudah dicegah dari level DB berkat in('user_id', userIds)
+  const txs      = yearTxs.filter(t => t.date >= monthStart) as unknown as Transaction[];
+  const prevTxs  = yearTxs.filter(t => t.date >= prevMonthStart && t.date <= prevMonthEnd) as unknown as Transaction[];
+  const olderTxs = yearTxs.filter(t => t.date >= olderMonthStart && t.date <= olderMonthEnd) as unknown as Transaction[];
+  const last30   = yearTxs.filter(t => t.date >= last30Start) as unknown as Transaction[];
   const goalList = (goals.data ?? []) as Goal[];
   const assetList = (assets.data ?? []) as Asset[];
   const nwHistory = (history.data ?? []) as { date: string; net_worth: number }[];
