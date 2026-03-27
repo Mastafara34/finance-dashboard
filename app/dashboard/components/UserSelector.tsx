@@ -33,15 +33,15 @@ export function UserSelector({ users, currentViewId, isCollective = false, showC
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const val = e.target.value;
     setIsNavigating(true);
+    
     const params = new URLSearchParams(searchParams.toString());
-    if (val === 'all') {
-      params.set('u', 'all');
-    } else {
-      params.set('u', val);
-    }
+    params.set('u', val);
+    
+    // Gunakan window.location.href untuk SWITCH KONTEKS. 
+    // Mengapa? Karena ini garantee 100% data fresh dari DB & membersihkan 
+    // Router Cache Next.js yang kadang bandel menyimpan data user sebelumnya (Agus vs Naninaninju).
     const targetUrl = `${pathname}?${params.toString()}`;
-    router.push(targetUrl);
-    router.refresh();
+    window.location.href = targetUrl;
   }
 
   const activeVal = isCollective ? 'all' : currentViewId;
