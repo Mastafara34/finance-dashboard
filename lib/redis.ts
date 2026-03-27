@@ -9,13 +9,14 @@ import { Redis } from '@upstash/redis';
  *   - Telegram deduplication (Low latency idempotency)
  */
 
+// Warn instead of crashing at module evaluation time so Next.js can compile.
 if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-  throw new Error('Missing UPSTASH_REDIS_REST environment variables');
+  console.warn('⚠️ Missing UPSTASH_REDIS_REST_URL or TOKEN. Webhook security features will fail but dev server can run.');
 }
 
 export const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  url: process.env.UPSTASH_REDIS_REST_URL || 'https://placeholder.upstash.io',
+  token: process.env.UPSTASH_REDIS_REST_TOKEN || 'placeholder',
 });
 
 // Cache keys prefixes (standardized)
