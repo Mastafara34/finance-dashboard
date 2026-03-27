@@ -16,6 +16,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { runSecurityGate, writeAuditLog } from '@/lib/security';
 import { waitUntil } from '@vercel/functions';
+import { redis, KEY_PREFIX } from '@/lib/redis';
 
 function sanitizeHtml(str: string): string {
   if (!str) return '';
@@ -1079,6 +1080,7 @@ async function handleTransaction(
   );
 }
 
+
 async function markTelegramUpdateProcessed(params: {
   updateId?: number;
   chatId: number;
@@ -1087,25 +1089,30 @@ async function markTelegramUpdateProcessed(params: {
   const { updateId, chatId, messageId } = params;
   if (!updateId) return 'skipped';
 
-  const { error } = await supabase
-    .from('telegram_updates_processed')
-    .insert([{
-      update_id: updateId,
-      chat_id: chatId,
-      message_id: messageId ?? null,
-      processed_at: new Date().toISOString(),
-    }]);
-
-  if (!error) return 'processed';
-  if ((error as any).code === '23505') return 'duplicate';
-
-  void writeAuditLog(chatId, 'dedupe_insert_failed', 'warn', {
-    update_id: updateId,
-    message_id: messageId ?? null,
-    error: (error as any).message,
+  const key = `${KEY_PREFIX.DEDUPE}${updateId}`;
+  
+  // Redis Atomic Lock: Set value only if doesn't exist (NX) with 1 hour expiry (EX)
+  const isNew = await redis.set(key, '1', {
+    nx: true,
+    ex: 3600, // 1 hour is enough to catch Telegram retries
   });
-  return 'skipped';
+
+  if (isNew) {
+    // Optional: Still record to DB for audit history (background)
+    void supabase
+      .from('telegram_updates_processed')
+      .insert([{
+        update_id: updateId,
+        chat_id: chatId,
+        message_id: messageId ?? null,
+        processed_at: new Date().toISOString(),
+      }]);
+    return 'processed';
+  }
+
+  return 'duplicate';
 }
+
 
 // ─── Command: /forecast ──────────────────────────────────────────────────────
 async function cmdForecast(chatId: number, user: User): Promise<void> {
