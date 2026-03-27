@@ -23,7 +23,12 @@ export const redis: Redis = hasRedis
       token: process.env.UPSTASH_REDIS_REST_TOKEN!,
     })
   : new Proxy({} as any, {
-      get: () => () => { throw new Error('Redis is disabled (Missing UPSTASH_REDIS variables).'); }
+      get: (target, prop) => {
+        if (prop === 'then' || prop === '__esModule' || typeof prop === 'symbol') {
+          return undefined;
+        }
+        return () => { throw new Error(`Redis is disabled (Missing UPSTASH_REDIS variables). Cannot call method: ${String(prop)}`); }
+      }
     }) as Redis;
 
 
