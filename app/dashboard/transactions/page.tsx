@@ -1,49 +1,42 @@
 export const dynamic = 'force-dynamic';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { UserSelector } from '../components/UserSelector';
+import { getCachedUser, getCachedProfile } from '@/lib/supabase/cached';
 import TransactionsClient from './TransactionsClient';
 
 export default async function TransactionsPage({ searchParams }: { searchParams: Promise<{ u?: string }> }) {
   const { u: searchU } = await searchParams;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  
+  // 1. Parallel Auth/Profile Discovery
+  const [{ data: { user } }, { data: profile }] = await Promise.all([
+    getCachedUser(),
+    getCachedProfile(),
+  ]);
+  if (!user || !profile) redirect('/login');
 
-  const { data: profile } = await supabase
-    .from('users')
-    .select('id, role')
-    .or(`email.eq.${user.email},id.eq.${user.id}`)
-    .maybeSingle();
-
-  if (!profile) return null;
-
-  // Fetch demo ID
-  const { data: demo } = await supabase.from('users').select('id').eq('email', 'demo@fintrack.app').maybeSingle();
-  const demoId = demo?.id;
-
-  const myUserId = profile.id;
   const isOwner = profile.role === 'owner';
+
+  // 2. Parallel User Discovery
+  const [allUsersRes, demoRes] = await Promise.all([
+    isOwner 
+      ? supabase.from('users').select('id, display_name').or('email.is.null,email.neq.demo@fintrack.app').order('display_name')
+      : Promise.resolve({ data: [] }),
+    supabase.from('users').select('id').eq('email', 'demo@fintrack.app').maybeSingle(),
+  ]);
+
+  const allUsers = allUsersRes.data ?? [];
+  const demoId = demoRes.data?.id;
   const isCollective = isOwner && searchU === 'all';
-  const viewUserId = isOwner && searchU && searchU !== 'all' ? searchU : profile.id;
+  const viewUserId = isOwner && searchU && searchU !== 'all' ? (searchU as string) : profile.id;
 
-  let allUsers: any[] = [];
-  if (isOwner) {
-    const { data } = await supabase
-      .from('users')
-      .select('id, display_name')
-      .or('email.is.null,email.neq.demo@fintrack.app')
-      .order('display_name');
-    allUsers = data ?? [];
-  }
-
-  // Fetch transaksi 3 bulan terakhir + kategori
+  // 3. Consolidated Fetch: Transaksi 3 bulan terakhir + kategori
   const since = new Date();
   since.setMonth(since.getMonth() - 3);
 
   let query = supabase
     .from('transactions')
-    .select('id, amount, type, note, date, source, created_at, categories(id, name, icon)')
+    .select('id, amount, type, note, date, source, created_at, user_id, categories(id, name, icon)')
     .eq('is_deleted', false)
     .gte('date', since.toISOString().split('T')[0])
     .order('date', { ascending: false })
@@ -60,19 +53,19 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
     query = query.eq('user_id', viewUserId);
   }
 
-  const { data: transactions } = await query;
-
-  // Fetch kategori viewUserId
-  let catQuery = supabase
+  // Categories fetch can happen in parallel with transactions
+  const catQuery = supabase
     .from('categories')
     .select('id, name, type, icon')
     .order('sort_order', { ascending: true });
 
-  if (!isCollective) {
-    catQuery = catQuery.or(`user_id.eq.${viewUserId},user_id.is.null`);
-  }
+  const [transactionsRes, categoriesRes] = await Promise.all([
+    query,
+    isCollective ? catQuery : catQuery.or(`user_id.eq.${viewUserId},user_id.is.null`)
+  ]);
 
-  const { data: categories } = await catQuery;
+  const transactions = transactionsRes.data ?? [];
+  const categories = categoriesRes.data ?? [];
 
   return (
     <div style={{ padding: '0px' }}>

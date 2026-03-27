@@ -4,6 +4,7 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { UserSelector } from '@/app/dashboard/components/UserSelector';
+import Link from 'next/link';
 import {
   LayoutDashboard, ArrowUpDown, Target, BarChart3,
   TrendingUp, Wallet, GraduationCap, Settings, LogOut
@@ -109,15 +110,15 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram, cur
             const href = uParam ? `${item.href}?u=${uParam}` : item.href;
 
             return (
-              <a key={item.href} href={href} style={{
+              <Link key={item.href} href={href} style={{
                 display: 'flex', alignItems: 'center', gap: '10px',
                 padding: '9px 12px', borderRadius: '8px', marginBottom: '2px',
                 textDecoration: 'none', transition: 'all .15s',
                 background: isActive ? 'rgba(37, 99, 235, 0.1)' : 'transparent',
                 color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)',
               }}
-                onMouseEnter={e => { if (!isActive) (e.currentTarget).style.background = 'var(--bg-primary)'; }}
-                onMouseLeave={e => { if (!isActive) (e.currentTarget).style.background = 'transparent'; }}
+                onMouseEnter={e => { if (!isActive) (e.currentTarget as any).style.background = 'var(--bg-primary)'; }}
+                onMouseLeave={e => { if (!isActive) (e.currentTarget as any).style.background = 'transparent'; }}
               >
                 <item.icon
                   size={16}
@@ -133,7 +134,7 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram, cur
                     borderRadius: '99px', background: 'var(--accent-primary)', flexShrink: 0,
                   }} />
                 )}
-              </a>
+              </Link>
             );
           })}
         </nav>

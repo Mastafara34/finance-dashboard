@@ -32,42 +32,46 @@ interface Asset { id: string; name: string; value: number; is_liability: boolean
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ u?: string }> }) {
   const { u: searchU } = await searchParams;
   const supabase = await createClient();
-  const { data: { user } } = await getCachedUser();
+
+  // 1. Parallel Discovery: Get Auth, My Profile, and All Users (if owner)
+  const [userRes, prefetchedProfileRes] = await Promise.all([
+    getCachedUser(),
+    getCachedProfile(),
+  ]);
+
+  const user = userRes.data.user;
   if (!user) redirect('/login');
 
-  // 1. Ambil profil login asli (Shared Cache)
-  let { data: myProfile } = await getCachedProfile();
+  let myProfile = prefetchedProfileRes.data;
 
-  // 2. Auto-register if missing
+  // 2. Secondary Discovery (Only if needed)
+  const [targetProfileRes, allUsersRes] = await Promise.all([
+    (searchU && searchU !== 'all' && searchU !== myProfile?.id) 
+      ? getCachedProfile(searchU as string) 
+      : Promise.resolve({ data: null }),
+    (myProfile?.role === 'owner')
+      ? supabase.from('users').select('id, display_name').or('email.is.null,email.neq.demo@fintrack.app').order('display_name')
+      : Promise.resolve({ data: [] })
+  ]);
+
   if (!myProfile && user.email) {
     const { data: newProfile } = await supabase
       .from('users')
-      .insert([{
-        id: user.id,
-        email: user.email,
-        display_name: user.email.split('@')[0],
-        role: 'user'
-      }])
+      .insert([{ id: user.id, email: user.email, display_name: user.email.split('@')[0], role: 'user' }])
       .select('id, display_name, telegram_chat_id, role')
       .single();
     if (newProfile) myProfile = newProfile as any;
   }
-
   if (!myProfile) return redirect('/login');
 
   const myUserId = myProfile.id;
   const isOwner = myProfile.role === 'owner';
   const isCollective = isOwner && searchU === 'all';
-  const viewUserId = isOwner && searchU && searchU !== 'all' ? searchU : myUserId;
+  const viewUserId = isOwner && searchU && searchU !== 'all' ? (searchU as string) : myUserId;
 
-  // 3. Ambil profil user yang sedang dilihat (Cached)
-  let viewProfile = myProfile;
-  if (isCollective) {
-    viewProfile = { ...myProfile, display_name: 'Kolektif (Semua)' } as any;
-  } else if (isOwner && searchU && searchU !== 'all' && searchU !== myUserId) {
-    const { data: selectedProfile } = await getCachedProfile(searchU);
-    if (selectedProfile) viewProfile = selectedProfile as any;
-  }
+  let viewProfile = (isCollective) 
+    ? { ...myProfile, display_name: 'Kolektif (Semua)' } as any 
+    : (targetProfileRes.data || myProfile);
 
   const vAny = viewProfile as any;
   const safeProfile = {
@@ -76,6 +80,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     wants_target: vAny.wants_target ?? 30,
     needs_target: vAny.needs_target ?? 50
   };
+
+  const allUsers = allUsersRes.data ?? [];
+  const userIds = allUsers.map(u => u.id); // Pure family IDs, excluding demo
 
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
@@ -86,18 +93,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const olderMonthEnd = new Date(now.getFullYear(), now.getMonth() - 1, 0).toISOString().split('T')[0];
   const last30Start = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
 
-  // 4. PRE-FETCH AUTHORIZED USERS (for owner)
-  let allUsers: { id: string; display_name: string | null }[] = [];
-  if (isOwner) {
-    const { data } = await supabase
-      .from('users')
-      .select('id, display_name')
-      .or('email.is.null,email.neq.demo@fintrack.app')
-      .order('display_name');
-    allUsers = data ?? [];
-  }
-
-  const userIds = allUsers.map(u => u.id); // Pure family IDs, excluding demo
 
   // 5. BIG CONSOLIDATED DATA FETCH
   const [yearResult, goals, assets, history] = await Promise.all([

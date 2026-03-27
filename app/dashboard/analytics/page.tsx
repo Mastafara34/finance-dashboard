@@ -2,6 +2,7 @@
 export const dynamic = 'force-dynamic';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { getCachedUser, getCachedProfile } from '@/lib/supabase/cached';
 import AnalyticsClient from './AnalyticsClient';
 import { UserSelector } from '../components/UserSelector';
 
@@ -53,7 +54,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
   if (isCollective) {
     const userIds = allUsers.map(u => u.id);
     if (userIds.length > 0) q = q.in('user_id', userIds);
-    else q = q.eq('user_id', 'none'); 
+    else q = q.eq('user_id', 'none');
 
     if (demoId) q = q.neq('user_id', demoId);
   } else {

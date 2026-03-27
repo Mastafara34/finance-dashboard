@@ -2,40 +2,43 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getCachedUser, getCachedProfile } from '@/lib/supabase/cached';
 import BudgetsClient from './BudgetsClient';
-import { UserSelector } from '../components/UserSelector';
 
 export default async function BudgetsPage({ searchParams }: { searchParams: Promise<{ u?: string }> }) {
   const { u: searchU } = await searchParams;
   const supabase = await createClient();
-  const { data: { user } } = await getCachedUser();
-  if (!user) redirect('/login');
+  
+  // 1. Parallel Auth/Profile Discovery
+  const [{ data: { user } }, { data: profile }] = await Promise.all([
+    getCachedUser(),
+    getCachedProfile(),
+  ]);
 
-  const { data: profile } = await getCachedProfile();
-  if (!profile) return redirect('/login');
+  if (!user || !profile) redirect('/login');
 
   const isOwner = profile.role === 'owner';
-  const isCollective = isOwner && searchU === 'all';
-  const viewUserId = isOwner && searchU && searchU !== 'all' ? searchU : profile.id;
+  
+  // 2. Parallel User Discovery
+  const [allUsersRes, demoRes] = await Promise.all([
+    isOwner 
+      ? supabase.from('users').select('id, display_name').or('email.is.null,email.neq.demo@fintrack.app').order('display_name')
+      : Promise.resolve({ data: [] }),
+    supabase.from('users').select('id').eq('email', 'demo@fintrack.app').maybeSingle(),
+  ]);
 
+  const allUsers = allUsersRes.data ?? [];
+  const demoId = demoRes.data?.id;
+  const isCollective = isOwner && searchU === 'all';
+  const viewUserId = isOwner && searchU && searchU !== 'all' ? (searchU as string) : profile.id;
+
+  // 3. Date Setup
   const now     = new Date();
   const month   = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const monthStart = `${month}-01`;
   const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const prevMonthStr = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;
 
-  // ── 1. Fetch Authorized Users (Owner privilege) ───────────────────────────
-  let allUsers: { id: string; display_name: string | null }[] = [];
-  if (isOwner) {
-    const { data } = await supabase
-      .from('users')
-      .select('id, display_name')
-      .or('email.is.null,email.neq.demo@fintrack.app')
-      .order('display_name');
-    allUsers = data ?? [];
-  }
-
-  // ── 2. Consolidated Fetch ───────────────────────────────────────────
-  const [budgetsRes, prevBudgetsRes, transactionsRes, categoriesRes, targetsRes, demoRes] = await Promise.all([
+  // 4. Consolidated Parallel Fetch
+  const [budgetsRes, prevBudgetsRes, transactionsRes, categoriesRes, targetsRes] = await Promise.all([
     // A. Current Budgets
     (() => {
       let q = supabase.from('monthly_budgets').select('id, limit_amount, month, user_id, categories(id, name, icon, type)').eq('month', month);
@@ -75,14 +78,10 @@ export default async function BudgetsPage({ searchParams }: { searchParams: Prom
     // D. Categories
     supabase.from('categories').select('id, name, icon, type').eq('type', 'expense').or(`user_id.eq.${viewUserId},user_id.is.null`).order('sort_order', { ascending: true }),
     // E. User Targets 
-    supabase.from('users').select('role, saving_target, wants_target, needs_target').eq('id', viewUserId).maybeSingle(),
-    // F. Demo ID
-    supabase.from('users').select('id').eq('email', 'demo@fintrack.app').maybeSingle(),
+    supabase.from('users').select('role, saving_target, wants_target, needs_target').eq('id', viewUserId).maybeSingle()
   ]);
 
-  const demoId = demoRes.data?.id;
-
-  // JS-level filtering for collective view (much faster roundtrips)
+  // JS-level filtering for collective view
   const budgetsRaw = budgetsRes.data ?? [];
   const budgets = (isCollective && demoId) ? budgetsRaw.filter((b: any) => b.user_id !== demoId) : budgetsRaw;
 

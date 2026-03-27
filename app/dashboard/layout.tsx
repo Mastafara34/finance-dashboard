@@ -13,12 +13,21 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const { data: { user } } = await getCachedUser();
   if (!user) redirect('/login');
 
-  // Use cached profile - it now handles auto-registration internally if missing
-  let { data: profile, error: profileError } = await getCachedProfile();
-  if (profileError) console.error('getCachedProfile error in layout:', profileError);
-  console.log('Layout Profile Result:', { hasProfile: !!profile, email: user.email });
+  // Trigger profile and other initial data in parallel
+  const [profileRes, categoriesRes] = await Promise.all([
+    getCachedProfile(),
+    supabase
+      .from('categories')
+      .select('id, name, icon, type, user_id')
+      .order('type', { ascending: true })
+      .order('sort_order', { ascending: true })
+  ]);
 
-  // Fetch all users for the sidebar selector if owner
+  const profile = profileRes.data;
+  const profileError = profileRes.error;
+  if (profileError) console.error('getCachedProfile error in layout:', profileError);
+
+  // Once profile is known, we can fetch allUsers if owner
   let allUsers: any[] = [];
   if (profile?.role === 'owner') {
     const { data } = await supabase
@@ -60,13 +69,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     );
   }
 
-  // Fetch kategori untuk QuickAdd
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('id, name, icon, type')
-    .or(`user_id.eq.${profile.id},user_id.is.null`)
-    .order('type', { ascending: true })
-    .order('sort_order', { ascending: true });
+  const categories = categoriesRes.data?.filter(c => !c.user_id || c.user_id === profile.id) ?? [];
 
   return (
     <div>
