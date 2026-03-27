@@ -10,14 +10,22 @@ import { Redis } from '@upstash/redis';
  */
 
 // Warn instead of crashing at module evaluation time so Next.js can compile.
-if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+const hasRedis = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+
+if (!hasRedis) {
   console.warn('⚠️ Missing UPSTASH_REDIS_REST_URL or TOKEN. Webhook security features will fail but dev server can run.');
 }
 
-export const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || 'https://placeholder.upstash.io',
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || 'placeholder',
-});
+// If variables are missing, export a dummy proxy so the app doesn't crash on boot.
+export const redis = hasRedis 
+  ? new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL!,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    })
+  : new Proxy({} as any, {
+      get: () => () => { throw new Error('Redis is disabled (Missing UPSTASH_REDIS variables).'); }
+    });
+
 
 // Cache keys prefixes (standardized)
 export const KEY_PREFIX = {
