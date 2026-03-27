@@ -23,8 +23,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (profile?.role === 'owner') {
     const { data } = await supabase
       .from('users')
-      .select('id, display_name')
-      .or('email.is.null,email.neq.demo@fintrack.app')
+      .select('id, display_name, email')
       .order('display_name');
     allUsers = data ?? [];
   }

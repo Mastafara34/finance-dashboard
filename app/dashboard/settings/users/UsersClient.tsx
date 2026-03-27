@@ -347,7 +347,131 @@ function EditUserModal({ user, onSave, onClose }: {
   );
 }
 
+// ─── User Card Component ──────────────────────────────────────────────────
+function UserCard({
+  u,
+  isMe,
+  canEdit,
+  botActive,
+  meta,
+  loadingToggleId,
+  onEdit,
+  onToggleBot
+}: {
+  u: UserRow;
+  isMe: boolean;
+  canEdit: boolean;
+  botActive: boolean;
+  meta: typeof ROLE_META[Role];
+  loadingToggleId: string | null;
+  onEdit: (u: UserRow) => void;
+  onToggleBot: (userId: string, chatId: number, currentActive: boolean) => void;
+}) {
+  return (
+    <div style={{
+      background: 'var(--card-bg)', border: `1px solid ${isMe ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+      borderRadius: '12px', padding: '16px 18px',
+      transition: 'all 0.2s ease',
+      boxShadow: isMe ? '0 4px 12px rgba(37, 99, 235, 0.08)' : 'var(--card-shadow)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+        {/* Avatar */}
+        <div style={{
+          width: '42px', height: '42px', borderRadius: '10px',
+          background: meta.bg, border: `1px solid ${meta.border}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '18px', flexShrink: 0, color: meta.color, fontWeight: '700',
+        }}>
+          {(u.display_name ?? u.email ?? '?')[0].toUpperCase()}
+        </div>
+
+        {/* Info */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>
+              {u.display_name ?? 'Tanpa nama'}
+            </span>
+            {isMe && (
+              <span style={{ fontSize: '10px', padding: '1px 7px', borderRadius: '99px', background: 'rgba(37, 99, 235, 0.1)', color: 'var(--accent-primary)', border: '1px solid var(--accent-primary)' }}>
+                Saya
+              </span>
+            )}
+            <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '99px', background: meta.bg, color: meta.color, border: `1px solid ${meta.border}`, fontWeight: '500' }}>
+              {meta.label}
+            </span>
+          </div>
+
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '2px' }}>
+            {u.email ?? <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Belum ada email</span>}
+          </div>
+
+          {u.telegram_chat_id ? (
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+              <span>📱 {u.telegram_chat_id}</span>
+              <span style={{
+                fontSize: '10px', padding: '1px 6px', borderRadius: '99px',
+                background: botActive ? 'rgba(34, 197, 94, 0.1)' : 'rgba(185, 28, 28, 0.1)',
+                color: botActive ? '#22c55e' : '#ef4444',
+                border: `1px solid ${botActive ? 'rgba(34, 197, 94, 0.2)' : 'rgba(185, 28, 28, 0.2)'}`,
+                fontWeight: '600',
+              }}>
+                Bot {botActive ? '✓ Aktif' : '✗ Nonaktif'}
+              </span>
+            </div>
+          ) : (
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+              Belum punya Telegram Chat ID
+            </div>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: 'flex', gap: '6px', flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
+          {canEdit && (
+            <button
+              onClick={() => onEdit(u)}
+              style={{
+                padding: '6px 12px', background: 'transparent',
+                border: '1px solid var(--border-color)', borderRadius: '8px',
+                color: 'var(--text-muted)', fontSize: '12px', fontWeight: '500',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
+              }}
+            >
+              ✏️ Edit
+            </button>
+          )}
+
+          {canEdit && u.telegram_chat_id && (
+            <button
+              onClick={() => onToggleBot(u.id, u.telegram_chat_id!, botActive)}
+              disabled={loadingToggleId === u.id}
+              style={{
+                padding: '6px 12px',
+                background: botActive ? '#2d0f0f' : '#0f2d1a',
+                border: `1px solid ${botActive ? '#7f1d1d' : '#166534'}`,
+                borderRadius: '8px', fontSize: '12px', fontWeight: '600',
+                color: botActive ? '#f87171' : '#4ade80',
+                cursor: loadingToggleId === u.id ? 'wait' : 'pointer',
+                display: 'flex', alignItems: 'center', gap: '5px',
+                transition: 'all 0.2s ease',
+                opacity: loadingToggleId === u.id ? 0.6 : 1,
+              }}
+            >
+              {loadingToggleId === u.id && (
+                <div style={{ width: '11px', height: '11px', border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+              )}
+              {botActive ? 'Nonaktifkan' : 'Aktifkan'} Bot
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
+const DEMO_EMAIL = 'demo@fintrack.app';
+
 export default function UsersClient({ currentUserId, currentUserRole, users, whitelist }: Props) {
   const supabase = createClient();
 
@@ -361,10 +485,15 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
 
   const whitelistMap = new Map(wlData.map(w => [w.chat_id, w]));
 
+  const familyUsers = userList.filter(u => u.email !== DEMO_EMAIL);
+  const demoUsers   = userList.filter(u => u.email === DEMO_EMAIL);
+
   function showToast(msg: string, ok = true) {
     setToast({ msg, ok });
     setTimeout(() => setToast(null), 3500);
   }
+
+  // ... (rest of the logic remains the same)
 
   // ── Add user ──────────────────────────────────────────────────────────────
   async function handleAddUser(chatId: number | null, displayName: string, email: string, role: Role, password?: string) {
@@ -560,120 +689,62 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
         ))}
       </div>
 
-      {/* User list */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {userList.map(u => {
-          const meta      = ROLE_META[u.role];
-          const wlEntry   = u.telegram_chat_id ? whitelistMap.get(u.telegram_chat_id) : null;
-          const botActive = wlEntry?.is_active ?? false;
-          const isMe      = u.id === currentUserId;
-          const canEdit   = !(u.role === 'owner' && currentUserRole !== 'owner');
+      {/* Sections */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        
+        {/* Family Section */}
+        <section>
+          <h2 style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', marginBottom: '12px', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            👪 AKUN KELUARGA <span style={{ padding: '2px 6px', background: 'var(--bg-secondary)', borderRadius: '4px', fontSize: '10px' }}>{familyUsers.length}</span>
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {familyUsers.map(u => (
+              <UserCard
+                key={u.id}
+                u={u}
+                isMe={u.id === currentUserId}
+                canEdit={!(u.role === 'owner' && currentUserRole !== 'owner')}
+                botActive={u.telegram_chat_id ? (whitelistMap.get(u.telegram_chat_id)?.is_active ?? false) : false}
+                meta={ROLE_META[u.role]}
+                loadingToggleId={loadingToggleId}
+                onEdit={setEditingUser}
+                onToggleBot={handleToggleBot}
+              />
+            ))}
+            {familyUsers.length === 0 && (
+              <div style={{ padding: '30px', textAlign: 'center', background: 'var(--card-bg)', border: '1px dashed var(--border-color)', borderRadius: '12px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                Belum ada anggota keluarga terdaftar.
+              </div>
+            )}
+          </div>
+        </section>
 
-          return (
-            <div key={u.id} style={{
-              background: 'var(--card-bg)', border: `1px solid ${isMe ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-              borderRadius: '12px', padding: '16px 18px',
-              transition: 'all 0.2s ease',
-              boxShadow: isMe ? '0 4px 12px rgba(37, 99, 235, 0.08)' : 'var(--card-shadow)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
-                {/* Avatar */}
-                <div style={{
-                  width: '42px', height: '42px', borderRadius: '10px',
-                  background: meta.bg, border: `1px solid ${meta.border}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '18px', flexShrink: 0, color: meta.color, fontWeight: '700',
-                }}>
-                  {(u.display_name ?? u.email ?? '?')[0].toUpperCase()}
-                </div>
-
-                {/* Info */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>
-                      {u.display_name ?? 'Tanpa nama'}
-                    </span>
-                    {isMe && (
-                      <span style={{ fontSize: '10px', padding: '1px 7px', borderRadius: '99px', background: 'rgba(37, 99, 235, 0.1)', color: 'var(--accent-primary)', border: '1px solid var(--accent-primary)' }}>
-                        Saya
-                      </span>
-                    )}
-                    <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '99px', background: meta.bg, color: meta.color, border: `1px solid ${meta.border}`, fontWeight: '500' }}>
-                      {meta.label}
-                    </span>
-                  </div>
-
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '2px' }}>
-                    {u.email ?? <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Belum ada email</span>}
-                  </div>
-
-                  {u.telegram_chat_id ? (
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                      <span>📱 {u.telegram_chat_id}</span>
-                      <span style={{
-                        fontSize: '10px', padding: '1px 6px', borderRadius: '99px',
-                        background: botActive ? 'rgba(34, 197, 94, 0.1)' : 'rgba(185, 28, 28, 0.1)',
-                        color: botActive ? '#22c55e' : '#ef4444',
-                        border: `1px solid ${botActive ? 'rgba(34, 197, 94, 0.2)' : 'rgba(185, 28, 28, 0.2)'}`,
-                        fontWeight: '600',
-                      }}>
-                        Bot {botActive ? '✓ Aktif' : '✗ Nonaktif'}
-                      </span>
-                    </div>
-                  ) : (
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                      Belum punya Telegram Chat ID
-                    </div>
-                  )}
-                </div>
-
-                {/* Actions */}
-                <div style={{ display: 'flex', gap: '6px', flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
-                  {/* Edit button — visible for all except self-downgrade of owner */}
-                  {canEdit && (
-                    <button
-                      onClick={() => setEditingUser(u)}
-                      style={{
-                        padding: '6px 12px', background: 'transparent',
-                        border: '1px solid var(--border-color)', borderRadius: '8px',
-                        color: 'var(--text-muted)', fontSize: '12px', fontWeight: '500',
-                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
-                      }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-primary)'; e.currentTarget.style.color = 'var(--accent-primary)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
-                    >
-                      ✏️ Edit
-                    </button>
-                  )}
-
-                  {/* Toggle bot — only if has telegram */}
-                  {canEdit && u.telegram_chat_id && (
-                    <button
-                      onClick={() => handleToggleBot(u.id, u.telegram_chat_id!, botActive)}
-                      disabled={loadingToggleId === u.id}
-                      style={{
-                        padding: '6px 12px',
-                        background: botActive ? '#2d0f0f' : '#0f2d1a',
-                        border: `1px solid ${botActive ? '#7f1d1d' : '#166534'}`,
-                        borderRadius: '8px', fontSize: '12px', fontWeight: '600',
-                        color: botActive ? '#f87171' : '#4ade80',
-                        cursor: loadingToggleId === u.id ? 'wait' : 'pointer',
-                        display: 'flex', alignItems: 'center', gap: '5px',
-                        transition: 'all 0.2s ease',
-                        opacity: loadingToggleId === u.id ? 0.6 : 1,
-                      }}
-                    >
-                      {loadingToggleId === u.id ? (
-                        <div style={{ width: '11px', height: '11px', border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
-                      ) : null}
-                      {botActive ? 'Nonaktifkan' : 'Aktifkan'} Bot
-                    </button>
-                  )}
-                </div>
+        {/* Demo Section */}
+        {demoUsers.length > 0 && (
+          <section>
+            <h2 style={{ fontSize: '11px', fontWeight: '800', color: '#f59e0b', marginBottom: '12px', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              🎭 AKUN DEMO <span style={{ padding: '2px 6px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '4px', fontSize: '10px' }}>{demoUsers.length}</span>
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {demoUsers.map(u => (
+                <UserCard
+                  key={u.id}
+                  u={u}
+                  isMe={u.id === currentUserId}
+                  canEdit={currentUserRole === 'owner'}
+                  botActive={u.telegram_chat_id ? (whitelistMap.get(u.telegram_chat_id)?.is_active ?? false) : false}
+                  meta={ROLE_META[u.role]}
+                  loadingToggleId={loadingToggleId}
+                  onEdit={setEditingUser}
+                  onToggleBot={handleToggleBot}
+                />
+              ))}
+              <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '6px', fontStyle: 'italic' }}>
+                Note: Akun demo digunakan untuk presentasi dan instruksi awal.
               </div>
             </div>
-          );
-        })}
+          </section>
+        )}
       </div>
 
       <style jsx>{`
