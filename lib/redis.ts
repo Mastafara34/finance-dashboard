@@ -17,14 +17,14 @@ if (!hasRedis) {
 }
 
 // If variables are missing, export a dummy proxy so the app doesn't crash on boot.
-export const redis = hasRedis 
+export const redis: Redis = hasRedis 
   ? new Redis({
       url: process.env.UPSTASH_REDIS_REST_URL!,
       token: process.env.UPSTASH_REDIS_REST_TOKEN!,
     })
   : new Proxy({} as any, {
       get: () => () => { throw new Error('Redis is disabled (Missing UPSTASH_REDIS variables).'); }
-    });
+    }) as Redis;
 
 
 // Cache keys prefixes (standardized)
