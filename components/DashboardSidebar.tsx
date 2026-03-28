@@ -7,7 +7,7 @@ import { UserSelector } from '@/app/dashboard/components/UserSelector';
 import Link from 'next/link';
 import {
   LayoutDashboard, ArrowUpDown, Target, BarChart3,
-  TrendingUp, Wallet, GraduationCap, Settings, LogOut
+  TrendingUp, Wallet, GraduationCap, Settings
 } from 'lucide-react';
 
 const NAV = [
@@ -18,7 +18,6 @@ const NAV = [
   { href: '/dashboard/networth', icon: TrendingUp, label: 'Net Worth' },
   { href: '/dashboard/budgets', icon: Wallet, label: 'Budget' },
   { href: '/dashboard/academy', icon: GraduationCap, label: 'Akademi / Tips' },
-  { href: '/dashboard/settings', icon: Settings, label: 'Pengaturan' },
 ];
 
 interface Props {
@@ -154,26 +153,33 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram, cur
           </div>
         )}
 
-        {/* User + logout */}
-        <div style={{ padding: '16px 20px 0', borderTop: '1px solid var(--border-color)' }}>
-          <div style={{ marginBottom: '12px' }}>
+        {/* Bottom Section: Settings + User Info */}
+        <div style={{ padding: '16px 12px', borderTop: '1px solid var(--border-color)', marginTop: 'auto' }}>
+          {/* Linked Settings Item */}
+          <Link href={uParam ? `/dashboard/settings?u=${uParam}` : '/dashboard/settings'} style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            padding: '9px 12px', borderRadius: 'var(--radius-md)', marginBottom: '16px',
+            textDecoration: 'none', transition: 'all .15s',
+            background: pathname.startsWith('/dashboard/settings') ? 'var(--border-color)' : 'transparent',
+            color: pathname.startsWith('/dashboard/settings') ? 'var(--text-main)' : 'var(--text-muted)',
+          }}
+            onMouseEnter={e => { if (!pathname.startsWith('/dashboard/settings')) (e.currentTarget as any).style.background = 'var(--bg-primary)'; }}
+            onMouseLeave={e => { if (!pathname.startsWith('/dashboard/settings')) (e.currentTarget as any).style.background = 'transparent'; }}
+          >
+            <Settings
+              size={16}
+              strokeWidth={pathname.startsWith('/dashboard/settings') ? 2.5 : 1.8}
+              style={{ flexShrink: 0, color: pathname.startsWith('/dashboard/settings') ? 'var(--text-main)' : 'var(--text-muted)' }}
+            />
+            <span style={{ fontSize: '13px', fontWeight: pathname.startsWith('/dashboard/settings') ? '600' : '400' }}>
+              Pengaturan
+            </span>
+          </Link>
+
+          <div style={{ padding: '0 12px 12px' }}>
             <div style={{ color: 'var(--text-main)', fontSize: '13px', fontWeight: '600' }}>{userName}</div>
             <div style={{ color: 'var(--text-muted)', fontSize: '11px', marginTop: '2px' }}>{userEmail}</div>
           </div>
-          <button onClick={handleLogout} style={{
-            width: '100%', padding: '8px',
-            background: 'transparent', border: '1px solid var(--border-color)',
-            borderRadius: 'var(--radius-md)', color: 'var(--text-muted)', fontSize: '12px',
-            cursor: 'pointer', transition: 'all .15s',
-          }}
-            onMouseEnter={e => { (e.currentTarget).style.borderColor = 'var(--color-negative)'; (e.currentTarget).style.color = 'var(--color-negative)'; (e.currentTarget).style.background = 'var(--color-negative-bg)'; }}
-            onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; (e.currentTarget).style.background = 'transparent'; }}
-          >
-            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-              <LogOut size={13} strokeWidth={2} />
-              Keluar
-            </span>
-          </button>
         </div>
       </aside>
     </>

@@ -2,15 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from '@/components/ui/searchable-select';
 
 interface User {
   id: string;
@@ -55,8 +47,22 @@ export function UserSelector({ users, currentViewId, isCollective = false, showC
 
   const activeVal = isCollective ? 'all' : currentViewId;
 
-  const familyUsers = users.filter(u => u.email !== DEMO_EMAIL);
-  const demoUsers   = users.filter(u => u.email === DEMO_EMAIL);
+  const options = [];
+  if (showCollective) {
+    options.push({ value: 'all', label: 'Seluruh Keluarga', icon: '🏠' });
+  }
+
+  users
+    .filter(u => u.email !== DEMO_EMAIL)
+    .forEach(u => {
+      options.push({ value: u.id, label: u.display_name ?? 'Member', icon: '👤' });
+    });
+
+  users
+    .filter(u => u.email === DEMO_EMAIL)
+    .forEach(u => {
+      options.push({ value: u.id, label: u.display_name ?? 'Demo', icon: '🎭' });
+    });
 
   return (
     <div style={{
@@ -66,8 +72,8 @@ export function UserSelector({ users, currentViewId, isCollective = false, showC
       transition: 'all 0.2s ease',
       position: 'relative',
     }}>
-      <Select 
-        value={activeVal} 
+      <SearchableSelect
+        value={activeVal}
         disabled={isNavigating}
         onValueChange={(val) => {
           if (!val) return;
@@ -77,49 +83,12 @@ export function UserSelector({ users, currentViewId, isCollective = false, showC
           const targetUrl = `${pathname}?${params.toString()}`;
           window.location.href = targetUrl;
         }}
-      >
-        <SelectTrigger style={{ 
-          width: '100%', 
-          background: 'var(--bg-secondary)', 
-          border: '1px solid var(--border-color)', 
-          borderRadius: '8px', 
-          color: 'var(--text-main)', 
-          fontSize: '13px', 
-          fontWeight: '600',
-          height: '38px'
-        }}>
-          <SelectValue placeholder="Pilih User" />
-        </SelectTrigger>
-        <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
-          {showCollective && (
-            <SelectItem value="all">🏠 Seluruh Keluarga</SelectItem>
-          )}
-
-          {familyUsers.length > 0 && (
-            <SelectGroup>
-              <SelectLabel style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>AKUN KELUARGA</SelectLabel>
-              {familyUsers.map(u => (
-                <SelectItem key={u.id} value={u.id}>
-                  👤 {u.display_name ?? 'Member'}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          )}
-
-          {demoUsers.length > 0 && (
-            <SelectGroup>
-              <SelectLabel style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>DEMO</SelectLabel>
-              {demoUsers.map(u => (
-                <SelectItem key={u.id} value={u.id}>
-                  🎭 {u.display_name ?? 'Demo'}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          )}
-        </SelectContent>
-      </Select>
+        options={options}
+        placeholder="Pilih User"
+        style={{ height: '40px' }}
+      />
       {isNavigating && (
-        <div style={{ position: 'absolute', right: '35px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', right: '35px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', zIndex: 10 }}>
           <span style={{ fontSize: '10px', color: 'var(--text-muted)', animation: 'pulse 1s infinite' }}>Loading...</span>
         </div>
       )}
