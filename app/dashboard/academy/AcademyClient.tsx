@@ -423,7 +423,23 @@ export default function AcademyClient() {
                 </div>
                 <div><label style={lbl}>Penjelasan</label><textarea style={{...inp,height:'80px',paddingTop:'12px',resize:'none'}} required value={formData.content} onChange={e => setFormData({...formData,content:e.target.value})} placeholder="Jelaskan konsep strategi ini..." onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
                 <div><label style={lbl}>Aksi di Dashboard</label><input style={inp} required value={formData.tip} onChange={e => setFormData({...formData,tip:e.target.value})} placeholder="Tindakan konkret..." onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
-                <div style={{ display:'flex', gap:'12px', marginTop:'8px' }}><button type="submit" style={{ flex:1, padding:'12px', background:'var(--accent-primary)', color:'var(--accent-primary-fg)', border:'none', borderRadius:'var(--radius-md)', fontWeight:'600', cursor:'pointer' }}>Simpan</button><button type="button" onClick={resetForm} style={{ padding:'12px 24px', background:'transparent', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', color:'var(--text-muted)', cursor:'pointer', fontWeight:'500' }}>Batal</button></div>
+                <div style={{ display:'flex', gap:'12px', marginTop:'8px' }}>
+                  <button 
+                    type="submit" 
+                    disabled={!formData.title || !formData.content}
+                    style={{ 
+                      flex: 1, padding: '12px', borderRadius: 'var(--radius-md)', fontWeight: '600', cursor: (!formData.title || !formData.content) ? 'not-allowed' : 'pointer',
+                      background: (!formData.title || !formData.content) ? 'var(--bg-secondary)' : 'var(--accent-primary)', 
+                      color: (!formData.title || !formData.content) ? 'var(--text-muted)' : 'var(--accent-primary-fg)', 
+                      border: (!formData.title || !formData.content) ? '1px solid var(--border-color)' : 'none'
+                    }}
+                  >
+                    Simpan
+                  </button>
+                  <button type="button" onClick={resetForm} style={{ padding:'12px 24px', background:'transparent', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', color:'var(--text-muted)', cursor:'pointer', fontWeight:'500' }}>
+                    Batal
+                  </button>
+                </div>
               </form>
             </div>
           )}

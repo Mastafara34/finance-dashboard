@@ -295,10 +295,12 @@ function BudgetFormModal({
 
           <div style={{ display: 'flex', gap: '10px' }}>
             <button type="submit" disabled={saving || !catId || limit <= 0} style={{
-              flex: 1, padding: '11px', border: 'none', borderRadius: '9px',
-              color: '#fff', fontSize: '14px', fontWeight: '600',
-              background: saving || !catId || limit <= 0 ? 'var(--border-color)' : 'var(--accent-primary)',
+              flex: 1, padding: '11px', borderRadius: '9px',
+              color: saving || !catId || limit <= 0 ? 'var(--text-muted)' : 'var(--accent-primary-fg)',
+              fontSize: '14px', fontWeight: '600',
+              background: saving || !catId || limit <= 0 ? 'var(--bg-secondary)' : 'var(--accent-primary)',
               cursor: saving || !catId || limit <= 0 ? 'not-allowed' : 'pointer',
+              border: saving || !catId || limit <= 0 ? '1px solid var(--border-color)' : 'none',
             }}>
               {saving ? 'Menyimpan...' : isEdit ? 'Simpan' : 'Set Budget'}
             </button>
