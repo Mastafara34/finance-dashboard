@@ -24,6 +24,8 @@ interface Budget {
 interface Props {
   initialBudgets: Budget[];
   prevMonthBudgets: { category_id: string, limit_amount: number }[];
+  historyBudgets: { limit_amount: number, month: string, categories: { id: string, name: string, icon: string } }[];
+  historyTxs: { amount: number, date: string, category_id: string }[];
   categories: Category[];
   spendMap: Record<string, number>;
   userId: string;
@@ -309,12 +311,109 @@ function BudgetFormModal({
   );
 }
 
+// ─── Budget History View ──────────────────────────────────────────────────
+function BudgetHistoryView({ budgets, txs, categories }: { budgets: any[], txs: any[], categories: Category[] }) {
+  const historyData = useMemo(() => {
+    const map: Record<string, { limit: number; spent: number; items: any[] }> = {};
+    
+    // Process budgets
+    budgets.forEach(b => {
+      if (!map[b.month]) map[b.month] = { limit: 0, spent: 0, items: [] };
+      map[b.month].limit += b.limit_amount;
+      
+      const spentInMonth = txs
+        .filter(t => t.date.startsWith(b.month) && t.category_id === b.categories?.id)
+        .reduce((s, t) => s + t.amount, 0);
+      
+      map[b.month].spent += spentInMonth;
+      map[b.month].items.push({
+        name: b.categories?.name,
+        icon: b.categories?.icon,
+        limit: b.limit_amount,
+        spent: spentInMonth
+      });
+    });
+
+    return Object.entries(map).sort((a, b) => b[0].localeCompare(a[0]));
+  }, [budgets, txs]);
+
+  if (historyData.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+        Belum ada data histori budget.
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {historyData.map(([m, data]) => {
+        const monthLabel = new Date(m + '-01').toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+        const pct = data.limit > 0 ? Math.round((data.spent / data.limit) * 100) : 0;
+        const isOver = pct > 100;
+
+        return (
+          <div key={m} style={{ 
+            background: 'var(--card-bg)', border: '1px solid var(--border-color)', 
+            borderRadius: '16px', padding: '20px' 
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-main)' }}>{monthLabel}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  Total: {fmt(data.spent)} / {fmt(data.limit)}
+                </div>
+              </div>
+              <div style={{ 
+                padding: '4px 12px', borderRadius: '99px', fontSize: '12px', fontWeight: '700',
+                background: isOver ? 'var(--color-negative-bg)' : 'var(--color-positive-bg)',
+                color: isOver ? 'var(--color-negative)' : 'var(--color-positive)',
+                border: `1px solid ${isOver ? 'var(--color-negative)' : 'var(--color-positive)'}`
+              }}>
+                {isOver ? 'OVER BUDGET' : 'DISIPLIN'}
+              </div>
+            </div>
+
+            <div style={{ height: '4px', background: 'var(--bg-secondary)', borderRadius: '99px', overflow: 'hidden', marginBottom: '16px' }}>
+              <div style={{ 
+                height: '100%', width: `${Math.min(pct, 100)}%`, 
+                background: isOver ? 'var(--color-negative)' : 'var(--color-positive)',
+                opacity: 0.8
+              }} />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '10px' }}>
+              {data.items.sort((a,b) => (b.spent/b.limit) - (a.spent/a.limit)).map((it, idx) => (
+                <div key={idx} style={{ 
+                  display: 'flex', alignItems: 'center', gap: '8px', 
+                  padding: '8px 12px', borderRadius: '10px', background: 'var(--bg-primary)',
+                  border: '1px solid var(--border-color)'
+                }}>
+                  <span style={{ fontSize: '16px' }}>{it.icon}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '11px', fontWeight: '500', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.name}</div>
+                    <div style={{ fontSize: '10px', color: it.spent > it.limit ? 'var(--color-negative)' : 'var(--text-muted)' }}>
+                      {fmtK(it.spent)} / {fmtK(it.limit)}
+                    </div>
+                  </div>
+                  {it.spent > it.limit && <span style={{ fontSize: '10px' }}>⚠️</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function BudgetsClient({
-  initialBudgets, prevMonthBudgets, categories, spendMap, userId, month, userRole, initialTargets
+  initialBudgets, prevMonthBudgets, historyBudgets, historyTxs, categories, spendMap, userId, month, userRole, initialTargets
 }: Props) {
   const supabase = createClient();
 
+  const [activeTab, setActiveTab] = useState<'current' | 'history'>('current');
   const [budgets,    setBudgets]    = useState<Budget[]>(initialBudgets);
   const [showForm,   setShowForm]   = useState(false);
   const [editBudget, setEditBudget] = useState<Budget | null>(null);
@@ -505,51 +604,83 @@ export default function BudgetsClient({
         onCancel={() => setDeletingBudget(null)}
       />
 
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
-        <div>
-          <h1 style={{ fontSize: '24px', fontWeight: '600', margin: '0 0 6px', letterSpacing: '-0.4px', color: 'var(--text-main)' }}>
-            Budget
-          </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>
-            Amplop Digital — {monthLabel}
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {budgets.length === 0 && prevMonthBudgets.length > 0 && (
-            <button 
-              onClick={handleCopyLastMonth} 
-              disabled={isCopying}
-              style={{
-                padding: '9px 18px', background: 'var(--card-bg)', border: '1px solid var(--border-color)',
-                borderRadius: 'var(--radius-md)', color: 'var(--color-positive)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.15s'
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--color-positive-bg)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'var(--card-bg)'}
-            >
-              {isCopying ? 'Menyalin...' : '📋 Salin Bulan Lalu'}
-            </button>
-          )}
-          {canEditTargets && (
-            <button onClick={() => setIsEditingTargets(true)} style={{
-              padding: '9px 18px', background: 'transparent', border: '1px solid var(--border-color)',
-              borderRadius: 'var(--radius-md)', color: 'var(--text-muted)', fontSize: '13px', fontWeight: '600', cursor: 'pointer'
-            }}>⚙️ target</button>
-          )}
-          <button onClick={() => setShowForm(true)}
-            disabled={categories.length === existingCatIds.length}
+      {/* ── Tabs ── */}
+      <div style={{ 
+        display: 'flex', gap: '4px', marginBottom: '28px', 
+        background: 'var(--bg-secondary)', padding: '4px', 
+        borderRadius: '12px', width: 'fit-content',
+        border: '1px solid var(--border-color)' 
+      }}>
+        {[
+          { id: 'current', label: 'Kelola Budget', icon: '🎯' },
+          { id: 'history', label: 'Histori & Laporan', icon: '📊' }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
             style={{
-              padding: '9px 18px', border: 'none', borderRadius: 'var(--radius-md)',
-              color: 'var(--accent-primary-fg)', fontSize: '13px', fontWeight: '600',
-              background: categories.length === existingCatIds.length ? 'var(--bg-secondary)' : 'var(--accent-primary)',
-              cursor: categories.length === existingCatIds.length ? 'not-allowed' : 'pointer',
-              transition: 'opacity 0.15s'
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '8px 16px', borderRadius: '8px', border: 'none',
+              fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+              background: activeTab === tab.id ? 'var(--card-bg)' : 'transparent',
+              color: activeTab === tab.id ? 'var(--text-main)' : 'var(--text-muted)',
+              boxShadow: activeTab === tab.id ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
             }}
-            onMouseEnter={e => { if (categories.length !== existingCatIds.length) (e.currentTarget).style.opacity = '0.9'; }}
-            onMouseLeave={e => { if (categories.length !== existingCatIds.length) (e.currentTarget).style.opacity = '1'; }}
-          >+ Set Budget</button>
-        </div>
+          >
+            <span>{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
       </div>
+
+      {activeTab === 'current' ? (
+        <>
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
+            <div>
+              <h1 style={{ fontSize: '24px', fontWeight: '600', margin: '0 0 6px', letterSpacing: '-0.4px', color: 'var(--text-main)' }}>
+                Budget
+              </h1>
+              <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>
+                Amplop Digital — {monthLabel}
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {budgets.length === 0 && prevMonthBudgets.length > 0 && (
+                <button 
+                  onClick={handleCopyLastMonth} 
+                  disabled={isCopying}
+                  style={{
+                    padding: '9px 18px', background: 'var(--card-bg)', border: '1px solid var(--border-color)',
+                    borderRadius: 'var(--radius-md)', color: 'var(--color-positive)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.15s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--color-positive-bg)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'var(--card-bg)'}
+                >
+                  {isCopying ? 'Menyalin...' : '📋 Salin Bulan Lalu'}
+                </button>
+              )}
+              {canEditTargets && (
+                <button onClick={() => setIsEditingTargets(true)} style={{
+                  padding: '9px 18px', background: 'transparent', border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-md)', color: 'var(--text-muted)', fontSize: '13px', fontWeight: '600', cursor: 'pointer'
+                }}>⚙️ target</button>
+              )}
+              <button onClick={() => setShowForm(true)}
+                disabled={categories.length === existingCatIds.length}
+                style={{
+                  padding: '9px 18px', border: 'none', borderRadius: 'var(--radius-md)',
+                  color: 'var(--accent-primary-fg)', fontSize: '13px', fontWeight: '600',
+                  background: categories.length === existingCatIds.length ? 'var(--bg-secondary)' : 'var(--accent-primary)',
+                  cursor: categories.length === existingCatIds.length ? 'not-allowed' : 'pointer',
+                  transition: 'opacity 0.15s'
+                }}
+                onMouseEnter={e => { if (categories.length !== existingCatIds.length) (e.currentTarget).style.opacity = '0.9'; }}
+                onMouseLeave={e => { if (categories.length !== existingCatIds.length) (e.currentTarget).style.opacity = '1'; }}
+              >+ Set Budget</button>
+            </div>
+          </div>
 
       {/* Target Settings Modal */}
       {isEditingTargets && (
@@ -638,31 +769,7 @@ export default function BudgetsClient({
         </div>
       )}
 
-      {/* Alerts */}
-      {overBudget.length > 0 && (
-        <div style={{
-          padding: '12px 16px',
-          background: 'var(--color-negative-bg)',
-          border: '1px solid var(--color-negative)',
-          borderRadius: 'var(--radius-md)', marginBottom: '12px', fontSize: '13px', color: 'var(--color-negative)',
-          display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.9
-        }}>
-          🚨 {overBudget.length} kategori melebihi budget:{' '}
-          <strong>{overBudget.map(b => b.categories?.name).join(', ')}</strong>
-        </div>
-      )}
-      {nearLimit.length > 0 && (
-        <div style={{
-          padding: '12px 16px',
-          background: 'var(--color-neutral-bg)',
-          border: '1px solid var(--color-neutral)',
-          borderRadius: 'var(--radius-md)', marginBottom: '12px', fontSize: '13px', color: 'var(--color-neutral)',
-          display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.9
-        }}>
-          ⚠️ {nearLimit.length} kategori hampir habis:{' '}
-          <strong>{nearLimit.map(b => b.categories?.name).join(', ')}</strong>
-        </div>
-      )}
+
 
       {/* Summary bar */}
       {budgets.length > 0 && (
@@ -748,17 +855,21 @@ export default function BudgetsClient({
         </div>
       )}
 
-      {/* Tips */}
-      {budgets.length > 0 && (
-        <div style={{
-          marginTop: '20px', padding: '14px 16px',
-          background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
-          borderRadius: '10px', fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6',
-        }}>
-          💡 <strong style={{ color: 'var(--text-main)' }}>Tips:</strong> Budget ini reset otomatis setiap bulan.
-          Bulan depan kamu perlu set ulang — atau salin dari bulan ini via tombol "+ Set Budget".
-          Pengeluaran dihitung dari transaksi yang masuk via bot maupun web.
-        </div>
+          {/* Tips */}
+          {budgets.length > 0 && (
+            <div style={{
+              marginTop: '20px', padding: '14px 16px',
+              background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+              borderRadius: '10px', fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6',
+            }}>
+              💡 <strong style={{ color: 'var(--text-main)' }}>Tips:</strong> Budget ini reset otomatis setiap bulan.
+              Bulan depan kamu perlu set ulang — atau salin dari bulan ini via tombol "+ Set Budget".
+              Pengeluaran dihitung dari transaksi yang masuk via bot maupun web.
+            </div>
+          )}
+        </>
+      ) : (
+        <BudgetHistoryView budgets={historyBudgets} txs={historyTxs} categories={categories} />
       )}
     </div>
   );

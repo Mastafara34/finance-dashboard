@@ -153,12 +153,12 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram, cur
           </div>
         )}
 
-        {/* Bottom Section: Settings + User Info */}
+        {/* Bottom Section: Settings Only */}
         <div style={{ padding: '16px 12px', borderTop: '1px solid var(--border-color)', marginTop: 'auto' }}>
           {/* Linked Settings Item */}
           <Link href={uParam ? `/dashboard/settings?u=${uParam}` : '/dashboard/settings'} style={{
             display: 'flex', alignItems: 'center', gap: '10px',
-            padding: '9px 12px', borderRadius: 'var(--radius-md)', marginBottom: '16px',
+            padding: '9px 12px', borderRadius: 'var(--radius-md)',
             textDecoration: 'none', transition: 'all .15s',
             background: pathname.startsWith('/dashboard/settings') ? 'var(--border-color)' : 'transparent',
             color: pathname.startsWith('/dashboard/settings') ? 'var(--text-main)' : 'var(--text-muted)',
@@ -175,11 +175,6 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram, cur
               Pengaturan
             </span>
           </Link>
-
-          <div style={{ padding: '0 12px 12px' }}>
-            <div style={{ color: 'var(--text-main)', fontSize: '13px', fontWeight: '600' }}>{userName}</div>
-            <div style={{ color: 'var(--text-muted)', fontSize: '11px', marginTop: '2px' }}>{userEmail}</div>
-          </div>
         </div>
       </aside>
     </>

@@ -92,9 +92,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const olderMonthEnd = new Date(now.getFullYear(), now.getMonth() - 1, 0).toISOString().split('T')[0];
   const last30Start = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
 
-  const [yearResult, goals, assets, history] = await Promise.all([
+  const [yearResult, goals, assets, budgets, history] = await Promise.all([
     (() => {
-      let q = supabase.from('transactions').select('amount, type, date, user_id, categories(name)').eq('is_deleted', false).gte('date', yearStart);
+      let q = supabase.from('transactions').select('amount, type, date, user_id, categories(id, name)').eq('is_deleted', false).gte('date', yearStart);
       if (isCollective) { if (userIds.length > 0) q = q.in('user_id', userIds); }
       else { q = q.eq('user_id', viewUserId); }
       return q;
@@ -107,6 +107,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     })(),
     (() => {
       let q = supabase.from('assets').select('id, name, value, is_liability, type');
+      if (isCollective) { if (userIds.length > 0) q = q.in('user_id', userIds); }
+      else { q = q.eq('user_id', viewUserId); }
+      return q;
+    })(),
+    (() => {
+      let q = supabase.from('monthly_budgets').select('id, limit_amount, categories(id, name, icon)').eq('month', monthStart.slice(0, 7));
       if (isCollective) { if (userIds.length > 0) q = q.in('user_id', userIds); }
       else { q = q.eq('user_id', viewUserId); }
       return q;
@@ -126,7 +132,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const last30   = yearTxs.filter(t => t.date >= last30Start) as unknown as Transaction[];
   const goalList = (goals.data ?? []) as Goal[];
   const assetList = (assets.data ?? []) as Asset[];
+  const monthlyBudgets = (budgets.data ?? []) as any[];
   const nwHistory = (history.data ?? []) as { date: string; net_worth: number }[];
+
 
   const income   = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
   const expense  = txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
@@ -155,9 +163,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const efProgress = efTargetMin > 0 ? Math.min(pct(liquidAssets, efTargetMin), 100) : 0;
   const monthsCovered = monthlyExpBase > 0 ? (liquidAssets / monthlyExpBase) : 0;
 
+  const debtKeywords = ['cicilan', 'kredit', 'kpr', 'hutang', 'pinjaman', 'paylater', 'kredit kendaraan'];
+  const debtRatio = income > 0 ? (txs.filter(t => t.type === 'expense' && debtKeywords.some(k => (t.categories?.name ?? '').toLowerCase().includes(k))).reduce((s, t) => s + t.amount, 0) / income) * 100 : 0;
+
   const { score: healthScore, label: healthLabel, color: healthColor } = calculateHealthScore({
     savingRate, monthsCovered,
-    debtRatio: income > 0 ? (txs.filter(t => t.type === 'expense' && (t.categories?.name ?? '').toLowerCase().includes('cicilan')).reduce((s, t) => s + t.amount, 0) / income) * 100 : 0,
+    debtRatio,
     monthlyInvRatio,
     isSurplus: balance > 0,
     targets: { saving: safeProfile.saving_target || 20, wants: safeProfile.wants_target || 30, needs: safeProfile.needs_target || 50 }
@@ -174,7 +185,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     savings: Math.round((savingsSum / income) * 100)
   } : { needs: 0, wants: 0, savings: 0 };
 
-  const archetype = detectArchetype({ savingRate, investmentRatio, monthsCovered, debtRatio: 0 });
+  const archetype = detectArchetype({ savingRate, investmentRatio, monthsCovered, debtRatio });
   const survivalTime = burnRate > 0 ? (liquidAssets / burnRate) : 0;
   const survivalLabel = survivalTime >= 12 ? 'Sangat Aman' : survivalTime >= 6 ? 'Aman' : survivalTime >= 3 ? 'Waspada' : 'Kritis';
   const survivalColor = survivalTime >= 12 ? 'var(--color-positive)' : survivalTime >= 6 ? '#60a5fa' : survivalTime >= 3 ? 'var(--color-neutral)' : 'var(--color-negative)';
@@ -203,7 +214,14 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const liabilities = assetList.filter(a => a.is_liability);
   const totalLiabVal = totalLiab;
 
-  const debtRatio = income > 0 ? (txs.filter(t => t.type === 'expense' && t.categories?.name?.toLowerCase().includes('cicilan')).reduce((s, t) => s + t.amount, 0) / income) * 100 : 0;
+  const budgetAlerts = monthlyBudgets.map(b => {
+    const spent = txs.filter(t => t.type === 'expense' && (t as any).category_id === b.categories?.id).reduce((s, t) => s + (t as any).amount, 0);
+    const p = b.limit_amount > 0 ? (spent / b.limit_amount) * 100 : 0;
+    return { name: b.categories?.name, spent, limit: b.limit_amount, pct: p };
+  });
+  const overBudgetCats = budgetAlerts.filter(a => a.pct >= 100);
+  const nearLimitCats = budgetAlerts.filter(a => a.pct >= 80 && a.pct < 100);
+
   const dailyBudget = monthlyExpBase > 0 ? (monthlyExpBase / 30) : 0;
   const anomaly = detectAnomalies(txs, dailyBudget * 1.5);
   const forecast = forecastEndOfMonth(income, expense);
@@ -363,10 +381,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         }}>
           <div style={{ textAlign: 'right' }}>
             <div style={{
-              fontSize: '10px',
-              color: 'var(--text-subtle)',
+              fontSize: '12px',
+              color: 'var(--text-main)',
+              fontWeight: '800',
               textTransform: 'uppercase',
-              letterSpacing: '0.08em',
+              letterSpacing: '0.02em',
               marginBottom: '3px',
             }}>
               {archetype}
@@ -409,6 +428,49 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               </div>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                 Total {fmt(anomaly.amount)} · Batas harian {fmt(anomaly.limit)} · Selisih {fmt(anomaly.diff)}
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* ── Budget Alerts (Agent Warning) ─────────────────────────────────── */}
+      {overBudgetCats.length > 0 && (
+        <Card style={{
+          marginBottom: '12px',
+          background: 'var(--color-negative-bg)',
+          border: '1px solid var(--color-negative)',
+          borderColor: 'rgba(220,38,38, 0.25)',
+        }}>
+          <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+            <div style={{ fontSize: '18px', flexShrink: 0 }}>🚨</div>
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--color-negative)', marginBottom: '3px' }}>
+                Budget Terlampaui!
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                {overBudgetCats.length} kategori melebihi limit: <strong>{overBudgetCats.map(c => c.name).join(', ')}</strong>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {nearLimitCats.length > 0 && (
+        <Card style={{
+          marginBottom: '12px',
+          background: 'var(--color-neutral-bg)',
+          border: '1px solid var(--color-neutral)',
+          borderColor: 'rgba(217,119,6, 0.25)',
+        }}>
+          <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+            <div style={{ fontSize: '18px', flexShrink: 0 }}>⚠️</div>
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--color-neutral)', marginBottom: '3px' }}>
+                Budget Hampir Habis (Peringatan Agen)
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                {nearLimitCats.length} kategori di atas 80%: <strong>{nearLimitCats.map(c => c.name).join(', ')}</strong>
               </div>
             </div>
           </div>

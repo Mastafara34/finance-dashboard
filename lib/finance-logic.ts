@@ -149,16 +149,22 @@ export function detectSubscriptions(txs: any[]) {
  * Mendeteksi anomali pengeluaran harian yang tidak wajar.
  */
 export function detectAnomalies(txs: any[], dailyLimit: number) {
-  const today = new Date().toISOString().split('T')[0];
-  const todayTxs = txs.filter(t => t.type === 'expense' && t.date === today);
+  // Use local timezone format (YYYY-MM-DD) instead of UTC to prevent timezone misses (e.g. WIB morning is UTC yesterday)
+  const now = new Date();
+  const todayLocal = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  
+  const todayTxs = txs.filter(t => t.type === 'expense' && t.date.startsWith(todayLocal));
   const totalToday = todayTxs.reduce((s, t) => s + t.amount, 0);
 
-  if (totalToday > dailyLimit && dailyLimit > 0) {
+  // Absolute minimum floor to avoid anomaly noise on micro-budgets (e.g. 50k IDR)
+  const effectiveLimit = Math.max(dailyLimit, 50000);
+
+  if (totalToday > effectiveLimit && dailyLimit > 0) {
     return {
       isAnomaly: true,
       amount: totalToday,
-      limit: dailyLimit,
-      diff: totalToday - dailyLimit
+      limit: effectiveLimit,
+      diff: totalToday - effectiveLimit
     };
   }
   return { isAnomaly: false, amount: 0, limit: 0, diff: 0 };
@@ -173,7 +179,11 @@ export function forecastEndOfMonth(income: number, currentExpense: number) {
   const currentDay = now.getDate();
   const daysLeft = daysInMonth - currentDay;
 
-  const avgDailyExp = currentDay > 0 ? currentExpense / currentDay : 0;
+  // Prevent extreme panic on early month spikes (e.g. paying rent on day 1 -> 5jt * 30 days = 150jt forecast)
+  // By forcing the divisor to be at least 5 days, we smooth out early month anomalies.
+  const divisor = Math.max(currentDay, 5); 
+  const avgDailyExp = divisor > 0 ? currentExpense / divisor : 0;
+  
   const predictedAddExp = avgDailyExp * daysLeft;
   const predictedTotalExp = currentExpense + predictedAddExp;
   const predictedBalance = income - predictedTotalExp;
@@ -182,7 +192,7 @@ export function forecastEndOfMonth(income: number, currentExpense: number) {
     predictedTotalExp,
     predictedBalance,
     isNegative: predictedBalance < 0,
-    confidence: currentDay > 10 ? 'Tinggi' : 'Rendah' // Akurasi meningkat setelah tgl 10
+    confidence: currentDay > 15 ? 'Akurat' : currentDay > 5 ? 'Cukup' : 'Rendah' // Akurasi meningkat bertahap
   };
 }
 
