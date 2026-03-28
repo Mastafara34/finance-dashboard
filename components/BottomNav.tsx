@@ -3,22 +3,22 @@
 
 import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  LayoutDashboard, 
-  ArrowUpDown, 
-  Target, 
-  BarChart3, 
-  GraduationCap, 
-  Settings 
+import {
+  LayoutDashboard,
+  ArrowUpDown,
+  Target,
+  BarChart3,
+  GraduationCap,
+  Settings
 } from 'lucide-react';
 
 const NAV = [
-  { href: '/dashboard',              icon: <LayoutDashboard size={20} />, label: 'Overview'  },
-  { href: '/dashboard/transactions', icon: <ArrowUpDown size={20} />,      label: 'Transaksi' },
-  { href: '/dashboard/goals',        icon: <Target size={20} />,           label: 'Goals'     },
-  { href: '/dashboard/analytics',    icon: <BarChart3 size={20} />,        label: 'Analitik'  },
-  { href: '/dashboard/academy',      icon: <GraduationCap size={20} />,    label: 'Akademi'   },
-  { href: '/dashboard/settings',     icon: <Settings size={20} />,         label: 'Lainnya'   },
+  { href: '/dashboard', icon: <LayoutDashboard size={20} />, label: 'Overview' },
+  { href: '/dashboard/transactions', icon: <ArrowUpDown size={20} />, label: 'Transaksi' },
+  { href: '/dashboard/goals', icon: <Target size={20} />, label: 'Goals' },
+  { href: '/dashboard/analytics', icon: <BarChart3 size={20} />, label: 'Analitik' },
+  { href: '/dashboard/academy', icon: <GraduationCap size={20} />, label: 'Akademi' },
+  { href: '/dashboard/settings', icon: <Settings size={20} />, label: 'Lainnya' },
 ];
 
 export default function BottomNav() {
@@ -97,8 +97,8 @@ export default function BottomNav() {
               )}
               <span style={{ height: '20px', display: 'flex', alignItems: 'center' }}>{item.icon}</span>
               <span style={{
-                fontSize: '10px',
-                fontWeight: active ? '600' : '400',
+                fontSize: '12px',
+                fontWeight: active ? '500' : '400',
                 letterSpacing: '.01em',
               }}>
                 {item.label}

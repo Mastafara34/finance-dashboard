@@ -11,14 +11,14 @@ import {
 } from 'lucide-react';
 
 const NAV = [
-  { href: '/dashboard',              icon: LayoutDashboard, label: 'Overview'            },
-  { href: '/dashboard/transactions', icon: ArrowUpDown,     label: 'Transaksi'           },
-  { href: '/dashboard/goals',        icon: Target,          label: 'Goals'               },
-  { href: '/dashboard/analytics',    icon: BarChart3,       label: 'Laporan & Analitik'  },
-  { href: '/dashboard/networth',     icon: TrendingUp,      label: 'Net Worth'           },
-  { href: '/dashboard/budgets',      icon: Wallet,          label: 'Budget'              },
-  { href: '/dashboard/academy',      icon: GraduationCap,   label: 'Akademi / Tips'      },
-  { href: '/dashboard/settings',     icon: Settings,        label: 'Pengaturan'          },
+  { href: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
+  { href: '/dashboard/transactions', icon: ArrowUpDown, label: 'Transaksi' },
+  { href: '/dashboard/goals', icon: Target, label: 'Goals' },
+  { href: '/dashboard/analytics', icon: BarChart3, label: 'Laporan & Analitik' },
+  { href: '/dashboard/networth', icon: TrendingUp, label: 'Net Worth' },
+  { href: '/dashboard/budgets', icon: Wallet, label: 'Budget' },
+  { href: '/dashboard/academy', icon: GraduationCap, label: 'Akademi / Tips' },
+  { href: '/dashboard/settings', icon: Settings, label: 'Pengaturan' },
 ];
 
 interface Props {
@@ -32,7 +32,7 @@ interface Props {
 
 export default function DashboardSidebar({ userName, userEmail, hasTelegram, currentUserId, userRole, allUsers }: Props) {
   const pathname = usePathname();
-  const router   = useRouter();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
 
@@ -76,7 +76,7 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram, cur
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
               width: '32px', height: '32px', borderRadius: '8px',
-              background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+              background: 'var(--border-color-strong)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '16px', flexShrink: 0,
             }}>💰</div>
@@ -90,12 +90,12 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram, cur
         {/* User Selector for Owner */}
         {isOwner && (
           <div style={{ padding: '0 12px 16px', borderBottom: '1px solid var(--border-color)', marginTop: '16px' }}>
-            <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '8px', paddingLeft: '8px' }}>PILIH TAMPILAN</div>
-            <UserSelector 
-              users={allUsers} 
-              currentViewId={viewUserId} 
-              isCollective={isCollective} 
-              showCollective={true} 
+            <div style={{ fontSize: '10px', fontWeight: '500', color: 'var(--text-subtle)', marginBottom: '8px', paddingLeft: '8px' }}>PILIH TAMPILAN</div>
+            <UserSelector
+              users={allUsers}
+              currentViewId={viewUserId}
+              isCollective={isCollective}
+              showCollective={true}
             />
           </div>
         )}
@@ -105,17 +105,17 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram, cur
           {NAV.map(item => {
             const isActive = pathname === item.href ||
               (item.href !== '/dashboard' && pathname.startsWith(item.href));
-            
+
             // Fix: Pertahankan parameter 'u' saat navigasi antar tab
             const href = uParam ? `${item.href}?u=${uParam}` : item.href;
 
             return (
               <Link key={item.href} href={href} style={{
                 display: 'flex', alignItems: 'center', gap: '10px',
-                padding: '9px 12px', borderRadius: '8px', marginBottom: '2px',
+                padding: '9px 12px', borderRadius: 'var(--radius-md)', marginBottom: '2px',
                 textDecoration: 'none', transition: 'all .15s',
-                background: isActive ? 'rgba(37, 99, 235, 0.1)' : 'transparent',
-                color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)',
+                background: isActive ? 'var(--border-color)' : 'transparent',
+                color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
               }}
                 onMouseEnter={e => { if (!isActive) (e.currentTarget as any).style.background = 'var(--bg-primary)'; }}
                 onMouseLeave={e => { if (!isActive) (e.currentTarget as any).style.background = 'transparent'; }}
@@ -123,7 +123,7 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram, cur
                 <item.icon
                   size={16}
                   strokeWidth={isActive ? 2.5 : 1.8}
-                  style={{ flexShrink: 0, color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)' }}
+                  style={{ flexShrink: 0, color: isActive ? 'var(--text-main)' : 'var(--text-muted)' }}
                 />
                 <span style={{ fontSize: '13px', fontWeight: isActive ? '600' : '400' }}>
                   {item.label}
@@ -131,7 +131,7 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram, cur
                 {isActive && (
                   <span style={{
                     marginLeft: 'auto', width: '4px', height: '4px',
-                    borderRadius: '99px', background: 'var(--accent-primary)', flexShrink: 0,
+                    borderRadius: '99px', background: 'var(--text-main)', flexShrink: 0,
                   }} />
                 )}
               </Link>
@@ -143,9 +143,9 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram, cur
         {!hasTelegram && (
           <div style={{
             margin: '0 12px 12px', padding: '10px 12px',
-            background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.2)', borderRadius: '8px',
+            background: 'var(--color-neutral-bg)', border: '1px solid var(--color-neutral)', borderRadius: 'var(--radius-md)',
           }}>
-            <div style={{ color: '#f59e0b', fontSize: '12px', fontWeight: '600', marginBottom: '2px' }}>
+            <div style={{ color: 'var(--color-neutral)', fontSize: '12px', fontWeight: '600', marginBottom: '2px' }}>
               Bot belum terhubung
             </div>
             <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>
@@ -163,10 +163,10 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram, cur
           <button onClick={handleLogout} style={{
             width: '100%', padding: '8px',
             background: 'transparent', border: '1px solid var(--border-color)',
-            borderRadius: '7px', color: 'var(--text-muted)', fontSize: '12px',
+            borderRadius: 'var(--radius-md)', color: 'var(--text-muted)', fontSize: '12px',
             cursor: 'pointer', transition: 'all .15s',
           }}
-            onMouseEnter={e => { (e.currentTarget).style.borderColor = '#ef4444'; (e.currentTarget).style.color = '#ef4444'; (e.currentTarget).style.background = 'rgba(239, 68, 68, 0.05)'; }}
+            onMouseEnter={e => { (e.currentTarget).style.borderColor = 'var(--color-negative)'; (e.currentTarget).style.color = 'var(--color-negative)'; (e.currentTarget).style.background = 'var(--color-negative-bg)'; }}
             onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; (e.currentTarget).style.background = 'transparent'; }}
           >
             <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
