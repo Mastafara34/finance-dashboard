@@ -168,48 +168,48 @@ function KalkulatorTab() {
 
       {/* Rule of 72 */}
       <div style={cardStyle}>
-        <h3 style={{ fontWeight:'500', fontSize:'16px', marginBottom:'6px' }}>🔢 rule of 72</h3>
-        <p style={{ color:'var(--text-muted)', fontSize:'13px', marginBottom:'20px' }}>estimasi tahun uang anda berlipat dua berdasarkan roi investasi.</p>
-        <label style={lbl}>return investasi per tahun (%)</label>
+        <h3 style={{ fontWeight:'500', fontSize:'16px', marginBottom:'6px' }}>🔢 Rule of 72</h3>
+        <p style={{ color:'var(--text-muted)', fontSize:'13px', marginBottom:'20px' }}>Estimasi tahun uang Anda berlipat dua berdasarkan ROI investasi.</p>
+        <label style={lbl}>Return Investasi per Tahun (%)</label>
         <input style={inp} type="number" placeholder="Misal: 8" value={roi72} onChange={e => setRoi72(e.target.value)} 
           onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
           onBlur={e => e.target.style.borderColor = 'var(--border-color)'}
         />
-        {years72 && <div style={res}><div style={{ color:'var(--text-muted)', fontSize:'12px' }}>uang berlipat dua dalam</div><div style={{ fontSize:'24px', fontWeight:'600', color:'var(--color-positive)', marginTop:'4px' }}>{years72} tahun</div><div style={{ color:'var(--text-muted)', fontSize:'11px', marginTop:'6px' }}>roi {roi72}% per tahun</div></div>}
+        {years72 && <div style={res}><div style={{ color:'var(--text-muted)', fontSize:'12px' }}>Uang berlipat dua dalam</div><div style={{ fontSize:'24px', fontWeight:'600', color:'var(--color-positive)', marginTop:'4px' }}>{years72} tahun</div><div style={{ color:'var(--text-muted)', fontSize:'11px', marginTop:'6px' }}>ROI {roi72}% per tahun</div></div>}
       </div>
 
       {/* DCA Simulator */}
       <div style={cardStyle}>
-        <h3 style={{ fontWeight:'500', fontSize:'16px', marginBottom:'6px' }}>📈 simulasi dca</h3>
-        <p style={{ color:'var(--text-muted)', fontSize:'13px', marginBottom:'20px' }}>estimasi nilai investasi rutin bulanan anda di masa depan.</p>
-        <label style={lbl}>investasi per bulan (rp)</label>
+        <h3 style={{ fontWeight:'500', fontSize:'16px', marginBottom:'6px' }}>📈 Simulasi DCA</h3>
+        <p style={{ color:'var(--text-muted)', fontSize:'13px', marginBottom:'20px' }}>Estimasi nilai investasi rutin bulanan Anda di masa depan.</p>
+        <label style={lbl}>Investasi per Bulan (Rp)</label>
         <input style={inp} type="text" inputMode="numeric" placeholder="Misal: 500.000" value={dcaMonthly} 
           onChange={e => setDcaMonthly(e.target.value.replace(/[^0-9.]/g,''))}
           onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
           onBlur={e => e.target.style.borderColor = 'var(--border-color)'}
         />
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginTop:'12px' }}>
-          <div><label style={lbl}>roi / tahun (%)</label><input style={inp} type="number" placeholder="Misal: 10" value={dcaRoi} onChange={e => setDcaRoi(e.target.value)} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
-          <div><label style={lbl}>durasi (tahun)</label><input style={inp} type="number" placeholder="Misal: 10" value={dcaYears} onChange={e => setDcaYears(e.target.value)} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
+          <div><label style={lbl}>ROI / Tahun (%)</label><input style={inp} type="number" placeholder="Misal: 10" value={dcaRoi} onChange={e => setDcaRoi(e.target.value)} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
+          <div><label style={lbl}>Durasi (Tahun)</label><input style={inp} type="number" placeholder="Misal: 10" value={dcaYears} onChange={e => setDcaYears(e.target.value)} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
         </div>
-        {dcaResult && <div style={res}><div style={{ color:'var(--text-muted)', fontSize:'12px' }}>estimasi nilai di akhir periode</div><div style={{ fontSize:'24px', fontWeight:'600', color:'var(--color-positive)', marginTop:'4px' }}>{fmt(dcaResult)}</div><div style={{ color:'var(--text-muted)', fontSize:'11px', marginTop:'6px' }}>modal: {fmt((parseFloat(dcaMonthly.replace(/\./g,''))||0)*(parseFloat(dcaYears)||0)*12)}</div></div>}
+        {dcaResult && <div style={res}><div style={{ color:'var(--text-muted)', fontSize:'12px' }}>Estimasi nilai di akhir periode</div><div style={{ fontSize:'24px', fontWeight:'600', color:'var(--color-positive)', marginTop:'4px' }}>{fmt(dcaResult)}</div><div style={{ color:'var(--text-muted)', fontSize:'11px', marginTop:'6px' }}>Modal: {fmt((parseFloat(dcaMonthly.replace(/\./g,''))||0)*(parseFloat(dcaYears)||0)*12)}</div></div>}
       </div>
 
       {/* Kalkulator Cicilan */}
       <div style={cardStyle}>
-        <h3 style={{ fontWeight:'500', fontSize:'16px', marginBottom:'6px' }}>🧾 kalkulator cicilan</h3>
-        <p style={{ color:'var(--text-muted)', fontSize:'13px', marginBottom:'20px' }}>hitung cicilan bulanan dari pinjaman atau kpr anda.</p>
-        <label style={lbl}>jumlah pinjaman (rp)</label>
+        <h3 style={{ fontWeight:'500', fontSize:'16px', marginBottom:'6px' }}>🧾 Kalkulator Cicilan</h3>
+        <p style={{ color:'var(--text-muted)', fontSize:'13px', marginBottom:'20px' }}>Hitung cicilan bulanan dari pinjaman atau KPR Anda.</p>
+        <label style={lbl}>Jumlah Pinjaman (Rp)</label>
         <input style={inp} type="text" inputMode="numeric" placeholder="Misal: 200.000.000" value={pinjaman} 
           onChange={e => setPinjaman(e.target.value.replace(/[^0-9.]/g,''))}
           onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
           onBlur={e => e.target.style.borderColor = 'var(--border-color)'}
         />
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginTop:'12px' }}>
-          <div><label style={lbl}>bunga / tahun (%)</label><input style={inp} type="number" placeholder="Misal: 9" value={bungaThn} onChange={e => setBungaThn(e.target.value)} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
-          <div><label style={lbl}>tenor (bulan)</label><input style={inp} type="number" placeholder="Misal: 60" value={tenor} onChange={e => setTenor(e.target.value)} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
+          <div><label style={lbl}>Bunga / Tahun (%)</label><input style={inp} type="number" placeholder="Misal: 9" value={bungaThn} onChange={e => setBungaThn(e.target.value)} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
+          <div><label style={lbl}>Tenor (Bulan)</label><input style={inp} type="number" placeholder="Misal: 60" value={tenor} onChange={e => setTenor(e.target.value)} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
         </div>
-        {cicilan && <div style={res}><div style={{ color:'var(--text-muted)', fontSize:'12px' }}>cicilan per bulan</div><div style={{ fontSize:'24px', fontWeight:'600', color:'var(--color-negative)', marginTop:'4px' }}>{fmt(cicilan)}</div><div style={{ color:'var(--text-muted)', fontSize:'11px', marginTop:'6px' }}>total bayar: {fmt(cicilan*(parseFloat(tenor)||0))}</div></div>}
+        {cicilan && <div style={res}><div style={{ color:'var(--text-muted)', fontSize:'12px' }}>Cicilan per Bulan</div><div style={{ fontSize:'24px', fontWeight:'600', color:'var(--color-negative)', marginTop:'4px' }}>{fmt(cicilan)}</div><div style={{ color:'var(--text-muted)', fontSize:'11px', marginTop:'6px' }}>Total Bayar: {fmt(cicilan*(parseFloat(tenor)||0))}</div></div>}
       </div>
     </div>
   );

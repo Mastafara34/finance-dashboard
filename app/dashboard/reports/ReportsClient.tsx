@@ -129,7 +129,7 @@ Dicetak pada: ${new Date().toLocaleString('id-ID')}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <h2 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '4px' }}>RIWAYAT LAPORAN</h2>
           {reports.length === 0 ? (
-            <Card style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+            <Card style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
               Belum ada history laporan. Laporan akan terbuat otomatis setiap minggu/bulan.
             </Card>
           ) : (
@@ -165,16 +165,16 @@ Dicetak pada: ${new Date().toLocaleString('id-ID')}
                 </div>
                 <div style={{ display: 'flex', gap: '24px', marginTop: '16px' }}>
                   <div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>Pemasukan</div>
-                    <div style={{ fontSize: '14px', fontWeight: '600' }}>{fmt(r.data.income)}</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '4px' }}>Pemasukan</div>
+                    <div style={{ fontSize: '15px', fontWeight: '600' }}>{fmt(r.data.income)}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>Pengeluaran</div>
-                    <div style={{ fontSize: '14px', fontWeight: '600' }}>{fmt(r.data.expense)}</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '4px' }}>Pengeluaran</div>
+                    <div style={{ fontSize: '15px', fontWeight: '600' }}>{fmt(r.data.expense)}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>Saving Rate</div>
-                    <div style={{ fontSize: '14px', fontWeight: '600', color: r.data.saving_rate >= 20 ? 'var(--color-positive)' : 'var(--color-neutral)' }}>{r.data.saving_rate.toFixed(1)}%</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '4px' }}>Saving Rate</div>
+                    <div style={{ fontSize: '15px', fontWeight: '600', color: r.data.saving_rate >= 20 ? 'var(--color-positive)' : 'var(--color-neutral)' }}>{r.data.saving_rate.toFixed(1)}%</div>
                   </div>
                 </div>
               </div>

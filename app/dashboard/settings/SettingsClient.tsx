@@ -478,11 +478,11 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
 
       <Section title="Mode Tampilan">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <div onClick={() => applyTheme('dark')} style={{ padding: '16px', borderRadius: 'var(--radius-lg)', border: `1px solid ${theme === 'dark' ? 'var(--accent-primary)' : 'var(--border-color)'}`, cursor: 'pointer', background: theme === 'dark' ? 'var(--bg-primary)' : 'transparent', transition: 'all 0.2s' }}>
+          <div onClick={() => applyTheme('dark')} style={{ padding: '16px', borderRadius: 'var(--radius-lg)', border: `1px solid ${theme === 'dark' ? 'var(--accent-primary)' : 'var(--border-color)'}`, cursor: 'pointer', background: theme === 'dark' ? 'var(--bg-secondary)' : 'transparent', transition: 'all 0.2s' }}>
             <div style={{ fontSize: '14px', fontWeight: '500', color: theme === 'dark' ? 'var(--text-main)' : 'var(--text-subtle)' }}>🌙 Dark Mode {theme === 'dark' && '✓'}</div>
           </div>
-          <div onClick={() => applyTheme('light')} style={{ padding: '16px', borderRadius: 'var(--radius-lg)', border: `1px solid ${theme === 'light' ? 'var(--accent-primary)' : 'var(--border-color)'}`, cursor: 'pointer', background: theme === 'light' ? '#fff' : 'transparent', transition: 'all 0.2s' }}>
-            <div style={{ fontSize: '14px', fontWeight: '500', color: theme === 'light' ? '#000' : 'var(--text-subtle)' }}>☀️ Light Mode {theme === 'light' && '✓'}</div>
+          <div onClick={() => applyTheme('light')} style={{ padding: '16px', borderRadius: 'var(--radius-lg)', border: `1px solid ${theme === 'light' ? 'var(--accent-primary)' : 'var(--border-color)'}`, cursor: 'pointer', background: theme === 'light' ? 'var(--bg-secondary)' : 'transparent', transition: 'all 0.2s' }}>
+            <div style={{ fontSize: '14px', fontWeight: '500', color: theme === 'light' ? 'var(--text-main)' : 'var(--text-subtle)' }}>☀️ Light Mode {theme === 'light' && '✓'}</div>
           </div>
         </div>
       </Section>
@@ -555,12 +555,12 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
           <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ height: '1px', background: 'rgba(239, 68, 68, 0.1)' }}></div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div><div style={{ fontSize: '13px', fontWeight: '600' }}>Hapus Transaksi</div><div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Bersihkan semua histori transaksi kamu</div></div>
-              <button onClick={() => setConfirmResetTx(true)} style={{ padding: '6px 12px', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>Hapus</button>
+              <div><div style={{ fontSize: '13px', fontWeight: '600' }}>Hapus Transaksi</div><div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Bersihkan semua histori transaksi kamu</div></div>
+              <button onClick={() => setConfirmResetTx(true)} style={{ padding: '6px 12px', background: 'transparent', border: '1px solid var(--color-negative)', color: 'var(--color-negative)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>Hapus</button>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div><div style={{ fontSize: '13px', fontWeight: '600' }}>Reset Kategori</div><div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Hapus semua kategori kustom yang Anda buat</div></div>
-              <button onClick={() => setConfirmResetCat(true)} style={{ padding: '6px 12px', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>Reset</button>
+              <div><div style={{ fontSize: '13px', fontWeight: '600' }}>Reset Kategori</div><div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Hapus semua kategori kustom yang Anda buat</div></div>
+              <button onClick={() => setConfirmResetCat(true)} style={{ padding: '6px 12px', background: 'transparent', border: '1px solid var(--color-negative)', color: 'var(--color-negative)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>Reset</button>
             </div>
           </div>
         )}

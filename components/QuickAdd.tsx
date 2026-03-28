@@ -5,13 +5,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from '@/components/ui/searchable-select';
 
 interface Category { id: string; name: string; icon: string; type: string }
 
@@ -232,24 +226,17 @@ export default function QuickAdd({ userId, categories }: Props) {
                 <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'8px' }}>
                   Kategori
                 </label>
-                  <Select value={catId} onValueChange={(v) => v && setCatId(v)}>
-                    <SelectTrigger style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: catId ? 'var(--text-main)' : 'var(--text-muted)' }}>
-                      <SelectValue placeholder="— pilih —">
-                        {catId ? (
-                          (() => {
-                            const c = categories.find(cat => cat.id === catId);
-                            return c ? `${c.icon} ${c.name}` : "— pilih —";
-                          })()
-                        ) : "— pilih —"}
-                      </SelectValue>
-                    </SelectTrigger>
-                  <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
-                    <SelectItem value="none">— pilih —</SelectItem>
-                    {filteredCats.map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <SearchableSelect
+                    value={catId}
+                    onValueChange={(v) => v && setCatId(v)}
+                    options={[
+                      { value: 'none', label: '— pilih —' },
+                      ...filteredCats.map(c => ({ value: c.id, label: c.name, icon: c.icon }))
+                    ]}
+                    placeholder="— pilih —"
+                    searchPlaceholder="Cari kategori..."
+                    style={{ height: '42px' }}
+                  />
               </div>
               <div>
                 <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'8px' }}>

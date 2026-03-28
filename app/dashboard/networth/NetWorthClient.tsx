@@ -71,7 +71,7 @@ function AssetFormModal({
   const inp: React.CSSProperties = {
     width: '100%', padding: '9px 12px',
     background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
-    borderRadius: '8px', color: 'var(--text-main)', fontSize: '13px',
+    borderRadius: '8px', color: 'var(--text-main)', fontSize: '14px',
     outline: 'none', boxSizing: 'border-box',
   };
 
@@ -203,8 +203,9 @@ function AssetFormModal({
           <div style={{ display: 'flex', gap: '10px' }}>
             <button type="submit" disabled={saving} style={{
               flex: 1, padding: '11px', border: 'none', borderRadius: '9px',
-              color: '#fff', fontSize: '14px', fontWeight: '600',
-              background: saving ? 'var(--border-color)' : accentColor,
+              color: saving ? 'var(--text-muted)' : 'var(--accent-primary-fg)',
+              fontSize: '14px', fontWeight: '600',
+              background: saving ? 'var(--bg-secondary)' : accentColor,
               cursor: saving ? 'not-allowed' : 'pointer',
             }}>
               {saving ? 'Menyimpan...' : isEdit ? 'Simpan' : 'Tambah'}

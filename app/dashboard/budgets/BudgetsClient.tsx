@@ -4,13 +4,7 @@
 import { useState, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import ConfirmModal from '@/components/ConfirmModal';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from '@/components/ui/searchable-select';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Category {
@@ -202,7 +196,7 @@ function BudgetFormModal({
   const inp: React.CSSProperties = {
     width: '100%', padding: '9px 12px',
     background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
-    borderRadius: '8px', color: 'var(--text-main)', fontSize: '13px',
+    borderRadius: '8px', color: 'var(--text-main)', fontSize: '14px',
     outline: 'none', boxSizing: 'border-box',
   };
 
@@ -244,24 +238,16 @@ function BudgetFormModal({
                 <span>{budget?.categories?.name}</span>
               </div>
             ) : (
-              <Select value={catId} onValueChange={(v) => v && setCatId(v)}>
-                <SelectTrigger style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', color: catId && catId !== 'none' ? 'var(--text-main)' : 'var(--text-muted)' }}>
-                  <SelectValue placeholder="— pilih kategori —">
-                    {catId && catId !== 'none' ? (
-                      (() => {
-                        const c = categories.find(cat => cat.id === catId);
-                        return c ? `${c.icon} ${c.name}` : "— pilih kategori —";
-                      })()
-                    ) : "— pilih kategori —"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
-                  <SelectItem value="none">— pilih kategori —</SelectItem>
-                  {available.map(c => (
-                    <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={catId}
+                onValueChange={(v) => v && setCatId(v)}
+                options={[
+                  { value: 'none', label: '— pilih kategori —' },
+                  ...available.map(c => ({ value: c.id, label: c.name, icon: c.icon }))
+                ]}
+                placeholder="— pilih kategori —"
+                searchPlaceholder="Cari kategori..."
+              />
             )}
           </div>
 

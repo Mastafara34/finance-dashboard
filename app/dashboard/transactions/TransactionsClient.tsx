@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchableSelect } from '@/components/ui/searchable-select';
 
 interface Category { id: string; name: string; type: string; icon: string }
 interface Transaction {
@@ -121,9 +122,10 @@ export default function TransactionsClient({ transactions, categories, userId }:
   }
 
   const inp: React.CSSProperties = {
-    width:'100%', padding:'8px 10px', background:'var(--bg-secondary)',
+    width:'100%', padding:'9px 12px', background:'var(--bg-secondary)',
     border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)',
-    color:'var(--text-main)', fontSize:'16px', outline:'none', boxSizing:'border-box',
+    color:'var(--text-main)', fontSize:'14px', outline:'none', boxSizing:'border-box',
+    transition: 'border-color 0.15s'
   };
 
   return (
@@ -344,11 +346,11 @@ export default function TransactionsClient({ transactions, categories, userId }:
               <div style={{ padding:'16px', background:'var(--bg-secondary)' }}>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginBottom:'12px' }}>
                   <div>
-                    <label style={{ display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'4px', textTransform:'uppercase' }}>Catatan</label>
+                    <label style={{ display:'block', fontSize:'13px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'6px' }}>CATATAN</label>
                     <input value={editForm.note??''} onChange={e => setEditForm(p=>({...p,note:e.target.value}))} style={inp}/>
                   </div>
                   <div>
-                    <label style={{ display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'4px', textTransform:'uppercase' }}>Nominal</label>
+                    <label style={{ display:'block', fontSize:'13px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'6px' }}>NOMINAL</label>
                     <div style={{ position:'relative' }}>
                       <span style={{ position:'absolute', left:'10px', top:'50%', transform:'translateY(-50%)', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500' }}>Rp</span>
                       <input type="text" inputMode="numeric" value={amountDisplay}
@@ -364,9 +366,9 @@ export default function TransactionsClient({ transactions, categories, userId }:
                     </div>
                   </div>
                   <div>
-                    <label style={{ display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'4px', textTransform:'uppercase' }}>Tipe</label>
+                    <label style={{ display:'block', fontSize:'13px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'6px' }}>TIPE</label>
                     <Select value={editForm.type} onValueChange={(v) => v && setEditForm(p=>({...p,type:v as any}))}>
-                      <SelectTrigger style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px', height: '38px' }}>
+                      <SelectTrigger style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px', height: '42px' }}>
                         <SelectValue placeholder="Tipe" />
                       </SelectTrigger>
                       <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
@@ -376,30 +378,27 @@ export default function TransactionsClient({ transactions, categories, userId }:
                     </Select>
                   </div>
                   <div>
-                    <label style={{ display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'4px', textTransform:'uppercase' }}>Tanggal</label>
-                    <input type="date" value={editForm.date??''} onChange={e=>setEditForm(p=>({...p,date:e.target.value}))} style={inp}/>
+                    <label style={{ display:'block', fontSize:'13px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'6px' }}>TANGGAL</label>
+                    <input type="date" value={editForm.date??''} onChange={e=>setEditForm(p=>({...p,date:e.target.value}))} style={{...inp, height: '42px'}}/>
                   </div>
                 </div>
-                <div style={{ marginBottom:'12px' }}>
-                  <label style={{ display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'4px', textTransform:'uppercase' }}>Kategori</label>
-                  <Select 
-                    value={(editForm.categories as any)?.id??'none'} 
-                    onValueChange={(v) => { 
+                <div style={{ marginBottom:'16px' }}>
+                  <label style={{ display:'block', fontSize:'13px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'6px' }}>KATEGORI</label>
+                  <SearchableSelect
+                    value={(editForm.categories as any)?.id ?? 'none'}
+                    onValueChange={(v) => {
                       if (!v) return;
-                      const cat = categories.find(c => c.id === v); 
-                      setEditForm(p => ({...p, categories: cat ?? null})); 
+                      const cat = categories.find(c => c.id === v);
+                      setEditForm(p => ({...p, categories: cat ?? null}));
                     }}
-                  >
-                    <SelectTrigger style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px', height: '38px' }}>
-                      <SelectValue placeholder="Pilih Kategori" />
-                    </SelectTrigger>
-                    <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
-                      <SelectItem value="none">— Tidak dikategori —</SelectItem>
-                      {categories.filter(c => !editForm.type || c.type===editForm.type).map(c=>(
-                        <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    options={[
+                      { value: 'none', label: '— Tidak dikategori —' },
+                      ...categories.filter(c => !editForm.type || c.type===editForm.type).map(c => ({ value: c.id, label: c.name, icon: c.icon }))
+                    ]}
+                    placeholder="Pilih Kategori"
+                    searchPlaceholder="Cari kategori..."
+                    style={{ height: '42px' }}
+                  />
                 </div>
                 <div style={{ display:'flex', gap:'10px' }}>
                   <button onClick={saveEdit} disabled={saving} style={{

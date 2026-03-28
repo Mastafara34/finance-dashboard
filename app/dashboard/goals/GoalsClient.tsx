@@ -317,7 +317,7 @@ function GoalFormModal({
   const inp: React.CSSProperties = {
     width: '100%', padding: '9px 12px',
     background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
-    borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '13px',
+    borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px',
     outline: 'none', boxSizing: 'border-box',
   };
 

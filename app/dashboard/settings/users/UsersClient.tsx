@@ -160,8 +160,8 @@ function AddUserModal({ onSave, onClose }: {
               <input type="password" value={password} onChange={e => setPassword(e.target.value)}
                 placeholder="Minimal 6 karakter"
                 style={inpStyle}
-                onFocus={e => e.target.style.borderColor = '#2563eb'}
-                onBlur={e  => e.target.style.borderColor = '#2a2a3a'} />
+                onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+                onBlur={e  => e.target.style.borderColor = 'var(--border-color)'} />
               <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
                 Password awal untuk user ini login di web
               </div>
@@ -177,9 +177,9 @@ function AddUserModal({ onSave, onClose }: {
               onChange={e => setChatId(e.target.value.replace(/[^0-9]/g, ''))}
               placeholder="cth: 123456789"
               style={inpStyle}
-              onFocus={e => e.target.style.borderColor = '#2563eb'}
-              onBlur={e  => e.target.style.borderColor = '#2a2a3a'} />
-            <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+              onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+              onBlur={e  => e.target.style.borderColor = 'var(--border-color)'} />
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
               Minta user kirim pesan ke @userinfobot di Telegram
             </div>
           </div>
@@ -193,7 +193,7 @@ function AddUserModal({ onSave, onClose }: {
           </div>
 
           {error && (
-            <div style={{ padding: '10px 12px', background: '#2d0f0f', border: '1px solid #7f1d1d', borderRadius: '8px', marginBottom: '14px', fontSize: '13px', color: '#f87171' }}>
+            <div style={{ padding: '10px 12px', background: 'var(--color-negative-bg)', border: '1px solid var(--color-negative)', borderRadius: '8px', marginBottom: '14px', fontSize: '13px', color: 'var(--color-negative)' }}>
               {error}
             </div>
           )}
