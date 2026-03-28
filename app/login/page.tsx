@@ -58,28 +58,29 @@ function LoginForm() {
   }
 
   const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '11px 14px',
-    background: '#0a0a0f', border: '1px solid #1f1f2e',
-    borderRadius: '9px', color: '#f0f0f5', fontSize: '14px',
-    outline: 'none', boxSizing: 'border-box',
+    width: '100%', padding: '12px 14px',
+    background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+    borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px',
+    outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s',
   };
 
   const labelStyle: React.CSSProperties = {
-    display: 'block', color: '#9ca3af',
+    display: 'block', color: 'var(--text-muted)',
     fontSize: '13px', fontWeight: '500', marginBottom: '8px',
   };
 
   return (
     <div style={{
-      minHeight: '100vh', background: '#0a0a0f',
+      minHeight: '100vh', background: 'var(--color-bg)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '24px', fontFamily: '"DM Sans", system-ui, sans-serif',
+      padding: '24px',
     }}>
-      {/* Background grid */}
+      {/* Background grid - very subtle */}
       <div style={{
         position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
-        backgroundImage: 'linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px)',
-        backgroundSize: '48px 48px',
+        backgroundImage: 'radial-gradient(var(--border-color) 0.5px, transparent 0.5px)',
+        backgroundSize: '32px 32px',
+        opacity: 0.4,
       }}/>
 
       <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '400px' }}>
@@ -88,66 +89,70 @@ function LoginForm() {
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: '48px', height: '48px', borderRadius: '12px',
-            background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-            marginBottom: '16px', fontSize: '22px',
+            width: '56px', height: '56px', borderRadius: '16px',
+            background: 'var(--accent-primary)',
+            color: 'var(--accent-primary-fg)',
+            marginBottom: '20px', fontSize: '24px',
+            boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
           }}>💰</div>
           <h1 style={{
-            color: '#f0f0f5', fontSize: '24px', fontWeight: '600',
-            margin: '0 0 6px', letterSpacing: '-0.5px',
-          }}>FinTrack AI</h1>
-          <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>
-            Dashboard keuangan pribadi
+            color: 'var(--text-main)', fontSize: '24px', fontWeight: '500',
+            margin: '0 0 6px', letterSpacing: '-0.4px',
+          }}>fintrack ai</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '15px', margin: 0 }}>
+            dashboard keuangan pribadi
           </p>
         </div>
 
         {/* Card */}
         <div style={{
-          background: '#111118', border: '1px solid #1f1f2e',
-          borderRadius: '16px', padding: '32px',
+          background: 'var(--card-bg)', border: '1px solid var(--border-color)',
+          borderRadius: 'var(--radius-lg)', padding: '36px',
+          boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
         }}>
           {/* Mode toggle */}
           <div style={{
             display: 'flex', gap: '4px',
-            background: '#0a0a0f', borderRadius: '10px',
-            padding: '4px', marginBottom: '28px',
+            background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)',
+            padding: '4px', marginBottom: '32px',
           }}>
             {(['password', 'magic'] as const).map(m => (
               <button key={m}
                 onClick={() => { setMode(m); setMessage(''); }}
                 style={{
-                  flex: 1, padding: '8px', borderRadius: '7px', border: 'none',
+                  flex: 1, padding: '10px', borderRadius: 'var(--radius-sm)', border: 'none',
                   fontSize: '13px', fontWeight: '500', cursor: 'pointer',
                   transition: 'all .15s',
-                  background: mode === m ? '#1f1f2e' : 'transparent',
-                  color: mode === m ? '#f0f0f5' : '#6b7280',
+                  background: mode === m ? 'var(--card-bg)' : 'transparent',
+                  color: mode === m ? 'var(--text-main)' : 'var(--text-muted)',
+                  boxShadow: mode === m ? '0 2px 8px rgba(0,0,0,0.05)' : 'none',
                 }}>
-                {m === 'password' ? 'Password' : 'Magic Link'}
+                {m === 'password' ? 'password' : 'magic link'}
               </button>
             ))}
           </div>
 
           <form onSubmit={mode === 'password' ? handlePasswordLogin : handleMagicLink}>
             {/* Email */}
-            <div style={{ marginBottom: '16px' }}>
-              <label style={labelStyle}>Email</label>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={labelStyle}>email</label>
               <input type="email" value={email} placeholder="kamu@email.com"
                 onChange={e => setEmail(e.target.value)} required
                 style={inputStyle}
-                onFocus={e => e.target.style.borderColor = '#2563eb'}
-                onBlur={e  => e.target.style.borderColor = '#1f1f2e'}
+                onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+                onBlur={e  => e.target.style.borderColor = 'var(--border-color)'}
               />
             </div>
 
             {/* Password */}
             {mode === 'password' && (
-              <div style={{ marginBottom: '24px' }}>
-                <label style={labelStyle}>Password</label>
+              <div style={{ marginBottom: '28px' }}>
+                <label style={labelStyle}>password</label>
                 <input type="password" value={password} placeholder="••••••••"
                   onChange={e => setPassword(e.target.value)} required
                   style={inputStyle}
-                  onFocus={e => e.target.style.borderColor = '#2563eb'}
-                  onBlur={e  => e.target.style.borderColor = '#1f1f2e'}
+                  onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+                  onBlur={e  => e.target.style.borderColor = 'var(--border-color)'}
                 />
               </div>
             )}
@@ -161,11 +166,11 @@ function LoginForm() {
             {/* Message */}
             {message && (
               <div style={{
-                padding: '11px 14px', borderRadius: '9px', marginBottom: '16px',
+                padding: '12px 14px', borderRadius: 'var(--radius-md)', marginBottom: '20px',
                 fontSize: '13px', lineHeight: '1.5',
-                background: isError ? '#1a0a0a' : '#0a1a0f',
-                border: `1px solid ${isError ? '#3d1515' : '#153d1f'}`,
-                color: isError ? '#f87171' : '#4ade80',
+                background: isError ? 'var(--color-negative-bg)' : 'var(--color-positive-bg)',
+                border: `1px solid ${isError ? 'var(--color-negative)' : 'var(--color-positive)'}`,
+                color: isError ? 'var(--color-negative)' : 'var(--color-positive)',
               }}>
                 {message}
               </div>
@@ -174,26 +179,26 @@ function LoginForm() {
             {/* Submit */}
             <button type="submit" disabled={loading}
               style={{
-                width: '100%', padding: '12px',
-                background: loading ? '#1f1f2e' : '#2563eb',
-                border: 'none', borderRadius: '9px',
-                color: loading ? '#6b7280' : '#fff',
-                fontSize: '14px', fontWeight: '600',
+                width: '100%', padding: '14px',
+                background: loading ? 'var(--bg-secondary)' : 'var(--accent-primary)',
+                border: 'none', borderRadius: 'var(--radius-md)',
+                color: loading ? 'var(--text-muted)' : 'var(--accent-primary-fg)',
+                fontSize: '15px', fontWeight: '600',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                transition: 'background .15s',
+                transition: 'opacity 0.2s',
               }}
-              onMouseEnter={e => { if (!loading) (e.currentTarget).style.background = '#1d4ed8'; }}
-              onMouseLeave={e => { if (!loading) (e.currentTarget).style.background = '#2563eb'; }}
+              onMouseEnter={e => { if (!loading) (e.currentTarget).style.opacity = '0.9'; }}
+              onMouseLeave={e => { if (!loading) (e.currentTarget).style.opacity = '1'; }}
             >
-              {loading ? 'Memproses...' : mode === 'password' ? 'Masuk' : 'Kirim Magic Link'}
+              {loading ? 'memproses...' : mode === 'password' ? 'masuk' : 'kirim magic link'}
             </button>
           </form>
         </div>
 
         {/* Demo button */}
-        <div style={{ marginTop: '16px' }}>
-          <div style={{ textAlign:'center', fontSize:'11px', color:'#374151', marginBottom:'8px' }}>
-            Ingin lihat dulu sebelum daftar?
+        <div style={{ marginTop: '24px' }}>
+          <div style={{ textAlign:'center', fontSize:'12px', color:'var(--text-muted)', marginBottom:'12px' }}>
+            ingin lihat dulu sebelum daftar?
           </div>
           <button
             type="button"
@@ -206,19 +211,20 @@ function LoginForm() {
               router.push('/dashboard'); router.refresh();
             }}
             style={{
-              width:'100%', padding:'11px', background:'transparent',
-              border:'1px solid #3d2a00', borderRadius:'9px',
-              color:'#f59e0b', fontSize:'13px', fontWeight:'600', cursor:'pointer',
+              width:'100%', padding:'12px', background:'transparent',
+              border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)',
+              color:'var(--text-main)', fontSize:'13px', fontWeight:'600', cursor:'pointer',
+              transition: 'background 0.2s',
             }}
-            onMouseEnter={e => (e.currentTarget).style.background='#1a1000'}
+            onMouseEnter={e => (e.currentTarget).style.background='var(--bg-secondary)'}
             onMouseLeave={e => (e.currentTarget).style.background='transparent'}
           >
-            🎭 Lihat Demo Gratis
+            🎭 lihat demo gratis
           </button>
         </div>
 
-        <p style={{ textAlign: 'center', color: '#374151', fontSize: '12px', marginTop: '16px' }}>
-          Akses terbatas. Hubungi admin untuk pendaftaran.
+        <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px', marginTop: '24px' }}>
+          akses terbatas. hubungi admin untuk pendaftaran.
         </p>
       </div>
     </div>
@@ -230,10 +236,10 @@ export default function LoginPage() {
   return (
     <Suspense fallback={
       <div style={{
-        minHeight: '100vh', background: '#0a0a0f',
+        minHeight: '100vh', background: 'var(--color-bg)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <div style={{ color: '#374151', fontSize: '14px' }}>Memuat...</div>
+        <div style={{ color: 'var(--text-muted)', fontSize: '14px' }}>memuat...</div>
       </div>
     }>
       <LoginForm />

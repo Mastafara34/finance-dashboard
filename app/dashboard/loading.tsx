@@ -23,18 +23,21 @@ export default function Loading() {
           background-size: 1000px 100%;
           display: inline-block;
           position: relative;
-          animation: shimmer 2s infinite linear;
-          border-radius: 4px;
+          animation: shimmer 2.5s infinite linear;
+          border-radius: var(--radius-sm);
         }
         .sk-card {
           background: var(--card-bg);
           border: 1px solid var(--border-color);
-          border-radius: 12px;
-          padding: 16px;
-          height: 100px;
+          border-radius: var(--radius-lg);
+          padding: 24px;
+          height: 120px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
         }
-        .ov-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
-        .ov-grid6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 24px; }
+        .ov-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
+        .ov-grid6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-bottom: 32px; }
         @media (max-width: 900px) {
           .ov-grid6 { grid-template-columns: repeat(2, 1fr); }
           .ov-grid3 { grid-template-columns: 1fr; }
@@ -54,8 +57,8 @@ export default function Loading() {
       <div className="ov-grid6">
         {[...Array(6)].map((_, i) => (
           <div key={i} className="sk-card">
-            <div className="skeleton" style={{ width: '60%', height: '12px', marginBottom: '12px' }} />
-            <div className="skeleton" style={{ width: '80%', height: '20px' }} />
+            <div className="skeleton" style={{ width: '50%', height: '10px', marginBottom: '12px' }} />
+            <div className="skeleton" style={{ width: '70%', height: '24px' }} />
           </div>
         ))}
       </div>

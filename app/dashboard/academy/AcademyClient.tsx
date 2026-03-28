@@ -7,8 +7,8 @@ import { Card } from '../components/DashboardComponents';
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Tip { id: string; icon: string; title: string; content: string; tip: string; category: string; isCustom?: boolean; }
 
-const CATEGORIES = ['Semua','Tabungan','Investasi','Hutang','Anggaran','Psikologi Uang','Produktivitas','Proteksi'];
-const CAT_COLORS: Record<string,string> = { 'Tabungan':'#10b981','Investasi':'#2563eb','Hutang':'#ef4444','Anggaran':'#8b5cf6','Psikologi Uang':'#f59e0b','Produktivitas':'#06b6d4','Proteksi':'#ec4899' };
+const CATEGORIES = ['semua','tabungan','investasi','hutang','anggaran','psikologi uang','produktivitas','proteksi'];
+const CAT_COLORS: Record<string,string> = { 'tabungan':'var(--color-positive)','investasi':'var(--accent-primary)','hutang':'var(--color-negative)','anggaran':'var(--color-neutral)','psikologi uang':'var(--text-muted)','produktivitas':'var(--text-main)','proteksi':'var(--text-muted)' };
 
 const INITIAL_TIPS: Tip[] = [
   { id:'1',  category:'Anggaran',       icon:'📊', title:'Aturan 50/30/20',              content:'Alokasikan 50% kebutuhan pokok, 30% keinginan, dan 20% tabungan/investasi. Standar kebahagiaan finansial yang diakui global.', tip:'Cek "Target Budget" di menu Budget untuk menyesuaikan rasio ini.' },
@@ -87,10 +87,10 @@ const QUIZ_QUESTIONS: QuizQ[] = [
 
 // ─── Tab Nav ──────────────────────────────────────────────────────────────────
 const TABS = [
-  { id:'tips',      label:'📚 Strategi & Tips' },
-  { id:'checklist', label:'✅ Checklist Bulanan' },
-  { id:'calc',      label:'🧮 Kalkulator' },
-  { id:'quiz',      label:'📝 Quiz Finansial' },
+  { id:'tips',      label:'📚 strategi & tips' },
+  { id:'checklist', label:'✓ checklist bulanan' },
+  { id:'calc',      label:'🧮 kalkulator' },
+  { id:'quiz',      label:'📝 quiz finansial' },
 ];
 
 // ─── Calculator Component ──────────────────────────────────────────────────────
@@ -132,62 +132,77 @@ function KalkulatorTab() {
     return (p * r * Math.pow(1+r, n)) / (Math.pow(1+r, n) - 1);
   })();
 
-  const cardStyle: React.CSSProperties = { padding:'24px', background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'14px', marginBottom:'20px' };
-  const inp: React.CSSProperties = { width:'100%', padding:'10px 12px', background:'var(--bg-secondary)', border:'1px solid var(--border-color)', borderRadius:'8px', color:'var(--text-main)', fontSize:'14px', outline:'none', boxSizing:'border-box' };
-  const lbl: React.CSSProperties = { display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'700', marginBottom:'6px', textTransform:'uppercase' };
-  const res: React.CSSProperties = { marginTop:'16px', padding:'16px', background:'rgba(37,99,235,0.06)', border:'1px solid rgba(37,99,235,0.15)', borderRadius:'10px', textAlign:'center' };
+  const cardStyle: React.CSSProperties = { padding:'28px', background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-lg)', marginBottom:'20px' };
+  const inp: React.CSSProperties = { width:'100%', padding:'12px 14px', background:'var(--bg-secondary)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', color:'var(--text-main)', fontSize:'14px', outline:'none', boxSizing:'border-box', transition:'border-color 0.15s' };
+  const lbl: React.CSSProperties = { display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'8px' };
+  const res: React.CSSProperties = { marginTop:'20px', padding:'20px', background:'var(--bg-secondary)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', textAlign:'center' };
 
   return (
     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(340px,1fr))', gap:'20px' }}>
       {/* Dana Darurat */}
       <div style={cardStyle}>
-        <h3 style={{ fontWeight:'700', fontSize:'15px', marginBottom:'4px' }}>🛡️ Dana Darurat Ideal</h3>
-        <p style={{ color:'var(--text-muted)', fontSize:'12px', marginBottom:'16px' }}>Hitung berapa yang perlu dikumpulkan sebagai safety net.</p>
-        <label style={lbl}>Pengeluaran Bulanan (Rp)</label>
-        <input style={inp} type="text" inputMode="numeric" placeholder="Misal: 5.000.000" value={expense} onChange={e => setExpense(e.target.value.replace(/[^0-9.]/g,''))} />
-        <div style={{ display:'flex', gap:'8px', marginTop:'10px' }}>
+        <h3 style={{ fontWeight:'500', fontSize:'16px', marginBottom:'6px' }}>dana darurat ideal</h3>
+        <p style={{ color:'var(--text-muted)', fontSize:'13px', marginBottom:'20px' }}>hitung berapa yang perlu dikumpulkan sebagai safety net.</p>
+        <label style={lbl}>pengeluaran bulanan (rp)</label>
+        <input style={inp} type="text" inputMode="numeric" placeholder="Misal: 5.000.000" value={expense} 
+          onChange={e => setExpense(e.target.value.replace(/[^0-9.]/g,''))}
+          onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+          onBlur={e => e.target.style.borderColor = 'var(--border-color)'}
+        />
+        <div style={{ display:'flex', gap:'8px', marginTop:'12px' }}>
           {(['single','family'] as const).map(s => (
-            <button key={s} onClick={() => setStatus(s)} style={{ flex:1, padding:'8px', borderRadius:'8px', border:'1px solid', cursor:'pointer', fontWeight:'600', fontSize:'12px', background: status===s ? 'var(--accent-primary)' : 'transparent', color: status===s ? '#fff' : 'var(--text-muted)', borderColor: status===s ? 'var(--accent-primary)' : 'var(--border-color)' }}>
-              {s === 'single' ? '👤 Single (3×)' : '👨‍👩‍👧 Keluarga (6×)'}
+            <button key={s} onClick={() => setStatus(s)} style={{ flex:1, padding:'10px', borderRadius:'var(--radius-md)', border:'1px solid', cursor:'pointer', fontWeight:'600', fontSize:'12px', transition:'all 0.15s', background: status===s ? 'var(--accent-primary)' : 'transparent', color: status===s ? 'var(--accent-primary-fg)' : 'var(--text-muted)', borderColor: status===s ? 'var(--accent-primary)' : 'var(--border-color)' }}>
+              {s === 'single' ? '👤 single (3×)' : '👪 keluarga (6×)'}
             </button>
           ))}
         </div>
-        {emergencyTarget > 0 && <div style={res}><div style={{ color:'var(--text-muted)', fontSize:'12px' }}>Target Dana Darurat</div><div style={{ fontSize:'22px', fontWeight:'800', color:'var(--accent-primary)', marginTop:'4px' }}>{fmt(emergencyTarget)}</div></div>}
+        {emergencyTarget > 0 && <div style={res}><div style={{ color:'var(--text-muted)', fontSize:'12px' }}>target dana darurat</div><div style={{ fontSize:'24px', fontWeight:'600', color:'var(--accent-primary)', marginTop:'4px' }}>{fmt(emergencyTarget)}</div></div>}
       </div>
 
       {/* Rule of 72 */}
       <div style={cardStyle}>
-        <h3 style={{ fontWeight:'700', fontSize:'15px', marginBottom:'4px' }}>🔢 Rule of 72</h3>
-        <p style={{ color:'var(--text-muted)', fontSize:'12px', marginBottom:'16px' }}>Estimasi tahun uang Anda berlipat dua berdasarkan ROI investasi.</p>
-        <label style={lbl}>Return Investasi per Tahun (%)</label>
-        <input style={inp} type="number" placeholder="Misal: 8" value={roi72} onChange={e => setRoi72(e.target.value)} />
-        {years72 && <div style={res}><div style={{ color:'var(--text-muted)', fontSize:'12px' }}>Uang berlipat dua dalam</div><div style={{ fontSize:'22px', fontWeight:'800', color:'#10b981', marginTop:'4px' }}>{years72} tahun</div><div style={{ color:'var(--text-muted)', fontSize:'11px', marginTop:'4px' }}>ROI {roi72}% per tahun</div></div>}
+        <h3 style={{ fontWeight:'500', fontSize:'16px', marginBottom:'6px' }}>🔢 rule of 72</h3>
+        <p style={{ color:'var(--text-muted)', fontSize:'13px', marginBottom:'20px' }}>estimasi tahun uang anda berlipat dua berdasarkan roi investasi.</p>
+        <label style={lbl}>return investasi per tahun (%)</label>
+        <input style={inp} type="number" placeholder="Misal: 8" value={roi72} onChange={e => setRoi72(e.target.value)} 
+          onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+          onBlur={e => e.target.style.borderColor = 'var(--border-color)'}
+        />
+        {years72 && <div style={res}><div style={{ color:'var(--text-muted)', fontSize:'12px' }}>uang berlipat dua dalam</div><div style={{ fontSize:'24px', fontWeight:'600', color:'var(--color-positive)', marginTop:'4px' }}>{years72} tahun</div><div style={{ color:'var(--text-muted)', fontSize:'11px', marginTop:'6px' }}>roi {roi72}% per tahun</div></div>}
       </div>
 
       {/* DCA Simulator */}
       <div style={cardStyle}>
-        <h3 style={{ fontWeight:'700', fontSize:'15px', marginBottom:'4px' }}>📈 Simulasi DCA</h3>
-        <p style={{ color:'var(--text-muted)', fontSize:'12px', marginBottom:'16px' }}>Estimasi nilai investasi rutin bulanan Anda di masa depan.</p>
-        <label style={lbl}>Investasi per Bulan (Rp)</label>
-        <input style={inp} type="text" inputMode="numeric" placeholder="Misal: 500.000" value={dcaMonthly} onChange={e => setDcaMonthly(e.target.value.replace(/[^0-9.]/g,''))} />
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginTop:'10px' }}>
-          <div><label style={lbl}>ROI / Tahun (%)</label><input style={inp} type="number" placeholder="Misal: 10" value={dcaRoi} onChange={e => setDcaRoi(e.target.value)} /></div>
-          <div><label style={lbl}>Durasi (Tahun)</label><input style={inp} type="number" placeholder="Misal: 10" value={dcaYears} onChange={e => setDcaYears(e.target.value)} /></div>
+        <h3 style={{ fontWeight:'500', fontSize:'16px', marginBottom:'6px' }}>📈 simulasi dca</h3>
+        <p style={{ color:'var(--text-muted)', fontSize:'13px', marginBottom:'20px' }}>estimasi nilai investasi rutin bulanan anda di masa depan.</p>
+        <label style={lbl}>investasi per bulan (rp)</label>
+        <input style={inp} type="text" inputMode="numeric" placeholder="Misal: 500.000" value={dcaMonthly} 
+          onChange={e => setDcaMonthly(e.target.value.replace(/[^0-9.]/g,''))}
+          onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+          onBlur={e => e.target.style.borderColor = 'var(--border-color)'}
+        />
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginTop:'12px' }}>
+          <div><label style={lbl}>roi / tahun (%)</label><input style={inp} type="number" placeholder="Misal: 10" value={dcaRoi} onChange={e => setDcaRoi(e.target.value)} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
+          <div><label style={lbl}>durasi (tahun)</label><input style={inp} type="number" placeholder="Misal: 10" value={dcaYears} onChange={e => setDcaYears(e.target.value)} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
         </div>
-        {dcaResult && <div style={res}><div style={{ color:'var(--text-muted)', fontSize:'12px' }}>Estimasi nilai di akhir periode</div><div style={{ fontSize:'22px', fontWeight:'800', color:'#10b981', marginTop:'4px' }}>{fmt(dcaResult)}</div><div style={{ color:'var(--text-muted)', fontSize:'11px', marginTop:'4px' }}>Modal: {fmt((parseFloat(dcaMonthly.replace(/\./g,''))||0)*(parseFloat(dcaYears)||0)*12)}</div></div>}
+        {dcaResult && <div style={res}><div style={{ color:'var(--text-muted)', fontSize:'12px' }}>estimasi nilai di akhir periode</div><div style={{ fontSize:'24px', fontWeight:'600', color:'var(--color-positive)', marginTop:'4px' }}>{fmt(dcaResult)}</div><div style={{ color:'var(--text-muted)', fontSize:'11px', marginTop:'6px' }}>modal: {fmt((parseFloat(dcaMonthly.replace(/\./g,''))||0)*(parseFloat(dcaYears)||0)*12)}</div></div>}
       </div>
 
       {/* Kalkulator Cicilan */}
       <div style={cardStyle}>
-        <h3 style={{ fontWeight:'700', fontSize:'15px', marginBottom:'4px' }}>🧾 Kalkulator Cicilan</h3>
-        <p style={{ color:'var(--text-muted)', fontSize:'12px', marginBottom:'16px' }}>Hitung cicilan bulanan dari pinjaman atau KPR Anda.</p>
-        <label style={lbl}>Jumlah Pinjaman (Rp)</label>
-        <input style={inp} type="text" inputMode="numeric" placeholder="Misal: 200.000.000" value={pinjaman} onChange={e => setPinjaman(e.target.value.replace(/[^0-9.]/g,''))} />
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginTop:'10px' }}>
-          <div><label style={lbl}>Bunga / Tahun (%)</label><input style={inp} type="number" placeholder="Misal: 9" value={bungaThn} onChange={e => setBungaThn(e.target.value)} /></div>
-          <div><label style={lbl}>Tenor (Bulan)</label><input style={inp} type="number" placeholder="Misal: 60" value={tenor} onChange={e => setTenor(e.target.value)} /></div>
+        <h3 style={{ fontWeight:'500', fontSize:'16px', marginBottom:'6px' }}>🧾 kalkulator cicilan</h3>
+        <p style={{ color:'var(--text-muted)', fontSize:'13px', marginBottom:'20px' }}>hitung cicilan bulanan dari pinjaman atau kpr anda.</p>
+        <label style={lbl}>jumlah pinjaman (rp)</label>
+        <input style={inp} type="text" inputMode="numeric" placeholder="Misal: 200.000.000" value={pinjaman} 
+          onChange={e => setPinjaman(e.target.value.replace(/[^0-9.]/g,''))}
+          onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+          onBlur={e => e.target.style.borderColor = 'var(--border-color)'}
+        />
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginTop:'12px' }}>
+          <div><label style={lbl}>bunga / tahun (%)</label><input style={inp} type="number" placeholder="Misal: 9" value={bungaThn} onChange={e => setBungaThn(e.target.value)} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
+          <div><label style={lbl}>tenor (bulan)</label><input style={inp} type="number" placeholder="Misal: 60" value={tenor} onChange={e => setTenor(e.target.value)} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
         </div>
-        {cicilan && <div style={res}><div style={{ color:'var(--text-muted)', fontSize:'12px' }}>Cicilan per Bulan</div><div style={{ fontSize:'22px', fontWeight:'800', color:'#f59e0b', marginTop:'4px' }}>{fmt(cicilan)}</div><div style={{ color:'var(--text-muted)', fontSize:'11px', marginTop:'4px' }}>Total bayar: {fmt(cicilan*(parseFloat(tenor)||0))}</div></div>}
+        {cicilan && <div style={res}><div style={{ color:'var(--text-muted)', fontSize:'12px' }}>cicilan per bulan</div><div style={{ fontSize:'24px', fontWeight:'600', color:'var(--color-negative)', marginTop:'4px' }}>{fmt(cicilan)}</div><div style={{ color:'var(--text-muted)', fontSize:'11px', marginTop:'6px' }}>total bayar: {fmt(cicilan*(parseFloat(tenor)||0))}</div></div>}
       </div>
     </div>
   );
@@ -220,68 +235,72 @@ function QuizTab() {
   const verdict = pct >= 80 ? { label:'Elite Financier 🏆', color:'#10b981' } : pct >= 60 ? { label:'Finansial Sadar 📈', color:'#2563eb' } : { label:'Perlu Belajar Lagi 📚', color:'#f59e0b' };
 
   if (done) return (
-    <div style={{ maxWidth:'520px', margin:'0 auto', textAlign:'center', padding:'40px 20px' }}>
-      <div style={{ fontSize:'64px', marginBottom:'16px' }}>{pct >= 80 ? '🏆' : pct >= 60 ? '📈' : '📚'}</div>
-      <h2 style={{ fontWeight:'800', fontSize:'22px', marginBottom:'8px' }}>Quiz Selesai!</h2>
-      <div style={{ fontSize:'48px', fontWeight:'900', color:verdict.color, marginBottom:'8px' }}>{pct}%</div>
-      <div style={{ fontWeight:'700', color:verdict.color, marginBottom:'4px' }}>{verdict.label}</div>
-      <div style={{ color:'var(--text-muted)', fontSize:'13px', marginBottom:'28px' }}>Benar {score} dari {QUIZ_QUESTIONS.length} soal</div>
-      <div style={{ background:'var(--bg-secondary)', borderRadius:'12px', padding:'16px', marginBottom:'24px', textAlign:'left' }}>
+    <div style={{ maxWidth:'520px', margin:'0 auto', textAlign:'center', padding:'60px 24px' }}>
+      <div style={{ fontSize:'72px', marginBottom:'24px' }}>{pct >= 80 ? '🏆' : pct >= 60 ? '📈' : '📚'}</div>
+      <h2 style={{ fontWeight:'500', fontSize:'22px', marginBottom:'8px' }}>quiz selesai!</h2>
+      <div style={{ fontSize:'56px', fontWeight:'600', color:'var(--accent-primary)', marginBottom:'12px' }}>{pct}%</div>
+      <div style={{ fontWeight:'500', color:'var(--text-main)', fontSize:'18px', marginBottom:'6px', letterSpacing:'-0.3px' }}>{verdict.label.toLowerCase()}</div>
+      <div style={{ color:'var(--text-muted)', fontSize:'14px', marginBottom:'40px' }}>benar {score} dari {QUIZ_QUESTIONS.length} soal</div>
+      
+      <div style={{ background:'var(--bg-secondary)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-lg)', padding:'24px', marginBottom:'32px', textAlign:'left' }}>
         {QUIZ_QUESTIONS.map((q, i) => (
-          <div key={i} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'6px 0', borderBottom: i < QUIZ_QUESTIONS.length-1 ? '1px solid var(--border-color)' : 'none' }}>
-            <span style={{ fontSize:'16px' }}>{answers[i] === q.ans ? '✅' : '❌'}</span>
-            <span style={{ fontSize:'12px', color:'var(--text-muted)', flex:1 }}>{q.q.substring(0,60)}...</span>
+          <div key={i} style={{ display:'flex', alignItems:'center', gap:'14px', padding:'10px 0', borderBottom: i < QUIZ_QUESTIONS.length-1 ? '1px solid var(--border-color)' : 'none' }}>
+            <span style={{ fontSize:'18px' }}>{answers[i] === q.ans ? '✓' : '✕'}</span>
+            <span style={{ fontSize:'13px', color:'var(--text-muted)', lineHeight:'1.5', flex:1 }}>{q.q.toLowerCase()}</span>
           </div>
         ))}
       </div>
-      <button onClick={restart} style={{ padding:'12px 32px', background:'var(--accent-primary)', color:'#fff', border:'none', borderRadius:'10px', fontWeight:'700', cursor:'pointer', fontSize:'14px' }}>Coba Lagi</button>
+      
+      <button onClick={restart} style={{ width:'100%', padding:'16px', background:'var(--accent-primary)', color:'var(--accent-primary-fg)', border:'none', borderRadius:'var(--radius-md)', fontWeight:'600', cursor:'pointer', fontSize:'15px', transition:'opacity 0.2s' }} onMouseEnter={e => e.currentTarget.style.opacity='0.9'} onMouseLeave={e => e.currentTarget.style.opacity='1'}>coba lagi</button>
     </div>
   );
 
   return (
     <div style={{ maxWidth:'580px', margin:'0 auto' }}>
       {/* Progress */}
-      <div style={{ marginBottom:'24px' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', fontSize:'12px', color:'var(--text-muted)', marginBottom:'8px' }}>
-          <span>Soal {curr+1} dari {QUIZ_QUESTIONS.length}</span>
+      <div style={{ marginBottom:'32px' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', fontSize:'13px', color:'var(--text-muted)', marginBottom:'12px', fontWeight:'500' }}>
+          <span>soal {curr+1} dari {QUIZ_QUESTIONS.length}</span>
           <span>{Math.round(((curr)/QUIZ_QUESTIONS.length)*100)}% selesai</span>
         </div>
         <div style={{ height:'6px', background:'var(--bg-secondary)', borderRadius:'99px', overflow:'hidden' }}>
-          <div style={{ height:'100%', width:`${((curr)/QUIZ_QUESTIONS.length)*100}%`, background:'var(--accent-primary)', borderRadius:'99px', transition:'width .3s' }} />
+          <div style={{ height:'100%', width:`${((curr)/QUIZ_QUESTIONS.length)*100}%`, background:'var(--accent-primary)', borderRadius:'99px', transition:'width .4s' }} />
         </div>
       </div>
 
       {/* Question */}
-      <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'16px', padding:'28px', marginBottom:'16px' }}>
-        <div style={{ fontSize:'11px', fontWeight:'800', color:'var(--accent-primary)', marginBottom:'12px', textTransform:'uppercase' }}>Pertanyaan {curr+1}</div>
-        <h3 style={{ fontSize:'16px', fontWeight:'700', lineHeight:'1.5', marginBottom:'20px' }}>{q.q}</h3>
-        <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+      <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-lg)', padding:'32px', marginBottom:'20px', boxShadow:'0 10px 30px rgba(0,0,0,0.1)' }}>
+        <div style={{ fontSize:'12px', fontWeight:'600', color:'var(--accent-primary)', marginBottom:'12px', letterSpacing:'0.05em' }}>pertanyaan {curr+1}</div>
+        <h3 style={{ fontSize:'17px', fontWeight:'500', lineHeight:'1.5', marginBottom:'24px', letterSpacing:'-0.2px' }}>{q.q.toLowerCase()}</h3>
+        <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
           {q.opts.map((opt, i) => {
             const isSelected = selected === i;
             const isCorrect  = i === q.ans;
             const revealed   = selected !== null;
-            let bg = 'var(--bg-secondary)', border = 'var(--border-color)', color = 'var(--text-main)';
-            if (revealed && isCorrect)  { bg = 'rgba(16,185,129,0.1)'; border = '#10b981'; color = '#10b981'; }
-            if (revealed && isSelected && !isCorrect) { bg = 'rgba(239,68,68,0.1)'; border = '#ef4444'; color = '#ef4444'; }
+            let bg = 'transparent', border = 'var(--border-color)', color = 'var(--text-main)';
+            if (revealed && isCorrect)  { bg = 'var(--color-positive-bg)'; border = 'var(--color-positive)'; color = 'var(--color-positive)'; }
+            else if (revealed && isSelected && !isCorrect) { bg = 'var(--color-negative-bg)'; border = 'var(--color-negative)'; color = 'var(--color-negative)'; }
+            else if (revealed) { opacity: 0.5; }
+            
             return (
-              <button key={i} onClick={() => handleAnswer(i)} style={{ padding:'12px 16px', background:bg, border:`1px solid ${border}`, borderRadius:'10px', color, textAlign:'left', cursor: revealed ? 'default' : 'pointer', fontSize:'13px', fontWeight:'500', transition:'all .15s', display:'flex', alignItems:'center', gap:'10px' }}>
-                <span style={{ width:'22px', height:'22px', borderRadius:'50%', border:`2px solid ${border}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'800', flexShrink:0 }}>
-                  {revealed && isCorrect ? '✓' : revealed && isSelected && !isCorrect ? '✗' : String.fromCharCode(65+i)}
+              <button key={i} onClick={() => handleAnswer(i)} style={{ padding:'16px 20px', background:bg, border:`1px solid ${border}`, borderRadius:'var(--radius-md)', color, textAlign:'left', cursor: revealed ? 'default' : 'pointer', fontSize:'14px', fontWeight:'500', transition:'all 0.2s', display:'flex', alignItems:'center', gap:'14px' }}>
+                <span style={{ width:'24px', height:'24px', borderRadius:'50%', border:`2px solid ${border}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', fontWeight:'700', flexShrink:0 }}>
+                  {revealed && isCorrect ? '✓' : revealed && isSelected && !isCorrect ? '✕' : String.fromCharCode(64+i+1)}
                 </span>
-                {opt}
+                {opt.toLowerCase()}
               </button>
             );
           })}
         </div>
         {selected !== null && (
-          <div style={{ marginTop:'16px', padding:'12px 14px', background:'rgba(37,99,235,0.06)', border:'1px solid rgba(37,99,235,0.15)', borderRadius:'10px', fontSize:'12px', color:'var(--text-muted)', lineHeight:'1.6' }}>
-            💡 <strong>Penjelasan:</strong> {q.explain}
+          <div style={{ marginTop:'24px', padding:'16px 20px', background:'var(--bg-secondary)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', fontSize:'13px', color:'var(--text-muted)', lineHeight:'1.6' }}>
+            💡 <strong>penjelasan:</strong> {q.explain.toLowerCase()}
           </div>
         )}
       </div>
       {selected !== null && (
-        <button onClick={next} style={{ width:'100%', padding:'13px', background:'var(--accent-primary)', color:'#fff', border:'none', borderRadius:'10px', fontWeight:'700', cursor:'pointer', fontSize:'14px' }}>
-          {curr < QUIZ_QUESTIONS.length - 1 ? 'Soal Berikutnya →' : 'Lihat Hasil 🏁'}
+        <button onClick={next} style={{ width:'100%', padding:'16px', background:'var(--accent-primary)', color:'var(--accent-primary-fg)', border:'none', borderRadius:'var(--radius-md)', fontWeight:'600', cursor:'pointer', fontSize:'15px', transition:'opacity 0.2s' }} onMouseEnter={e => e.currentTarget.style.opacity='0.9'} onMouseLeave={e => e.currentTarget.style.opacity='1'}>
+          {curr < QUIZ_QUESTIONS.length - 1 ? 'soal berikutnya →' : 'lihat hasil'}
         </button>
       )}
     </div>
@@ -343,20 +362,20 @@ export default function AcademyClient() {
   return (
     <div style={{ color:'var(--text-main)' }}>
       {/* Header */}
-      <header style={{ marginBottom:'24px' }}>
-        <h1 style={{ fontSize:'21px', fontWeight:'800', marginBottom:'4px', letterSpacing:'-0.5px' }}>📚 Akademi Finansial Elite</h1>
-        <p style={{ color:'var(--text-muted)', fontSize:'13px', margin:0 }}>Strategi, tools, dan evaluasi untuk mempercepat kebebasan finansial Anda.</p>
+      <header style={{ marginBottom:'40px' }}>
+        <h1 style={{ fontSize:'24px', fontWeight:'600', marginBottom:'6px', letterSpacing:'-0.3px' }}>akademi finansial</h1>
+        <p style={{ color:'var(--text-muted)', fontSize:'14px', margin:0 }}>strategi, tools, dan evaluasi untuk mempercepat kebebasan finansial anda.</p>
       </header>
 
       {/* Tabs */}
-      <div style={{ display:'flex', gap:'4px', background:'var(--bg-secondary)', borderRadius:'12px', padding:'4px', marginBottom:'24px', overflowX:'auto' }}>
+      <div style={{ display:'flex', gap:'4px', background:'var(--bg-secondary)', borderRadius:'var(--radius-md)', padding:'4px', marginBottom:'32px', overflowX:'auto' }}>
         {TABS.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
-            flex:1, minWidth:'120px', padding:'9px 12px', borderRadius:'9px', border:'none', cursor:'pointer',
-            fontSize:'12px', fontWeight:'600', transition:'all .15s', whiteSpace:'nowrap',
+            flex:1, minWidth:'120px', padding:'10px 14px', borderRadius:'var(--radius-sm)', border:'none', cursor:'pointer',
+            fontSize:'13px', fontWeight:'500', transition:'all .15s', whiteSpace:'nowrap',
             background: activeTab===tab.id ? 'var(--card-bg)' : 'transparent',
             color: activeTab===tab.id ? 'var(--text-main)' : 'var(--text-muted)',
-            boxShadow: activeTab===tab.id ? 'var(--card-shadow)' : 'none',
+            boxShadow: activeTab===tab.id ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
           }}>{tab.label}</button>
         ))}
       </div>
@@ -364,49 +383,50 @@ export default function AcademyClient() {
       {/* ── TAB: TIPS ── */}
       {activeTab === 'tips' && (
         <>
-          <div style={{ marginBottom:'16px', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'10px' }}>
-            <div style={{ display:'flex', flexDirection:'column', gap:'10px', flex:1 }}>
-              <input placeholder="🔍 Cari strategi..." value={search} onChange={e => setSearch(e.target.value)} style={{ padding:'9px 14px', background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'9px', color:'var(--text-main)', fontSize:'13px', outline:'none', width:'100%', boxSizing:'border-box' }} />
-              <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
-                {CATEGORIES.map(cat => <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding:'5px 12px', borderRadius:'99px', border:'1px solid', fontSize:'11px', fontWeight:'600', cursor:'pointer', transition:'all .15s', background:activeCategory===cat ? (CAT_COLORS[cat]??'var(--accent-primary)') : 'transparent', borderColor:activeCategory===cat ? (CAT_COLORS[cat]??'var(--accent-primary)') : 'var(--border-color)', color:activeCategory===cat ? '#fff' : 'var(--text-muted)' }}>{cat}</button>)}
+          <div style={{ marginBottom:'24px', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'16px' }}>
+            <div style={{ display:'flex', flexDirection:'column', gap:'12px', flex:1 }}>
+              <input placeholder="🔍 cari strategi..." value={search} onChange={e => setSearch(e.target.value)} style={{ padding:'12px 16px', background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', color:'var(--text-main)', fontSize:'14px', outline:'none', width:'100%', boxSizing:'border-box', transition:'border-color 0.15s' }} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} />
+              <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
+                {CATEGORIES.map(cat => <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding:'6px 14px', borderRadius:'99px', border:'1px solid', fontSize:'12px', fontWeight:'500', cursor:'pointer', transition:'all .15s', background:activeCategory===cat ? 'var(--accent-primary)' : 'transparent', borderColor:activeCategory===cat ? 'var(--accent-primary)' : 'var(--border-color)', color:activeCategory===cat ? 'var(--accent-primary-fg)' : 'var(--text-muted)' }}>{cat}</button>)}
               </div>
             </div>
-            <button onClick={() => setIsAdding(true)} style={{ padding:'9px 16px', background:'var(--accent-primary)', border:'none', borderRadius:'9px', color:'#fff', fontSize:'12px', fontWeight:'700', cursor:'pointer', flexShrink:0 }}>+ Tambah</button>
+            <button onClick={() => setIsAdding(true)} style={{ padding:'12px 20px', background:'var(--accent-primary)', border:'none', borderRadius:'var(--radius-md)', color:'var(--accent-primary-fg)', fontSize:'13px', fontWeight:'600', cursor:'pointer', flexShrink:0 }}>+ tambah</button>
           </div>
-          <div style={{ fontSize:'11px', color:'var(--text-muted)', marginBottom:'14px' }}>Menampilkan <strong style={{ color:'var(--text-main)' }}>{filtered.length}</strong> dari {tips.length} strategi</div>
+          <div style={{ fontSize:'12px', color:'var(--text-muted)', marginBottom:'20px' }}>menampilkan <strong style={{ color:'var(--text-main)' }}>{filtered.length}</strong> dari {tips.length} strategi</div>
           {isAdding && (
-            <Card style={{ padding:'20px', marginBottom:'20px', background:'var(--bg-secondary)', border:'1px solid var(--accent-primary)' }}>
-              <h3 style={{ fontSize:'14px', fontWeight:'800', marginBottom:'14px' }}>{editingId ? 'Edit Strategi' : 'Tambah Strategi Baru'}</h3>
-              <form onSubmit={handleSubmit} style={{ display:'grid', gap:'12px' }}>
-                <div style={{ display:'flex', gap:'10px' }}>
-                  <div style={{ width:'64px' }}><label style={lbl}>Icon</label><input style={inp} value={formData.icon} onChange={e => setFormData({...formData,icon:e.target.value})} /></div>
-                  <div style={{ flex:1 }}><label style={lbl}>Judul</label><input style={inp} required value={formData.title} onChange={e => setFormData({...formData,title:e.target.value})} placeholder="Nama strategi..." /></div>
-                  <div style={{ width:'130px' }}><label style={lbl}>Kategori</label><select style={{...inp,cursor:'pointer'}} value={formData.category} onChange={e => setFormData({...formData,category:e.target.value})}>{CATEGORIES.filter(c=>c!=='Semua').map(c=><option key={c} value={c}>{c}</option>)}</select></div>
+            <div style={{ padding:'28px', marginBottom:'28px', background:'var(--bg-secondary)', border:'1px solid var(--accent-primary)', borderRadius:'var(--radius-lg)' }}>
+              <h3 style={{ fontSize:'16px', fontWeight:'500', marginBottom:'20px' }}>{editingId ? 'edit strategi' : 'tambah strategi baru'}</h3>
+              <form onSubmit={handleSubmit} style={{ display:'grid', gap:'16px' }}>
+                <div style={{ display:'flex', gap:'12px', flexWrap:'wrap' }}>
+                  <div style={{ width:'80px' }}><label style={lbl}>icon</label><input style={inp} value={formData.icon} onChange={e => setFormData({...formData,icon:e.target.value})} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
+                  <div style={{ flex:1, minWidth:'200px' }}><label style={lbl}>judul</label><input style={inp} required value={formData.title} onChange={e => setFormData({...formData,title:e.target.value})} placeholder="Nama strategi..." onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
+                  <div style={{ width:'160px' }}><label style={lbl}>kategori</label><select style={{...inp,cursor:'pointer'}} value={formData.category} onChange={e => setFormData({...formData,category:e.target.value})}>{CATEGORIES.filter(c=>c!=='semua').map(c=><option key={c} value={c}>{c}</option>)}</select></div>
                 </div>
-                <div><label style={lbl}>Penjelasan</label><textarea style={{...inp,height:'72px',paddingTop:'10px',resize:'none'}} required value={formData.content} onChange={e => setFormData({...formData,content:e.target.value})} placeholder="Jelaskan konsep strategi ini..." /></div>
-                <div><label style={lbl}>Aksi di Dashboard</label><input style={inp} required value={formData.tip} onChange={e => setFormData({...formData,tip:e.target.value})} placeholder="Tindakan konkret yang bisa dilakukan..." /></div>
-                <div style={{ display:'flex', gap:'10px' }}><button type="submit" style={{ flex:1, padding:'10px', background:'var(--accent-primary)', color:'#fff', border:'none', borderRadius:'8px', fontWeight:'700', cursor:'pointer' }}>Simpan</button><button type="button" onClick={resetForm} style={{ padding:'10px 18px', background:'transparent', border:'1px solid var(--border-color)', borderRadius:'8px', color:'var(--text-muted)', cursor:'pointer' }}>Batal</button></div>
+                <div><label style={lbl}>penjelasan</label><textarea style={{...inp,height:'80px',paddingTop:'12px',resize:'none'}} required value={formData.content} onChange={e => setFormData({...formData,content:e.target.value})} placeholder="Jelaskan konsep strategi ini..." onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
+                <div><label style={lbl}>aksi di dashboard</label><input style={inp} required value={formData.tip} onChange={e => setFormData({...formData,tip:e.target.value})} placeholder="Tindakan konkret..." onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
+                <div style={{ display:'flex', gap:'12px', marginTop:'8px' }}><button type="submit" style={{ flex:1, padding:'12px', background:'var(--accent-primary)', color:'var(--accent-primary-fg)', border:'none', borderRadius:'var(--radius-md)', fontWeight:'600', cursor:'pointer' }}>simpan</button><button type="button" onClick={resetForm} style={{ padding:'12px 24px', background:'transparent', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', color:'var(--text-muted)', cursor:'pointer', fontWeight:'500' }}>batal</button></div>
               </form>
-            </Card>
+            </div>
           )}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(340px,1fr))', gap:'14px' }}>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(340px,1fr))', gap:'20px' }}>
             {filtered.map(t => (
-              <Card key={t.id} style={{ padding:'18px', background:t.isCustom ? 'rgba(37,99,235,0.03)' : 'var(--card-bg)' }}>
-                <div style={{ display:'flex', gap:'12px' }}>
-                  <div style={{ fontSize:'28px', flexShrink:0 }}>{t.icon}</div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'8px', marginBottom:'5px' }}>
-                      <h3 style={{ fontSize:'13px', fontWeight:'700', margin:0, lineHeight:'1.3' }}>{t.title}</h3>
-                      <div style={{ display:'flex', alignItems:'center', gap:'4px', flexShrink:0 }}>
-                        <span style={{ padding:'2px 7px', borderRadius:'99px', fontSize:'9px', fontWeight:'800', background:`${CAT_COLORS[t.category]??'#6b7280'}22`, color:CAT_COLORS[t.category]??'var(--text-muted)', border:`1px solid ${CAT_COLORS[t.category]??'#6b7280'}44`, whiteSpace:'nowrap' }}>{t.category}</span>
-                        {t.isCustom && <><button onClick={() => startEdit(t)} style={{ border:'none', background:'transparent', fontSize:'12px', cursor:'pointer', color:'var(--text-muted)', padding:'0 1px' }}>✏️</button><button onClick={() => handleDelete(t.id)} style={{ border:'none', background:'transparent', fontSize:'12px', cursor:'pointer', color:'var(--text-muted)', padding:'0 1px' }}>🗑️</button></>}
-                      </div>
+              <div key={t.id} style={{ 
+                padding:'24px', background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-lg)',
+                display:'flex', gap:'16px', transition:'all 0.2s',
+              }}>
+                <div style={{ fontSize:'32px', flexShrink:0 }}>{t.icon}</div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'8px', marginBottom:'8px' }}>
+                    <h3 style={{ fontSize:'15px', fontWeight:'500', margin:0, lineHeight:'1.4' }}>{t.title.toLowerCase()}</h3>
+                    <div style={{ display:'flex', alignItems:'center', gap:'6px', flexShrink:0 }}>
+                      <span style={{ padding:'2px 8px', borderRadius:'var(--radius-sm)', fontSize:'10px', fontWeight:'600', background:'var(--bg-secondary)', color:'var(--text-muted)', border:'1px solid var(--border-color)', whiteSpace:'nowrap' }}>{t.category.toLowerCase()}</span>
+                      {t.isCustom && <><button onClick={() => startEdit(t)} style={{ border:'none', background:'transparent', fontSize:'12px', cursor:'pointer', opacity:0.6 }}>✏️</button><button onClick={() => handleDelete(t.id)} style={{ border:'none', background:'transparent', fontSize:'12px', cursor:'pointer', opacity:0.6 }}>🗑️</button></>}
                     </div>
-                    <p style={{ fontSize:'12px', color:'var(--text-muted)', lineHeight:'1.6', margin:'0 0 8px' }}>{t.content}</p>
-                    <div style={{ padding:'7px 10px', background:'var(--bg-secondary)', borderRadius:'7px', borderLeft:'3px solid var(--accent-primary)', fontSize:'11px', fontWeight:'600', lineHeight:'1.4' }}>💡 {t.tip}</div>
                   </div>
+                  <p style={{ fontSize:'13px', color:'var(--text-muted)', lineHeight:'1.6', margin:'0 0 12px' }}>{t.content.toLowerCase()}</p>
+                  <div style={{ padding:'10px 14px', background:'var(--bg-secondary)', borderRadius:'var(--radius-md)', border:'1px solid var(--border-color)', fontSize:'12px', fontWeight:'500', lineHeight:'1.5', color:'var(--text-main)' }}>💡 {t.tip.toLowerCase()}</div>
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
         </>
@@ -416,38 +436,38 @@ export default function AcademyClient() {
       {activeTab === 'checklist' && (
         <div>
           {/* Header & Progress */}
-          <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'14px', padding:'20px', marginBottom:'20px' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px', flexWrap:'wrap', gap:'10px' }}>
+          <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-lg)', padding:'28px', marginBottom:'24px' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'20px', flexWrap:'wrap', gap:'16px' }}>
               <div>
-                <h2 style={{ fontWeight:'700', fontSize:'16px', margin:'0 0 2px' }}>Checklist Keuangan Bulan Ini</h2>
-                <p style={{ color:'var(--text-muted)', fontSize:'12px', margin:0 }}>Selesaikan semua tugas ini untuk kesehatan finansial optimal.</p>
+                <h2 style={{ fontWeight:'500', fontSize:'18px', margin:'0 0 6px' }}>checklist bulanan</h2>
+                <p style={{ color:'var(--text-muted)', fontSize:'14px', margin:0 }}>selesaikan semua tugas ini untuk kesehatan finansial optimal.</p>
               </div>
-              <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-                <input type="month" value={checkMonth} onChange={e => { setCheckMonth(e.target.value); setCheckedItems(new Set(JSON.parse(localStorage.getItem(`checklist_${e.target.value}`)||'[]'))); }} style={{ padding:'6px 10px', background:'var(--bg-secondary)', border:'1px solid var(--border-color)', borderRadius:'8px', color:'var(--text-main)', fontSize:'12px', cursor:'pointer' }} />
-                <button onClick={() => { setCheckedItems(new Set()); localStorage.removeItem(`checklist_${checkMonth}`); }} style={{ padding:'6px 12px', background:'transparent', border:'1px solid var(--border-color)', borderRadius:'8px', color:'var(--text-muted)', fontSize:'11px', cursor:'pointer' }}>Reset</button>
+              <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+                <input type="month" value={checkMonth} onChange={e => { setCheckMonth(e.target.value); setCheckedItems(new Set(JSON.parse(localStorage.getItem(`checklist_${e.target.value}`)||'[]'))); }} style={{ padding:'8px 12px', background:'var(--bg-secondary)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', color:'var(--text-main)', fontSize:'13px', cursor:'pointer', outline:'none' }} />
+                <button onClick={() => { setCheckedItems(new Set()); localStorage.removeItem(`checklist_${checkMonth}`); }} style={{ padding:'8px 16px', background:'transparent', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', color:'var(--text-muted)', fontSize:'12px', cursor:'pointer', fontWeight:'500' }}>reset</button>
               </div>
             </div>
-            <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
-              <div style={{ flex:1, height:'8px', background:'var(--bg-secondary)', borderRadius:'99px', overflow:'hidden' }}>
-                <div style={{ height:'100%', width:`${checkPct}%`, background: checkPct===100 ? '#10b981' : 'var(--accent-primary)', borderRadius:'99px', transition:'width .4s' }} />
+            <div style={{ display:'flex', alignItems:'center', gap:'16px' }}>
+              <div style={{ flex:1, height:'6px', background:'var(--bg-secondary)', borderRadius:'99px', overflow:'hidden' }}>
+                <div style={{ height:'100%', width:`${checkPct}%`, background: checkPct===100 ? 'var(--color-positive)' : 'var(--accent-primary)', borderRadius:'99px', transition:'width .6s cubic-bezier(0.16, 1, 0.3, 1)' }} />
               </div>
-              <span style={{ fontSize:'13px', fontWeight:'700', color: checkPct===100 ? '#10b981' : 'var(--text-main)', minWidth:'48px' }}>{totalChecked}/{CHECKLIST.length}</span>
+              <span style={{ fontSize:'14px', fontWeight:'600', color: checkPct===100 ? 'var(--color-positive)' : 'var(--text-main)', minWidth:'48px' }}>{totalChecked}/{CHECKLIST.length}</span>
             </div>
-            {checkPct === 100 && <div style={{ marginTop:'10px', padding:'10px', background:'rgba(16,185,129,0.08)', border:'1px solid rgba(16,185,129,0.2)', borderRadius:'8px', fontSize:'12px', color:'#10b981', textAlign:'center' }}>🏆 Luar biasa! Semua tugas bulan ini selesai. Anda adalah Elite Financier!</div>}
+            {checkPct === 100 && <div style={{ marginTop:'20px', padding:'12px', background:'var(--color-positive-bg)', border:'1px solid var(--color-positive)', borderRadius:'var(--radius-md)', fontSize:'13px', color:'var(--color-positive)', textAlign:'center', fontWeight:'500' }}>🏆 luar biasa! semua tugas bulan ini selesai. anda adalah elite financier!</div>}
           </div>
 
           {checkCategories.map(cat => (
-            <div key={cat} style={{ marginBottom:'16px' }}>
-              <h3 style={{ fontSize:'12px', fontWeight:'800', color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:'8px', paddingLeft:'4px' }}>{cat}</h3>
-              <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+            <div key={cat} style={{ marginBottom:'24px' }}>
+              <h3 style={{ fontSize:'12px', fontWeight:'500', color:'var(--text-muted)', letterSpacing:'.06em', marginBottom:'12px', paddingLeft:'4px' }}>{cat.toLowerCase()}</h3>
+              <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
                 {CHECKLIST.filter(c => c.category===cat).map(item => {
                   const checked = checkedItems.has(item.id);
                   return (
-                    <div key={item.id} onClick={() => toggleCheck(item.id)} style={{ display:'flex', alignItems:'center', gap:'12px', padding:'12px 14px', background:'var(--card-bg)', border:`1px solid ${checked ? 'rgba(16,185,129,0.3)' : 'var(--border-color)'}`, borderRadius:'10px', cursor:'pointer', transition:'all .15s', opacity: checked ? 0.75 : 1 }}>
-                      <div style={{ width:'20px', height:'20px', borderRadius:'6px', border:`2px solid ${checked ? '#10b981' : 'var(--border-color)'}`, background: checked ? '#10b981' : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all .15s' }}>
-                        {checked && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                    <div key={item.id} onClick={() => toggleCheck(item.id)} style={{ display:'flex', alignItems:'center', gap:'16px', padding:'16px 20px', background:'var(--card-bg)', border:`1px solid ${checked ? 'var(--color-positive)' : 'var(--border-color)'}`, borderRadius:'var(--radius-md)', cursor:'pointer', transition:'all 0.2s', opacity: checked ? 0.7 : 1 }}>
+                      <div style={{ width:'22px', height:'22px', borderRadius:'var(--radius-sm)', border:`2px solid ${checked ? 'var(--color-positive)' : 'var(--border-color)'}`, background: checked ? 'var(--color-positive)' : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.15s', padding: '2px' }}>
+                        {checked && <svg width="14" height="14" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                       </div>
-                      <span style={{ fontSize:'13px', color:'var(--text-main)', textDecoration: checked ? 'line-through' : 'none', lineHeight:'1.4' }}>{item.text}</span>
+                      <span style={{ fontSize:'14px', color:'var(--text-main)', textDecoration: checked ? 'line-through' : 'none', lineHeight:'1.5' }}>{item.text.toLowerCase()}</span>
                     </div>
                   );
                 })}

@@ -28,10 +28,10 @@ export default function QuickAdd({ userId, categories }: Props) {
   const [catId,   setCatId]   = useState('');
   const [date,    setDate]    = useState(new Date().toISOString().split('T')[0]);
   const [saving,  setSaving]  = useState(false);
-  const [toast,   setToast]   = useState<string|null>(null);
+  const [toast,   setToast]   = useState<{ msg: string; ok: boolean } | null>(null);
 
-  function showToast(msg: string) {
-    setToast(msg);
+  function showToast(msg: string, ok = true) {
+    setToast({ msg, ok });
     setTimeout(() => setToast(null), 2500);
   }
 
@@ -70,9 +70,9 @@ export default function QuickAdd({ userId, categories }: Props) {
     }]);
 
     setSaving(false);
-    if (error) { showToast('Gagal menyimpan'); return; }
+    if (error) { showToast('gagal menyimpan', false); return; }
 
-    showToast('✅ Transaksi tersimpan');
+    showToast('transaksi tersimpan', true);
     resetForm();
     setOpen(false);
 
@@ -89,25 +89,27 @@ export default function QuickAdd({ userId, categories }: Props) {
           position: fixed;
           bottom: calc(72px + env(safe-area-inset-bottom));
           right: 20px;
-          width: 52px; height: 52px;
-          background: #2563eb;
+          width: 56px; height: 56px;
+          background: var(--accent-primary);
           border-radius: 99px; border: none;
-          color: #fff; font-size: 24px;
-          cursor: pointer; z-index: 80;
+          color: var(--accent-primary-fg); font-size: 28px;
+          cursor: pointer; z-index: 100;
           display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 4px 20px rgba(37,99,235,.4);
-          transition: transform .15s, background .15s;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+          transition: transform .2s cubic-bezier(0.16, 1, 0.3, 1), background .15s;
         }
-        .qa-fab:hover { transform: scale(1.08); background: #1d4ed8; }
+        .qa-fab:hover { transform: scale(1.05); opacity: 0.9; }
+        .qa-fab:active { transform: scale(0.95); }
         @media (min-width: 769px) {
           .qa-fab {
-            bottom: 24px;
-            right: 24px;
+            bottom: 32px;
+            right: 32px;
           }
         }
         .qa-overlay {
-          position: fixed; inset: 0; z-index: 150;
-          background: rgba(0,0,0,.7);
+          position: fixed; inset: 0; z-index: 200;
+          background: rgba(0,0,0,.85);
+          backdrop-filter: blur(4px);
           display: flex; align-items: flex-end;
           justify-content: center;
         }
@@ -117,17 +119,17 @@ export default function QuickAdd({ userId, categories }: Props) {
         .qa-sheet {
           background: var(--card-bg);
           border: 1px solid var(--border-color);
-          border-radius: 20px 20px 0 0;
-          padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
-          width: 100%; max-width: 480px;
-          animation: slideUp .2s ease;
-          box-shadow: 0 -10px 25px -5px rgb(0 0 0 / 0.1);
+          border-radius: 24px 24px 0 0;
+          padding: 20px 24px calc(24px + env(safe-area-inset-bottom));
+          width: 100%; max-width: 440px;
+          animation: slideUp .3s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 -20px 40px rgba(0,0,0,0.4);
         }
         @media (min-width: 769px) {
-          .qa-sheet { border-radius: 16px; padding: 24px; }
+          .qa-sheet { border-radius: var(--radius-lg); padding: 32px; }
         }
         @keyframes slideUp {
-          from { transform: translateY(40px); opacity: 0; }
+          from { transform: translateY(100%); opacity: 0; }
           to   { transform: translateY(0);    opacity: 1; }
         }
       `}</style>
@@ -135,61 +137,64 @@ export default function QuickAdd({ userId, categories }: Props) {
       {/* Toast */}
       {toast && (
         <div style={{
-          position:'fixed', top:'20px', left:'50%', transform:'translateX(-50%)',
-          zIndex:999, padding:'10px 18px', borderRadius:'99px',
-          background:'rgba(16, 185, 129, 0.1)', border:'1px solid rgba(16, 185, 129, 0.2)',
-          color:'#10b981', fontSize:'13px', fontWeight:'500',
-          whiteSpace:'nowrap', backdropFilter: 'blur(8px)',
-          boxShadow: 'var(--card-shadow)',
-        }}>{toast}</div>
+          position: 'fixed', top: '24px', left: '50%', transform: 'translateX(-50%)',
+          zIndex: 1000, padding: '12px 20px', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '500',
+          background: 'var(--bg-elevated)',
+          border: `1px solid ${toast.ok ? 'var(--color-positive)' : 'var(--color-negative)'}`,
+          color: toast.ok ? 'var(--color-positive)' : 'var(--color-negative)',
+          backdropFilter: 'blur(12px)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+          whiteSpace: 'nowrap'
+        }}>{toast.msg}</div>
       )}
 
       {/* FAB button */}
-      <button className="qa-fab" onClick={() => setOpen(true)} title="Tambah transaksi">
-        +
+      <button className="qa-fab" onClick={() => setOpen(true)} title="tambah transaksi">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
       </button>
 
       {/* Modal sheet */}
       {open && (
         <div className="qa-overlay" onClick={e => { if(e.target===e.currentTarget) setOpen(false); }}>
           <div className="qa-sheet">
-            {/* Handle bar */}
-            <div style={{ width:'36px', height:'4px', background:'var(--border-color)', borderRadius:'99px', margin:'0 auto 16px' }}/>
+            {/* Handle bar mobile */}
+            <div style={{ width:'36px', height:'4px', background:'var(--border-color)', borderRadius:'99px', margin:'0 auto 20px' }} className="hidden md:hidden"/>
 
             {/* Title */}
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'18px' }}>
-              <h3 style={{ color:'var(--text-main)', fontSize:'16px', fontWeight:'600', margin:0 }}>
-                Tambah Transaksi
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'24px' }}>
+              <h3 style={{ color:'var(--text-main)', fontSize:'18px', fontWeight:'500', margin:0 }}>
+                tambah transaksi
               </h3>
               <button onClick={() => setOpen(false)} style={{
                 background:'none', border:'none', color:'var(--text-muted)',
-                fontSize:'20px', cursor:'pointer', padding:'0 4px',
+                fontSize:'24px', cursor:'pointer', padding:'4px', opacity: 0.6
               }}>×</button>
             </div>
 
             {/* Type toggle */}
-            <div style={{ display:'flex', gap:'4px', background:'var(--bg-secondary)', borderRadius:'10px', padding:'4px', marginBottom:'16px' }}>
+            <div style={{ display:'flex', gap:'4px', background:'var(--bg-secondary)', borderRadius:'var(--radius-md)', padding:'4px', marginBottom:'24px' }}>
               {(['expense','income'] as const).map(t => (
                 <button key={t} onClick={() => { setType(t); setCatId(''); }} style={{
-                  flex:1, padding:'8px', borderRadius:'7px', border:'none',
-                  fontSize:'14px', fontWeight:'500', cursor:'pointer', transition:'all .15s',
-                  background: type===t ? (t==='expense'?'rgba(239, 68, 68, 0.1)':'rgba(16, 185, 129, 0.1)') : 'transparent',
-                  color: type===t ? (t==='expense'?'#ef4444':'#10b981') : 'var(--text-muted)',
+                  flex:1, padding:'10px', borderRadius:'var(--radius-sm)', border:'none',
+                  fontSize:'13px', fontWeight:'500', cursor:'pointer', transition:'all .2s',
+                  background: type===t ? 'var(--card-bg)' : 'transparent',
+                  color: type===t ? (t==='expense'?'var(--color-negative)':'var(--color-positive)') : 'var(--text-muted)',
+                  boxShadow: type===t ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
                 }}>
-                  {t==='expense' ? '🔴 Pengeluaran' : '💚 Pemasukan'}
+                  {t==='expense' ? 'pengeluaran' : 'pemasukan'}
                 </button>
               ))}
             </div>
 
             {/* Amount */}
-            <div style={{ marginBottom:'14px' }}>
-              <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'6px' }}>
-                Nominal <span style={{ color:'#ef4444' }}>*</span>
+            <div style={{ marginBottom:'20px' }}>
+              <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'8px' }}>
+                nominal <span style={{ color:'var(--color-negative)' }}>*</span>
               </label>
               <div style={{ position:'relative' }}>
                 <span style={{
-                  position:'absolute', left:'12px', top:'50%', transform:'translateY(-50%)',
-                  fontSize:'14px', color:'var(--text-muted)', pointerEvents:'none',
+                  position:'absolute', left:'16px', top:'50%', transform:'translateY(-50%)',
+                  fontSize:'16px', color:'var(--text-muted)', pointerEvents:'none', fontWeight: '500'
                 }}>Rp</span>
                 <input
                   type="text" inputMode="numeric" value={display}
@@ -203,68 +208,64 @@ export default function QuickAdd({ userId, categories }: Props) {
                   onFocus={e => { e.target.style.borderColor='var(--accent-primary)'; setDisplay(amount===0?'':amount.toString()); }}
                   onBlur={e  => { e.target.style.borderColor='var(--border-color)'; setDisplay(amount===0?'':amount.toLocaleString('id-ID')); }}
                   style={{
-                    width:'100%', padding:'12px 12px 12px 40px',
+                    width:'100%', padding:'16px 16px 16px 48px',
                     background:'var(--bg-secondary)', border:'1px solid var(--border-color)',
-                    borderRadius:'10px', color:'var(--text-main)',
-                    fontSize:'20px', fontWeight:'600',
+                    borderRadius:'var(--radius-md)', color:'var(--text-main)',
+                    fontSize:'24px', fontWeight:'600',
                     outline:'none', boxSizing:'border-box',
+                    transition: 'border-color 0.15s'
                   }}
                 />
               </div>
-              {amount > 0 && (
-                <div style={{ fontSize:'12px', color:'var(--text-muted)', marginTop:'4px' }}>
-                  Rp {amount.toLocaleString('id-ID')}
-                </div>
-              )}
             </div>
 
-            {/* Category */}
-            <div style={{ marginBottom:'14px' }}>
-              <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'6px' }}>
-                Kategori
-              </label>
-              <select value={catId} onChange={e => setCatId(e.target.value)} style={{
-                width:'100%', padding:'10px 12px',
-                background:'var(--bg-secondary)', border:'1px solid var(--border-color)',
-                borderRadius:'10px', color: catId?'var(--text-main)':'var(--text-muted)',
-                fontSize:'16px', outline:'none', cursor:'pointer',
-              }}>
-                <option value="">— Pilih kategori —</option>
-                {filteredCats.map(c => (
-                  <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
-                ))}
-              </select>
+            {/* Category & Note Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+              <div>
+                <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'8px' }}>
+                  kategori
+                </label>
+                <select value={catId} onChange={e => setCatId(e.target.value)} style={{
+                  width:'100%', padding:'12px',
+                  background:'var(--bg-secondary)', border:'1px solid var(--border-color)',
+                  borderRadius:'var(--radius-md)', color: catId?'var(--text-main)':'var(--text-muted)',
+                  fontSize:'14px', outline:'none', cursor:'pointer',
+                }}>
+                  <option value="">— pilih —</option>
+                  {filteredCats.map(c => (
+                    <option key={c.id} value={c.id}>{c.icon} {c.name.toLowerCase()}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'8px' }}>
+                  tanggal
+                </label>
+                <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{
+                  width:'100%', padding:'12px',
+                  background:'var(--bg-secondary)', border:'1px solid var(--border-color)',
+                  borderRadius:'var(--radius-md)', color:'var(--text-main)', fontSize:'14px',
+                  outline:'none', boxSizing:'border-box', cursor:'pointer',
+                }}
+                  onFocus={e => e.target.style.borderColor='var(--accent-primary)'}
+                  onBlur={e  => e.target.style.borderColor='var(--border-color)'}
+                />
+              </div>
             </div>
 
             {/* Note */}
-            <div style={{ marginBottom:'14px' }}>
-              <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'6px' }}>
-                Catatan
+            <div style={{ marginBottom:'28px' }}>
+              <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'8px' }}>
+                catatan
               </label>
               <input value={note} onChange={e => setNote(e.target.value)}
-                placeholder="cth: Makan siang, Bensin, Gaji..."
+                placeholder="cth: makan siang, bensin..."
                 style={{
-                  width:'100%', padding:'10px 12px',
+                  width:'100%', padding:'12px',
                   background:'var(--bg-secondary)', border:'1px solid var(--border-color)',
-                  borderRadius:'10px', color:'var(--text-main)', fontSize:'16px',
-                  outline:'none', boxSizing:'border-box',
+                  borderRadius:'var(--radius-md)', color:'var(--text-main)', fontSize:'14px',
+                  outline:'none', boxSizing:'border-box', transition: 'border-color 0.15s'
                 }}
-                onFocus={e => e.target.style.borderColor='var(--accent-primary)'}
-                onBlur={e  => e.target.style.borderColor='var(--border-color)'}
-              />
-            </div>
-
-            {/* Date */}
-            <div style={{ marginBottom:'20px' }}>
-              <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'6px' }}>
-                Tanggal
-              </label>
-              <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{
-                width:'100%', padding:'10px 12px',
-                background:'var(--bg-secondary)', border:'1px solid var(--border-color)',
-                borderRadius:'10px', color:'var(--text-main)', fontSize:'16px',
-                outline:'none', boxSizing:'border-box', cursor:'pointer',
-              }}
                 onFocus={e => e.target.style.borderColor='var(--accent-primary)'}
                 onBlur={e  => e.target.style.borderColor='var(--border-color)'}
               />
@@ -275,16 +276,18 @@ export default function QuickAdd({ userId, categories }: Props) {
               onClick={handleSave}
               disabled={saving || amount <= 0}
               style={{
-                width:'100%', padding:'14px',
-                background: saving||amount<=0 ? 'var(--border-color)' : 'var(--accent-primary)',
-                border:'none', borderRadius:'10px',
-                color: saving||amount<=0 ? 'var(--text-muted)' : '#fff',
+                width:'100%', padding:'16px',
+                background: saving||amount<=0 ? 'var(--bg-secondary)' : 'var(--accent-primary)',
+                border:'none', borderRadius:'var(--radius-md)',
+                color: saving||amount<=0 ? 'var(--text-muted)' : 'var(--accent-primary-fg)',
                 fontSize:'15px', fontWeight:'600',
                 cursor: saving||amount<=0 ? 'not-allowed' : 'pointer',
-                transition:'background .15s',
+                transition:'all .15s',
               }}
+              onMouseEnter={e => { if(!saving && amount > 0) e.currentTarget.style.opacity = '0.9'; }}
+              onMouseLeave={e => { if(!saving && amount > 0) e.currentTarget.style.opacity = '1'; }}
             >
-              {saving ? 'Menyimpan...' : 'Simpan Transaksi'}
+              {saving ? 'menyimpan...' : 'simpan transaksi'}
             </button>
           </div>
         </div>

@@ -33,35 +33,38 @@ interface Props {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const ROLE_META: Record<Role, { label: string; color: string; bg: string; border: string; desc: string }> = {
-  owner:    { label: 'Owner',    color: '#fbbf24', bg: '#1a1000', border: '#3d2a00', desc: 'Akses penuh + kelola user' },
-  admin:    { label: 'Admin',    color: '#60a5fa', bg: '#0c1f3a', border: '#1e3a5f', desc: 'Akses penuh, tidak bisa hapus owner' },
-  user:     { label: 'User',     color: '#4ade80', bg: '#0f2d1a', border: '#166534', desc: 'Input & lihat data sendiri' },
-  readonly: { label: 'Readonly', color: '#9ca3af', bg: '#1f1f2e', border: '#2a2a3a', desc: 'Hanya bisa lihat, tidak bisa edit' },
+  owner:    { label: 'owner',    color: 'var(--accent-primary)', bg: 'var(--bg-secondary)', border: 'var(--accent-primary)', desc: 'akses penuh + kelola user' },
+  admin:    { label: 'admin',    color: 'var(--color-neutral)', bg: 'var(--bg-secondary)', border: 'var(--border-color)', desc: 'akses penuh, tidak bisa hapus owner' },
+  user:     { label: 'user',     color: 'var(--color-positive)', bg: 'var(--bg-secondary)', border: 'var(--color-positive)', desc: 'input & lihat data sendiri' },
+  readonly: { label: 'readonly', color: 'var(--text-muted)', bg: 'var(--bg-secondary)', border: 'var(--border-color)', desc: 'hanya bisa lihat, tidak bisa edit' },
 };
 
 const inpStyle: React.CSSProperties = {
-  width: '100%', padding: '10px 12px',
+  width: '100%', padding: '10px 14px',
   background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
-  borderRadius: '8px', color: 'var(--text-main)', fontSize: '14px',
-  offset: 'none', boxSizing: 'border-box',
+  borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px',
+  outline: 'none', boxSizing: 'border-box',
+  transition: 'border-color 0.15s',
 };
 
 function RoleSelector({ value, onChange }: { value: Role; onChange: (r: Role) => void }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {(['user', 'readonly', 'admin'] as Role[]).map(r => {
         const meta = ROLE_META[r];
+        const isActive = value === r;
         return (
           <div key={r} onClick={() => onChange(r)} style={{
-            padding: '10px 14px', borderRadius: '9px', cursor: 'pointer',
-            border: `1px solid ${value === r ? meta.border : 'var(--border-color)'}`,
-            background: value === r ? meta.bg : 'var(--bg-secondary)',
-            display: 'flex', alignItems: 'center', gap: '10px',
+            padding: '12px 16px', borderRadius: 'var(--radius-md)', cursor: 'pointer',
+            border: `1px solid ${isActive ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+            background: isActive ? 'var(--bg-secondary)' : 'transparent',
+            display: 'flex', alignItems: 'center', gap: '12px',
+            transition: 'all 0.15s'
           }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '99px', background: value === r ? meta.color : 'var(--text-muted)', flexShrink: 0 }} />
+            <div style={{ width: '10px', height: '10px', borderRadius: '99px', background: isActive ? meta.color : 'var(--border-color)', flexShrink: 0 }} />
             <div>
-              <div style={{ fontSize: '13px', fontWeight: '500', color: value === r ? meta.color : 'var(--text-main)' }}>{meta.label}</div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{meta.desc}</div>
+              <div style={{ fontSize: '14px', fontWeight: '500', color: isActive ? 'var(--text-main)' : 'var(--text-muted)' }}>{meta.label}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{meta.desc}</div>
             </div>
           </div>
         );
@@ -104,47 +107,47 @@ function AddUserModal({ onSave, onClose }: {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 100,
-      background: 'rgba(0,0,0,.8)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
+      background: 'rgba(0,0,0,.85)', backdropFilter: 'blur(8px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px',
     }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{
         background: 'var(--card-bg)', border: '1px solid var(--border-color)',
-        borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '460px',
+        borderRadius: 'var(--radius-lg)', padding: '32px', width: '100%', maxWidth: '480px',
         maxHeight: '90vh', overflowY: 'auto',
-        boxShadow: 'var(--card-shadow)'
+        boxShadow: '0 20px 50px rgba(0,0,0,0.4)'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' }}>
           <div>
-            <h2 style={{ color: 'var(--text-main)', fontSize: '17px', fontWeight: '600', margin: '0 0 2px' }}>Tambah User Baru</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '12px', margin: 0 }}>Isi minimal Chat ID atau Email</p>
+            <h2 style={{ color: 'var(--text-main)', fontSize: '18px', fontWeight: '500', margin: '0 0 6px' }}>tambah user baru</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>isi minimal chat id atau email</p>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '22px', cursor: 'pointer', lineHeight: 1 }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '24px', cursor: 'pointer', lineHeight: 1, opacity: 0.6 }}>×</button>
         </div>
 
         <form onSubmit={handleSubmit}>
           {/* Nama */}
-          <div style={{ marginBottom: '14px' }}>
-            <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', fontWeight: '500', marginBottom: '6px' }}>
-              Nama <span style={{ color: '#ef4444' }}>*</span>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500', marginBottom: '8px' }}>
+              nama <span style={{ color: 'var(--color-negative)' }}>*</span>
             </label>
             <input value={displayName} onChange={e => setDisplayName(e.target.value)}
-              placeholder="cth: Athia, Ananda, dll" style={inpStyle}
-              onFocus={e => e.target.style.borderColor = '#2563eb'}
-              onBlur={e  => e.target.style.borderColor = '#2a2a3a'} />
+              placeholder="cth: athia, ananda, dll" style={inpStyle}
+              onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+              onBlur={e  => e.target.style.borderColor = 'var(--border-color)'} />
           </div>
 
           {/* Email */}
-          <div style={{ marginBottom: '14px' }}>
-            <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500', marginBottom: '6px' }}>
-              Email (untuk login dashboard)
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500', marginBottom: '8px' }}>
+              email (untuk login dashboard)
             </label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)}
               placeholder="cth: athia@gmail.com"
               style={inpStyle}
-              onFocus={e => e.target.style.borderColor = '#2563eb'}
-              onBlur={e  => e.target.style.borderColor = '#2a2a3a'} />
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-              Wajib jika user ingin akses dashboard via web
+              onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+              onBlur={e  => e.target.style.borderColor = 'var(--border-color)'} />
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
+              wajib jika user ingin akses dashboard via web
             </div>
           </div>
 
@@ -370,9 +373,9 @@ function UserCard({
   return (
     <div style={{
       background: 'var(--card-bg)', border: `1px solid ${isMe ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-      borderRadius: '12px', padding: '16px 18px',
-      transition: 'all 0.2s ease',
-      boxShadow: isMe ? '0 4px 12px rgba(37, 99, 235, 0.08)' : 'var(--card-shadow)',
+      borderRadius: 'var(--radius-lg)', padding: '24px',
+      transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+      boxShadow: isMe ? '0 8px 32px rgba(0,0,0,0.15)' : 'none',
     }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
         {/* Avatar */}
@@ -387,22 +390,22 @@ function UserCard({
 
         {/* Info */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>
-              {u.display_name ?? 'Tanpa nama'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '15px', fontWeight: '500', color: 'var(--text-main)' }}>
+              {u.display_name?.toLowerCase() ?? 'tanpa nama'}
             </span>
             {isMe && (
-              <span style={{ fontSize: '10px', padding: '1px 7px', borderRadius: '99px', background: 'rgba(37, 99, 235, 0.1)', color: 'var(--accent-primary)', border: '1px solid var(--accent-primary)' }}>
-                Saya
+              <span style={{ fontSize: '10px', padding: '1px 8px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', color: 'var(--accent-primary)', border: '1px solid var(--accent-primary)', fontWeight: '600' }}>
+                saya
               </span>
             )}
-            <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '99px', background: meta.bg, color: meta.color, border: `1px solid ${meta.border}`, fontWeight: '500' }}>
+            <span style={{ fontSize: '10px', padding: '1px 8px', borderRadius: 'var(--radius-sm)', border: `1px solid ${meta.color}`, color: meta.color, fontWeight: '600' }}>
               {meta.label}
             </span>
           </div>
 
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '2px' }}>
-            {u.email ?? <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Belum ada email</span>}
+          <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '4px' }}>
+            {u.email?.toLowerCase() ?? <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>belum ada email</span>}
           </div>
 
           {u.telegram_chat_id ? (
@@ -639,14 +642,15 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
       {/* Toast */}
       {toast && (
         <div style={{
-          position: 'fixed', top: '20px', right: '20px', zIndex: 200,
-          padding: '12px 18px', borderRadius: '10px', fontSize: '13px', fontWeight: '500',
-          background: toast.ok ? '#0f2d1a' : '#2d0f0f',
-          border: `1px solid ${toast.ok ? '#166534' : '#7f1d1d'}`,
-          color: toast.ok ? '#4ade80' : '#f87171',
-          boxShadow: '0 4px 20px rgba(0,0,0,.4)',
-          animation: 'slideIn 0.2s ease',
-        }}>{toast.msg}</div>
+          position: 'fixed', top: '24px', right: '24px', zIndex: 200,
+          padding: '14px 20px', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '500',
+          background: 'var(--bg-elevated)',
+          border: `1px solid ${toast.ok ? 'var(--color-positive)' : 'var(--color-negative)'}`,
+          color: toast.ok ? 'var(--color-positive)' : 'var(--color-negative)',
+          backdropFilter: 'blur(12px)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+          animation: 'slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+        }}>{toast.msg.toLowerCase()}</div>
       )}
 
       {showAdd && (
@@ -657,20 +661,21 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
       )}
 
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px' }}>
         <div>
-          <h1 style={{ fontSize: '20px', fontWeight: '600', margin: '0 0 4px', color: 'var(--text-main)' }}>Kelola User</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>
+          <h1 style={{ fontSize: '24px', fontWeight: '600', margin: '0 0 6px', color: 'var(--text-main)', letterSpacing: '-0.3px' }}>kelola user</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: 0 }}>
             {userList.length} user terdaftar
           </p>
         </div>
         <button onClick={() => setShowAdd(true)} style={{
-          padding: '9px 18px', background: '#2563eb', border: 'none',
-          borderRadius: '9px', color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+          padding: '10px 20px', background: 'var(--accent-primary)', border: 'none',
+          borderRadius: 'var(--radius-md)', color: 'var(--accent-primary-fg)', fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+          transition: 'all 0.15s'
         }}
-          onMouseEnter={e => e.currentTarget.style.background = '#1d4ed8'}
-          onMouseLeave={e => e.currentTarget.style.background = '#2563eb'}
-        >+ Tambah User</button>
+          onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+        >+ tambah user</button>
       </div>
 
       {/* Role legend */}
@@ -694,10 +699,10 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
         
         {/* Family Section */}
         <section>
-          <h2 style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', marginBottom: '12px', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            👪 AKUN KELUARGA <span style={{ padding: '2px 6px', background: 'var(--bg-secondary)', borderRadius: '4px', fontSize: '10px' }}>{familyUsers.length}</span>
+          <h2 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', marginBottom: '16px', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            akun keluarga <span style={{ padding: '2px 8px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', fontSize: '11px', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}>{familyUsers.length}</span>
           </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {familyUsers.map(u => (
               <UserCard
                 key={u.id}

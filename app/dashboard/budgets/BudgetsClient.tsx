@@ -44,10 +44,10 @@ const fmtK = (n: number) => {
 };
 
 function statusConfig(pct: number) {
-  if (pct >= 100) return { color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)', border: 'rgba(239, 68, 68, 0.2)', label: 'Melebihi limit' };
-  if (pct >= 80)  return { color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.2)', label: 'Hampir habis' };
-  if (pct >= 50)  return { color: 'var(--accent-primary)', bg: 'rgba(37, 99, 235, 0.1)', border: 'rgba(37, 99, 235, 0.2)', label: 'Setengah jalan' };
-  return           { color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.2)', label: 'Aman' };
+  if (pct >= 100) return { color: 'var(--color-negative)', bg: 'var(--color-negative-bg)', border: 'var(--color-negative)', label: 'melebihi limit' };
+  if (pct >= 80)  return { color: 'var(--color-neutral)', bg: 'var(--color-neutral-bg)', border: 'var(--color-neutral)', label: 'hampir habis' };
+  if (pct >= 50)  return { color: 'var(--accent-primary)', bg: 'rgba(255, 255, 255, 0.05)', border: 'var(--border-color-md)', label: 'setengah jalan' };
+  return           { color: 'var(--color-positive)', bg: 'var(--color-positive-bg)', border: 'var(--color-positive)', label: 'aman' };
 }
 
 // ─── Envelope Card ────────────────────────────────────────────────────────────
@@ -73,19 +73,19 @@ function EnvelopeCard({
     }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
-            width: '40px', height: '40px', borderRadius: '10px',
+            width: '40px', height: '40px', borderRadius: 'var(--radius-md)',
             background: sc.bg, border: `1px solid ${sc.border}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', opacity: 0.9
           }}>
             {budget.categories?.icon ?? '📦'}
           </div>
           <div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>
-              {budget.categories?.name ?? 'Kategori'}
+            <div style={{ fontSize: '15px', fontWeight: '500', color: 'var(--text-main)' }}>
+              {budget.categories?.name.toLowerCase() ?? 'kategori'}
             </div>
-            <div style={{ fontSize: '11px', marginTop: '2px', color: sc.color, fontWeight: '500' }}>
+            <div style={{ fontSize: '12px', marginTop: '2px', color: sc.color, fontWeight: '500' }}>
               {sc.label}
             </div>
           </div>
@@ -95,38 +95,38 @@ function EnvelopeCard({
         <div style={{
           padding: '4px 10px', borderRadius: '99px',
           background: sc.bg, border: `1px solid ${sc.border}`,
-          fontSize: '13px', fontWeight: '700', color: sc.color,
+          fontSize: '12px', fontWeight: '600', color: sc.color,
         }}>
           {pct}%
         </div>
       </div>
 
       {/* Progress bar */}
-      <div style={{ marginBottom: '12px' }}>
-        <div style={{ height: '8px', background: 'var(--bg-secondary)', borderRadius: '99px', overflow: 'hidden' }}>
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ height: '4px', background: 'var(--bg-secondary)', borderRadius: '99px', overflow: 'hidden' }}>
           <div style={{
             height: '100%', borderRadius: '99px',
             width: `${Math.min(pct, 100)}%`,
             background: sc.color,
             transition: 'width .5s ease',
+            opacity: 0.85
           }}/>
         </div>
       </div>
 
       {/* Numbers */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '16px' }}>
         {[
-          { label: 'Terpakai',  value: fmt(spent),               color: '#ef4444' },
-          { label: 'Sisa',      value: fmt(sisa),                 color: sisa > 0 ? '#10b981' : '#ef4444' },
-          { label: 'Limit',     value: fmt(budget.limit_amount),  color: 'var(--text-muted)' },
+          { label: 'terpakai',  value: fmt(spent),               color: 'var(--color-negative)' },
+          { label: 'sisa',      value: fmt(sisa),                 color: sisa > 0 ? 'var(--color-positive)' : 'var(--color-negative)' },
+          { label: 'limit',     value: fmt(budget.limit_amount),  color: 'var(--text-muted)' },
         ].map(s => (
           <div key={s.label} style={{
-            background: 'var(--bg-secondary)', borderRadius: '8px', padding: '8px 10px', textAlign: 'center',
+            background: 'transparent', borderRadius: 'var(--radius-md)', padding: '10px 8px', textAlign: 'center',
             border: '1px solid var(--border-color)',
           }}>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '3px',
-              textTransform: 'uppercase', letterSpacing: '.04em', fontWeight: '700' }}>{s.label}</div>
-            <div style={{ fontSize: '12px', fontWeight: '700', color: s.color }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: '500' }}>{s.label}</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: s.color }}>
               {fmtK(parseFloat(s.value.replace(/[^0-9]/g, '')))}
             </div>
           </div>
@@ -209,15 +209,15 @@ function BudgetFormModal({
     >
       <div style={{
         background: 'var(--card-bg)', border: '1px solid var(--border-color)',
-        borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '420px',
-        boxShadow: 'var(--card-shadow)',
+        borderRadius: 'var(--radius-lg)', padding: '28px', width: '100%', maxWidth: '420px',
+        boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div>
-            <h2 style={{ color: 'var(--text-main)', fontSize: '17px', fontWeight: '600', margin: '0 0 2px' }}>
-              {isEdit ? 'Edit Budget' : 'Set Budget Baru'}
+            <h2 style={{ color: 'var(--text-main)', fontSize: '18px', fontWeight: '500', margin: '0 0 6px' }}>
+              {isEdit ? 'edit budget' : 'set budget baru'}
             </h2>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{monthLabel}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{monthLabel.toLowerCase()}</div>
           </div>
           <button onClick={onClose} style={{
             background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer',
@@ -226,15 +226,15 @@ function BudgetFormModal({
 
         <form onSubmit={handleSubmit}>
           {/* Category */}
-          <div style={{ marginBottom: '14px' }}>
-            <label style={lbl}>Kategori <span style={{ color: '#ef4444' }}>*</span></label>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={lbl}>kategori <span style={{ color: 'var(--color-negative)' }}>*</span></label>
             {isEdit ? (
               <div style={{
                 ...inp, display: 'flex', alignItems: 'center', gap: '8px',
-                cursor: 'not-allowed', opacity: 0.6,
+                cursor: 'not-allowed', opacity: 0.6, background: 'var(--bg-primary)'
               }}>
                 <span>{budget?.categories?.icon}</span>
-                <span>{budget?.categories?.name}</span>
+                <span>{budget?.categories?.name.toLowerCase()}</span>
               </div>
             ) : (
               <select value={catId} onChange={e => setCatId(e.target.value)} required
@@ -242,21 +242,21 @@ function BudgetFormModal({
                 onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
                 onBlur={e  => e.target.style.borderColor = 'var(--border-color)'}
               >
-                <option value="">— Pilih kategori —</option>
+                <option value="">— pilih kategori —</option>
                 {available.map(c => (
-                  <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+                  <option key={c.id} value={c.id}>{c.icon} {c.name.toLowerCase()}</option>
                 ))}
               </select>
             )}
           </div>
 
           {/* Limit */}
-          <div style={{ marginBottom: '20px' }}>
-            <label style={lbl}>Limit per bulan <span style={{ color: '#ef4444' }}>*</span></label>
+          <div style={{ marginBottom: '24px' }}>
+            <label style={lbl}>limit per bulan <span style={{ color: 'var(--color-negative)' }}>*</span></label>
             <div style={{ position: 'relative' }}>
               <span style={{
-                position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)',
-                fontSize: '12px', color: 'var(--text-muted)', pointerEvents: 'none',
+                position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
+                fontSize: '13px', color: 'var(--text-muted)', pointerEvents: 'none',
               }}>Rp</span>
               <input
                 type="text" inputMode="numeric" value={displayVal}
@@ -470,12 +470,13 @@ export default function BudgetsClient({
       {/* Toast */}
       {toast && (
         <div style={{
-          position: 'fixed', top: '20px', right: '20px', zIndex: 200,
-          padding: '12px 18px', borderRadius: '10px', fontSize: '13px', fontWeight: '500',
-          background: toast.ok ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-          border: `1px solid ${toast.ok ? 'rgba(22, 163, 74, 0.6)' : 'rgba(185, 28, 28, 0.6)'}`,
-          color: toast.ok ? '#15803d' : '#b91c1c',
-          boxShadow: '0 4px 20px rgba(15,23,42,.18)',
+          position: 'fixed', top: '24px', right: '24px', zIndex: 1000,
+          padding: '14px 20px', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '500',
+          background: 'var(--bg-elevated)',
+          border: `1px solid ${toast.ok ? 'var(--color-positive)' : 'var(--color-negative)'}`,
+          color: toast.ok ? 'var(--color-positive)' : 'var(--color-negative)',
+          backdropFilter: 'blur(12px)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
         }}>{toast.msg}</div>
       )}
 
@@ -502,45 +503,48 @@ export default function BudgetsClient({
       />
 
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
         <div>
-          <h1 style={{ fontSize: '22px', fontWeight: '600', margin: '0 0 4px', letterSpacing: '-0.4px' }}>
-            Budget
+          <h1 style={{ fontSize: '24px', fontWeight: '600', margin: '0 0 6px', letterSpacing: '-0.4px', color: 'var(--text-main)' }}>
+            budget
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>
-            Amplop digital — {monthLabel}
+            amplop digital — {monthLabel.toLowerCase()}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
           {budgets.length === 0 && prevMonthBudgets.length > 0 && (
             <button 
               onClick={handleCopyLastMonth} 
               disabled={isCopying}
               style={{
                 padding: '9px 18px', background: 'var(--card-bg)', border: '1px solid var(--border-color)',
-                borderRadius: '9px', color: '#10b981', fontSize: '13px', fontWeight: '600', cursor: 'pointer'
+                borderRadius: 'var(--radius-md)', color: 'var(--color-positive)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.15s'
               }}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--color-positive-bg)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'var(--card-bg)'}
             >
-              {isCopying ? 'Menyalin...' : '📋 Salin Bulan Lalu'}
+              {isCopying ? 'menyalin...' : '📋 salin bulan lalu'}
             </button>
           )}
           {canEditTargets && (
             <button onClick={() => setIsEditingTargets(true)} style={{
               padding: '9px 18px', background: 'transparent', border: '1px solid var(--border-color)',
-              borderRadius: '9px', color: 'var(--text-muted)', fontSize: '13px', fontWeight: '600', cursor: 'pointer'
-            }}>⚙️ Target</button>
+              borderRadius: 'var(--radius-md)', color: 'var(--text-muted)', fontSize: '13px', fontWeight: '600', cursor: 'pointer'
+            }}>⚙️ target</button>
           )}
           <button onClick={() => setShowForm(true)}
             disabled={categories.length === existingCatIds.length}
             style={{
-              padding: '9px 18px', border: 'none', borderRadius: '9px',
-              color: '#fff', fontSize: '13px', fontWeight: '600',
+              padding: '9px 18px', border: 'none', borderRadius: 'var(--radius-md)',
+              color: 'var(--accent-primary-fg)', fontSize: '13px', fontWeight: '600',
               background: categories.length === existingCatIds.length ? 'var(--bg-secondary)' : 'var(--accent-primary)',
               cursor: categories.length === existingCatIds.length ? 'not-allowed' : 'pointer',
+              transition: 'opacity 0.15s'
             }}
-            onMouseEnter={e => { if (categories.length !== existingCatIds.length) (e.currentTarget).style.background = 'var(--accent-primary)'; }}
-            onMouseLeave={e => { if (categories.length !== existingCatIds.length) (e.currentTarget).style.background = 'var(--accent-primary)'; }}
-          >+ Set Budget</button>
+            onMouseEnter={e => { if (categories.length !== existingCatIds.length) (e.currentTarget).style.opacity = '0.9'; }}
+            onMouseLeave={e => { if (categories.length !== existingCatIds.length) (e.currentTarget).style.opacity = '1'; }}
+          >+ set budget</button>
         </div>
       </div>
 
@@ -555,43 +559,43 @@ export default function BudgetsClient({
             background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '16px',
             width: '100%', maxWidth: '400px', padding: '24px',
           }}>
-            <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '4px' }}>Target Finansial</h2>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>Atur persentase ideal untuk alokasi budget Anda.</p>
+            <h2 style={{ fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>target finansial</h2>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px' }}>atur persentase ideal untuk alokasi budget anda.</p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
               <div>
-                <label style={lbl}>Target Saving Rate (%)</label>
+                <label style={lbl}>target tabungan (%)</label>
                 <input type="number" value={targetSaving} onChange={e => setTargetSaving(Number(e.target.value))} style={inp} />
               </div>
               <div>
-                <label style={lbl}>Batas Keinginan / Wants (%)</label>
+                <label style={lbl}>batas keinginan / wants (%)</label>
                 <input type="number" value={targetWants} onChange={e => setTargetWants(Number(e.target.value))} style={inp} />
               </div>
               <div>
-                <label style={lbl}>Batas Kebutuhan / Needs (%)</label>
+                <label style={lbl}>batas kebutuhan / needs (%)</label>
                 <input type="number" value={targetNeeds} onChange={e => setTargetNeeds(Number(e.target.value))} style={inp} />
               </div>
-              <div style={{ padding: '10px', background: (targetSaving + targetWants + targetNeeds > 100) ? 'rgba(239,68,68,0.1)' : 'rgba(16, 185, 129, 0.1)', borderRadius: '8px', fontSize: '11px', color: (targetSaving + targetWants + targetNeeds > 100) ? '#ef4444' : '#10b981' }}>
-                Total Alokasi: {targetSaving + targetWants + targetNeeds}% {targetSaving + targetWants + targetNeeds > 100 && '(Melebihi 100%!)'}
+              <div style={{ padding: '12px', background: (targetSaving + targetWants + targetNeeds > 100) ? 'var(--color-negative-bg)' : 'var(--color-positive-bg)', borderRadius: 'var(--radius-md)', fontSize: '12px', color: (targetSaving + targetWants + targetNeeds > 100) ? 'var(--color-negative)' : 'var(--color-positive)', border: '1px solid transparent' }}>
+                total alokasi: {targetSaving + targetWants + targetNeeds}% {targetSaving + targetWants + targetNeeds > 100 && '(melebihi 100%!)'}
               </div>
 
               {/* Benchmark Standar Global */}
               <div style={{ 
-                marginTop: '16px', padding: '12px', background: 'var(--bg-secondary)', 
-                border: '1px dashed var(--border-color)', borderRadius: '10px' 
+                marginTop: '16px', padding: '16px', background: 'var(--bg-primary)', 
+                border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)' 
               }}>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <span>📊</span> STANDAR GLOBAL (50/30/20)
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>📊</span> standar alokasi (50/30/20)
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                   {[
-                    { label: 'Kebutuhan', val: '50%', color: 'var(--accent-primary)' },
-                    { label: 'Keinginan', val: '30%', color: '#fbbf24' },
-                    { label: 'Tabungan', val: '20%', color: '#10b981' },
+                    { label: 'kebutuhan', val: '50%', color: 'var(--text-main)' },
+                    { label: 'keinginan', val: '30%', color: 'var(--color-neutral)' },
+                    { label: 'tabungan', val: '20%', color: 'var(--color-positive)' },
                   ].map(b => (
                     <div key={b.label} style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{b.label}</div>
-                      <div style={{ fontSize: '12px', fontWeight: '700', color: b.color }}>{b.val}</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'lowercase', marginBottom: '2px' }}>{b.label}</div>
+                      <div style={{ fontSize: '13px', fontWeight: '600', color: b.color }}>{b.val}</div>
                     </div>
                   ))}
                 </div>
@@ -635,25 +639,25 @@ export default function BudgetsClient({
       {overBudget.length > 0 && (
         <div style={{
           padding: '12px 16px',
-          background: 'rgba(239, 68, 68, 0.08)',
-          border: '1px solid rgba(239, 68, 68, 0.3)',
-          borderRadius: '10px', marginBottom: '12px', fontSize: '13px', color: '#ef4444',
-          display: 'flex', alignItems: 'center', gap: '8px',
+          background: 'var(--color-negative-bg)',
+          border: '1px solid var(--color-negative)',
+          borderRadius: 'var(--radius-md)', marginBottom: '12px', fontSize: '13px', color: 'var(--color-negative)',
+          display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.9
         }}>
           🚨 {overBudget.length} kategori melebihi budget:{' '}
-          <strong>{overBudget.map(b => b.categories?.name).join(', ')}</strong>
+          <strong>{overBudget.map(b => b.categories?.name.toLowerCase()).join(', ')}</strong>
         </div>
       )}
       {nearLimit.length > 0 && (
         <div style={{
           padding: '12px 16px',
-          background: 'rgba(245, 158, 11, 0.08)',
-          border: '1px solid rgba(245, 158, 11, 0.3)',
-          borderRadius: '10px', marginBottom: '12px', fontSize: '13px', color: '#d97706',
-          display: 'flex', alignItems: 'center', gap: '8px',
+          background: 'var(--color-neutral-bg)',
+          border: '1px solid var(--color-neutral)',
+          borderRadius: 'var(--radius-md)', marginBottom: '12px', fontSize: '13px', color: 'var(--color-neutral)',
+          display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.9
         }}>
           ⚠️ {nearLimit.length} kategori hampir habis:{' '}
-          <strong>{nearLimit.map(b => b.categories?.name).join(', ')}</strong>
+          <strong>{nearLimit.map(b => b.categories?.name.toLowerCase()).join(', ')}</strong>
         </div>
       )}
 
@@ -661,38 +665,39 @@ export default function BudgetsClient({
       {budgets.length > 0 && (
         <div style={{
           background: 'var(--card-bg)', border: '1px solid var(--border-color)',
-          borderRadius: '12px', padding: '18px 20px', marginBottom: '20px',
+          borderRadius: 'var(--radius-lg)', padding: '24px', marginBottom: '24px',
+          boxShadow: 'none'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>
-              Total Budget {monthLabel}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '500' }}>
+              total budget {monthLabel.toLowerCase()}
             </span>
-            <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)' }}>
+            <span style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-main)' }}>
               {fmt(totalSpent)}{' '}
               <span style={{ color: 'var(--text-muted)', fontWeight: '400', fontSize: '13px' }}>
                 / {fmt(totalLimit)}
               </span>
             </span>
           </div>
-          <div style={{ height: '8px', background: 'var(--bg-secondary)', borderRadius: '99px', overflow: 'hidden' }}>
+          <div style={{ height: '4px', background: 'var(--bg-secondary)', borderRadius: '99px', overflow: 'hidden' }}>
             <div style={{
               height: '100%', borderRadius: '99px',
               width: `${totalLimit > 0 ? Math.min((totalSpent / totalLimit) * 100, 100) : 0}%`,
-              background: totalSpent / totalLimit >= 1 ? '#ef4444'
-                : totalSpent / totalLimit >= 0.8 ? '#f59e0b' : 'var(--accent-primary)',
+              background: totalSpent / totalLimit >= 1 ? 'var(--color-negative)'
+                : totalSpent / totalLimit >= 0.8 ? 'var(--color-neutral)' : 'var(--accent-primary)',
               transition: 'width .5s ease',
+              opacity: 0.85
             }}/>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginTop: '14px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginTop: '20px' }}>
             {[
-              { label: 'Total Budget', value: fmt(totalLimit), color: 'var(--text-muted)' },
-              { label: 'Total Terpakai', value: fmt(totalSpent), color: '#ef4444' },
-              { label: 'Sisa', value: fmt(Math.max(totalLimit - totalSpent, 0)), color: '#10b981' },
+              { label: 'total limit', value: fmt(totalLimit), color: 'var(--text-muted)' },
+              { label: 'total terpakai', value: fmt(totalSpent), color: 'var(--color-negative)' },
+              { label: 'sisa budget', value: fmt(Math.max(totalLimit - totalSpent, 0)), color: 'var(--color-positive)' },
             ].map(s => (
               <div key={s.label} style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '3px',
-                  textTransform: 'uppercase', letterSpacing: '.04em' }}>{s.label}</div>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: s.color }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: '500' }}>{s.label}</div>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: s.color }}>
                   {fmtK(parseFloat(s.value.replace(/[^0-9]/g, '')))}
                 </div>
               </div>

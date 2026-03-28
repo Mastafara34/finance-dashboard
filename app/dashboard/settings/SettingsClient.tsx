@@ -64,12 +64,12 @@ function Section({ title, subtitle, children }: {
   return (
     <div style={{
       background: 'var(--card-bg)', border: '1px solid var(--border-color)',
-      borderRadius: '14px', overflow: 'hidden', marginBottom: '16px',
-      boxShadow: 'var(--card-shadow)'
+      borderRadius: 'var(--radius-lg)', overflow: 'hidden', marginBottom: '24px',
+      boxShadow: 'none'
     }}>
-      <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)' }}>
-        <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)' }}>{title}</div>
-        {subtitle && <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: '500' }}>{subtitle}</div>}
+      <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)' }}>
+        <div style={{ fontSize: '15px', fontWeight: '500', color: 'var(--text-main)', letterSpacing: '0.01em' }}>{title.toLowerCase()}</div>
+        {subtitle && <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: '400' }}>{subtitle.toLowerCase()}</div>}
       </div>
       <div style={{ padding: '20px' }}>{children}</div>
     </div>
@@ -82,19 +82,19 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     <div style={{ marginBottom: '16px' }}>
       <label style={{
         display: 'block', fontSize: '12px', color: 'var(--text-muted)',
-        fontWeight: '600', marginBottom: '6px',
-      }}>{label}</label>
+        fontWeight: '500', marginBottom: '8px',
+      }}>{label.toLowerCase()}</label>
       {children}
     </div>
   );
 }
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '10px 12px',
+  width: '100%', padding: '10px 14px',
   background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
-  borderRadius: '8px', color: 'var(--text-main)', fontSize: '13px',
+  borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px',
   outline: 'none', boxSizing: 'border-box',
-  transition: 'all 0.15s',
+  transition: 'border-color 0.15s',
 };
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -281,48 +281,51 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
       {toast && (
         <div className="toast-notify" style={{ 
           position: 'fixed', top: '24px', right: '24px', zIndex: 1000, 
-          padding: '14px 20px', borderRadius: '12px', fontSize: '14px', fontWeight: '700', 
-          background: 'var(--card-bg)', 
-          border: `1px solid ${toast.ok ? '#10b981' : '#ef4444'}`, 
-          color: toast.ok ? '#10b981' : '#ef4444',
-          boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+          padding: '14px 20px', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '500', 
+          background: 'var(--bg-elevated)', 
+          border: `1px solid ${toast.ok ? 'var(--color-positive)' : 'var(--color-negative)'}`, 
+          color: toast.ok ? 'var(--color-positive)' : 'var(--color-negative)',
+          backdropFilter: 'blur(12px)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
           display: 'flex', alignItems: 'center', gap: '12px'
         }}>
           <span style={{ fontSize: '18px' }}>{toast.ok ? '✅' : '❌'}</span>
-          <span>{toast.msg}</span>
+          <span>{toast.msg.toLowerCase()}</span>
         </div>
       )}
 
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: '700', margin: '0 0 4px' }}>Pengaturan</h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Kelola profil, tampilan, dan integrasi aplikasi</p>
+      <div style={{ marginBottom: '40px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: '600', margin: '0 0 6px', letterSpacing: '-0.4px', color: 'var(--text-main)' }}>pengaturan</h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>kelola profil, tampilan, dan integrasi aplikasi</p>
       </div>
 
       {/* ── GROUP 1: AKUN & KEAMANAN ─────────────────────────────────── */}
-      <h2 style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', marginBottom: '12px', letterSpacing: '0.1em' }}>PENGATURAN AKUN</h2>
+      <h2 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', marginBottom: '16px', letterSpacing: '0.05em' }}>akun & keamanan</h2>
       
       <Section title="Profil" subtitle="Informasi identitas akun kamu">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-          <Field label="Nama Lengkap">
-            <input value={displayName} onChange={e => setDisplayName(e.target.value)} style={inputStyle} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+          <Field label="nama lengkap">
+            <input value={displayName} onChange={e => setDisplayName(e.target.value)} style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} />
           </Field>
-          <Field label="Email">
-            <input value={authEmail} disabled style={{ ...inputStyle, opacity: 0.5 }} />
+          <Field label="email">
+            <input value={authEmail} disabled style={{ ...inputStyle, opacity: 0.5, cursor: 'not-allowed' }} />
           </Field>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-          <Field label="Pendapatan Bulanan">
-            <input value={incomeDisplay} onChange={e => { const raw = e.target.value.replace(/\D/g, ''); setIncomeDisplay(raw ? parseInt(raw).toLocaleString('id-ID') : ''); setMonthlyIncome(parseInt(raw) || 0); }} style={inputStyle} placeholder="cth: 5.000.000" />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+          <Field label="pendapatan bulanan">
+            <input value={incomeDisplay} onChange={e => { const raw = e.target.value.replace(/\D/g, ''); setIncomeDisplay(raw ? parseInt(raw).toLocaleString('id-ID') : ''); setMonthlyIncome(parseInt(raw) || 0); }} style={inputStyle} placeholder="cth: 5.000.000" onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} />
           </Field>
-          <Field label="Zona Waktu">
-            <select value={timezone} onChange={e => setTimezone(e.target.value)} style={inputStyle}>
+          <Field label="zona waktu">
+            <select value={timezone} onChange={e => setTimezone(e.target.value)} style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'}>
               <option value="Asia/Jakarta">WIB (UTC+7)</option>
               <option value="Asia/Makassar">WITA (UTC+8)</option>
               <option value="Asia/Jayapura">WIT (UTC+9)</option>
             </select>
           </Field>
         </div>
-        <button onClick={saveProfile} disabled={savingProfile} style={{ padding: '10px 20px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>{savingProfile ? 'Saving...' : 'Simpan Profil'}</button>
+        <button onClick={saveProfile} disabled={savingProfile} style={{ padding: '10px 24px', background: 'var(--accent-primary)', color: 'var(--accent-primary-fg)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', opacity: savingProfile ? 0.7 : 1 }}>
+          {savingProfile ? 'menyimpan...' : 'simpan profil'}
+        </button>
       </Section>
 
       <Section title="Keamanan" subtitle="Ganti password untuk perlindungan akun">
@@ -335,50 +338,54 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
                 setNewPassword(e.target.value);
                 checkPassStrength(e.target.value);
               }} 
-              style={inputStyle} 
+              style={inputStyle}
+              onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+              onBlur={e => e.target.style.borderColor = 'var(--border-color)'}
             />
             {newPassword && (
-              <div style={{ marginTop: '8px' }}>
-                <div style={{ height: '4px', background: 'var(--border-color)', borderRadius: '2px', overflow: 'hidden', marginBottom: '4px' }}>
+              <div style={{ marginTop: '12px' }}>
+                <div style={{ height: '4px', background: 'var(--bg-secondary)', borderRadius: '99px', overflow: 'hidden', marginBottom: '6px' }}>
                   <div style={{ 
                     height: '100%', width: `${(passStrength.score + 1) * 20}%`, 
-                    background: passStrength.color, transition: 'all 0.3s' 
+                    background: passStrength.color, transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)' 
                   }}/>
                 </div>
-                <div style={{ fontSize: '10px', fontWeight: '800', color: passStrength.color, textTransform: 'uppercase' }}>
-                  Strength: {passStrength.label}
+                <div style={{ fontSize: '11px', fontWeight: '500', color: passStrength.color, letterSpacing: '0.02em' }}>
+                  kekuatan: {passStrength.label.toLowerCase()}
                 </div>
               </div>
             )}
           </Field>
-          <Field label="Konfirmasi Password">
-            <input type="password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} style={inputStyle} />
+          <Field label="konfirmasi password">
+            <input type="password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} />
             {confirmPass && newPassword !== confirmPass && (
-              <div style={{ fontSize: '10px', color: '#ef4444', marginTop: '6px', fontWeight: '700' }}>⚠️ Password tidak cocok</div>
+              <div style={{ fontSize: '11px', color: 'var(--color-negative)', marginTop: '8px', fontWeight: '500' }}>⚠️ password tidak cocok</div>
             )}
           </Field>
         </div>
-        <button onClick={changePassword} disabled={savingPass || !newPassword || newPassword !== confirmPass} style={{ padding: '10px 20px', background: !newPassword || newPassword !== confirmPass ? 'var(--bg-secondary)' : '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>Ubah Password</button>
+        <button onClick={changePassword} disabled={savingPass || !newPassword || newPassword !== confirmPass} style={{ padding: '10px 24px', background: !newPassword || newPassword !== confirmPass ? 'var(--bg-secondary)' : 'var(--accent-primary)', color: 'var(--accent-primary-fg)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', opacity: (savingPass || !newPassword || newPassword !== confirmPass) ? 0.7 : 1 }}>
+          {savingPass ? 'memproses...' : 'ubah password'}
+        </button>
       </Section>
 
       <Section title="Notifikasi Telegram" subtitle="Aktifkan laporan otomatis ke akun Telegram">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {[
-            { id: 'weekly',   label: 'Laporan Mingguan', sub: 'Ringkasan performa setiap Sabtu pagi', value: notifyWeekly, set: setNotifyWeekly },
-            { id: 'monthly',  label: 'Laporan Bulanan', sub: 'Tinjauan mendalam setiap tanggal 1', value: notifyMonthly, set: setNotifyMonthly },
-            { id: 'ai',       label: 'Vonis Strategis AI', sub: 'Insight tajam tentang pola belanja Anda', value: notifyAi, set: setNotifyAi },
-            { id: 'reminder', label: 'Pengingat Tidak Isi', sub: 'Notifikasi jika tidak ada transaksi > 2 hari', value: notifyRemind, set: setNotifyRemind },
-            { id: 'budget',   label: 'Peringatan Anggaran', sub: 'Instan jika budget kategori terpakai > 80%', value: notifyBudget, set: setNotifyBudget },
-            { id: 'anomaly',  label: 'Deteksi Anomali Belanja', sub: 'Instan jika pengeluaran tidak wajar terdeteksi', value: notifyAnomaly, set: setNotifyAnomaly },
-            { id: 'forecast', label: 'Prediksi Defisit (Forecast)', sub: 'Peringatan dini saldo minus di akhir bulan', value: notifyForecast, set: setNotifyForecast },
+            { id: 'weekly',   label: 'laporan mingguan', sub: 'ringkasan performa setiap sabtu pagi', value: notifyWeekly, set: setNotifyWeekly },
+            { id: 'monthly',  label: 'laporan bulanan', sub: 'tinjauan mendalam setiap tanggal 1', value: notifyMonthly, set: setNotifyMonthly },
+            { id: 'ai',       label: 'vonis strategis ai', sub: 'insight tajam tentang pola belanja anda', value: notifyAi, set: setNotifyAi },
+            { id: 'reminder', label: 'pengingat isi transaksi', sub: 'notifikasi jika tidak ada transaksi > 2 hari', value: notifyRemind, set: setNotifyRemind },
+            { id: 'budget',   label: 'peringatan anggaran', sub: 'instan jika budget kategori terpakai > 80%', value: notifyBudget, set: setNotifyBudget },
+            { id: 'anomaly',  label: 'deteksi anomali belanja', sub: 'instan jika pengeluaran tidak wajar terdeteksi', value: notifyAnomaly, set: setNotifyAnomaly },
+            { id: 'forecast', label: 'prediksi defisit (forecast)', sub: 'peringatan dini saldo minus di akhir bulan', value: notifyForecast, set: setNotifyForecast },
           ].map(opt => (
-            <div key={opt.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap:'12px' }}>
+            <div key={opt.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap:'16px' }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)' }}>{opt.label}</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{opt.sub}</div>
+                <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-main)' }}>{opt.label.toLowerCase()}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{opt.sub.toLowerCase()}</div>
               </div>
               
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <button 
                   onClick={async (e) => {
                   const btn = e.currentTarget;
@@ -400,10 +407,13 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
                     setTimeout(() => { btn.innerText = old; }, 3000);
                   }}
                   style={{ 
-                    padding: '4px 10px', fontSize: '10px', fontWeight: '800', 
+                    padding: '6px 12px', fontSize: '11px', fontWeight: '600', 
                     background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', 
-                    color: 'var(--text-muted)', borderRadius: '6px', cursor: 'pointer' 
+                    color: 'var(--text-muted)', borderRadius: 'var(--radius-md)', cursor: 'pointer',
+                    transition: 'all 0.15s'
                   }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-primary)'; e.currentTarget.style.borderColor = 'var(--text-muted)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-secondary)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
                 >
                   TEST
                 </button>
@@ -411,16 +421,17 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
                 <div 
                   onClick={() => opt.set(!opt.value)}
                   style={{
-                    width: '40px', height: '22px', borderRadius: '12px',
+                    width: '42px', height: '22px', borderRadius: '99px',
                     background: opt.value ? 'var(--accent-primary)' : 'var(--bg-secondary)',
                     border: `1px solid ${opt.value ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-                    position: 'relative', cursor: 'pointer', transition: 'all 0.2s'
+                    position: 'relative', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
                   }}
                 >
                   <div style={{
-                    position: 'absolute', top: '2px', left: opt.value ? '20px' : '2px',
+                    position: 'absolute', top: '2px', left: opt.value ? '22px' : '2px',
                     width: '16px', height: '16px', borderRadius: '50%',
-                    background: '#fff', transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                    background: '#fff', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.4)'
                   }} />
                 </div>
               </div>
@@ -428,68 +439,68 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
           ))}
         </div>
         
-        <div style={{ marginTop: '24px', padding: '16px', background: 'rgba(37,99,235,0.05)', borderRadius: '12px', border: '1px dashed var(--accent-primary)' }}>
-          <label style={{ display: 'block', fontSize: '11px', fontWeight: '800', color: 'var(--accent-primary)', marginBottom: '8px', letterSpacing: '0.05em' }}>🔗 LINK AKUN TELEGRAM</label>
+        <div style={{ marginTop: '24px', padding: '16px', background: 'var(--bg-primary)', borderRadius: 'var(--radius-lg)', border: '1px dashed var(--border-color)' }}>
+          <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: 'var(--accent-primary)', marginBottom: '8px', letterSpacing: '0.05em' }}>🔗 LINK AKUN TELEGRAM</label>
           <div style={{ display: 'flex', gap: '8px' }}>
             <input 
               type="text" 
               value={telegramId}
-              placeholder="Masukkan Chat ID Anda..."
+              placeholder="masukkan chat id anda..."
               onChange={(e) => setTelegramId(e.target.value.replace(/[^0-9-]/g, ''))}
-              style={{
-                flex: 1, padding: '10px 12px', background: 'var(--card-bg)', 
-                border: '1px solid var(--border-color)', borderRadius: '8px',
-                fontSize: '13px', color: 'var(--text-main)', outline: 'none'
-              }}
+              style={inputStyle}
+              onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+              onBlur={e => e.target.style.borderColor = 'var(--border-color)'}
             />
           </div>
-          <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-            Ketik <b>/id</b> ke Bot Telegram Anda untuk melihat nomor ID Anda, lalu masukkan di sini.
+          <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
+            ketik <b style={{ color: 'var(--text-main)' }}>/id</b> ke bot telegram anda untuk melihat nomor id anda, lalu masukkan di sini.
           </div>
         </div>
-        <button onClick={saveProfile} disabled={savingProfile} style={{ marginTop:'20px', padding: '10px 20px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>Simpan Pengaturan Notifikasi</button>
+        <button onClick={saveProfile} disabled={savingProfile} style={{ marginTop:'24px', padding: '10px 24px', background: 'var(--accent-primary)', color: 'var(--accent-primary-fg)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
+          simpan pengaturan notifikasi
+        </button>
       </Section>
 
       {/* ── GROUP 2: APLIKASI & DATA ─────────────────────────────────── */}
-      <h2 style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', marginBottom: '12px', marginTop: '32px', letterSpacing: '0.1em' }}>PENGATURAN APLIKASI</h2>
+      <h2 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', marginBottom: '16px', marginTop: '48px', letterSpacing: '0.05em' }}>aplikasi & data</h2>
 
       <Section title="Mode Tampilan">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          <div onClick={() => applyTheme('dark')} style={{ padding: '12px', borderRadius: '10px', border: `2px solid ${theme === 'dark' ? '#2563eb' : 'var(--border-color)'}`, cursor: 'pointer', background: 'var(--bg-secondary)' }}>
-            <div style={{ fontSize: '14px', fontWeight: '600' }}>🌙 Dark Mode {theme === 'dark' && '✓'}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div onClick={() => applyTheme('dark')} style={{ padding: '16px', borderRadius: 'var(--radius-lg)', border: `1px solid ${theme === 'dark' ? 'var(--accent-primary)' : 'var(--border-color)'}`, cursor: 'pointer', background: theme === 'dark' ? 'var(--bg-primary)' : 'transparent', transition: 'all 0.2s' }}>
+            <div style={{ fontSize: '14px', fontWeight: '500', color: theme === 'dark' ? 'var(--text-main)' : 'var(--text-subtle)' }}>🌙 dark mode {theme === 'dark' && '✓'}</div>
           </div>
-          <div onClick={() => applyTheme('light')} style={{ padding: '12px', borderRadius: '10px', border: `2px solid ${theme === 'light' ? '#2563eb' : 'var(--border-color)'}`, cursor: 'pointer', background: '#fff', color: '#000' }}>
-            <div style={{ fontSize: '14px', fontWeight: '600' }}>☀️ Light Mode {theme === 'light' && '✓'}</div>
+          <div onClick={() => applyTheme('light')} style={{ padding: '16px', borderRadius: 'var(--radius-lg)', border: `1px solid ${theme === 'light' ? 'var(--accent-primary)' : 'var(--border-color)'}`, cursor: 'pointer', background: theme === 'light' ? '#fff' : 'transparent', transition: 'all 0.2s' }}>
+            <div style={{ fontSize: '14px', fontWeight: '500', color: theme === 'light' ? '#000' : 'var(--text-subtle)' }}>☀️ light mode {theme === 'light' && '✓'}</div>
           </div>
         </div>
       </Section>
 
       <Section title="Kategori Transaksi" subtitle="Kelola kategori kustom kamu">
-        <div style={{ display: 'flex', background: 'var(--bg-secondary)', padding: '4px', borderRadius: '10px', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', background: 'var(--bg-secondary)', padding: '4px', borderRadius: 'var(--radius-md)', marginBottom: '20px', border: '1px solid var(--border-color)' }}>
           {(['expense', 'income'] as const).map(t => (
-            <button key={t} onClick={() => { setCatTab(t); setCatPage(1); }} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', fontSize: '12px', fontWeight: '600', cursor: 'pointer', background: catTab === t ? 'var(--card-bg)' : 'transparent', color: catTab === t ? '#2563eb' : 'var(--text-muted)' }}>{t === 'expense' ? '💸 Pengeluaran' : '💰 Pemasukan'}</button>
+            <button key={t} onClick={() => { setCatTab(t); setCatPage(1); }} style={{ flex: 1, padding: '8px', borderRadius: 'var(--radius-sm)', border: 'none', fontSize: '13px', fontWeight: '500', cursor: 'pointer', background: catTab === t ? 'var(--card-bg)' : 'transparent', color: catTab === t ? 'var(--accent-primary)' : 'var(--text-muted)', transition: 'all 0.2s' }}>{t === 'expense' ? 'pengeluaran' : 'pemasukan'}</button>
           ))}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <button onClick={openNewCat} style={{ fontSize: '12px', background: 'rgba(37,99,235,0.1)', color: '#2563eb', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: '700' }}>+ Kategori Baru</button>
+        <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '16px' }}>
+          <button onClick={openNewCat} style={{ fontSize: '12px', background: 'var(--bg-primary)', color: 'var(--accent-primary)', border: '1px solid var(--border-color)', padding: '8px 16px', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontWeight: '600' }}>+ kategori baru</button>
         </div>
         {showCatForm && (
-          <div style={{ background: 'var(--bg-secondary)', padding: '14px', borderRadius: '10px', marginBottom: '12px' }}>
-            <input value={catForm.name} onChange={e => setCatForm(p => ({ ...p, name: e.target.value }))} style={{ ...inputStyle, marginBottom: '10px' }} placeholder="Nama" />
-            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '10px' }}>
-              {CATEGORY_ICONS.slice(0, 10).map(ic => <button key={ic} onClick={() => setCatForm(p => ({ ...p, icon: ic }))} style={{ fontSize: '18px', padding: '6px', background: catForm.icon === ic ? 'rgba(37,99,235,0.1)' : 'transparent', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{ic}</button>)}
+          <div style={{ background: 'var(--bg-primary)', padding: '20px', borderRadius: 'var(--radius-lg)', marginBottom: '16px', border: '1px solid var(--border-color)' }}>
+            <input value={catForm.name} onChange={e => setCatForm(p => ({ ...p, name: e.target.value }))} style={{ ...inputStyle, marginBottom: '12px' }} placeholder="nama kategori" onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} />
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
+              {CATEGORY_ICONS.slice(0, 10).map(ic => <button key={ic} onClick={() => setCatForm(p => ({ ...p, icon: ic }))} style={{ fontSize: '20px', padding: '8px', background: catForm.icon === ic ? 'var(--bg-secondary)' : 'transparent', border: `1px solid ${catForm.icon === ic ? 'var(--accent-primary)' : 'transparent'}`, borderRadius: 'var(--radius-md)', cursor: 'pointer', transition: 'all 0.15s' }}>{ic}</button>)}
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={saveCat} style={{ padding: '6px 14px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '5px', fontSize: '12px' }}>Simpan</button>
-              <button onClick={() => setShowCatForm(false)} style={{ padding: '6px 14px', background: 'transparent', color: 'var(--text-muted)', border: 'none', fontSize: '12px' }}>Batal</button>
+              <button onClick={saveCat} style={{ padding: '8px 20px', background: 'var(--accent-primary)', color: 'var(--accent-primary-fg)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>simpan</button>
+              <button onClick={() => setShowCatForm(false)} style={{ padding: '8px 20px', background: 'transparent', color: 'var(--text-muted)', border: 'none', fontSize: '13px', cursor: 'pointer' }}>batal</button>
             </div>
           </div>
         )}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
           {userCats.slice((catPage - 1) * CAT_PAGE_SIZE, catPage * CAT_PAGE_SIZE).map(c => (
-            <div key={c.id} style={{ padding: '8px 10px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
-              <span>{c.icon}</span> <span style={{ flex: 1, fontWeight: '500' }}>{c.name}</span>
-              <button onClick={() => openEditCat(c)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>✏️</button>
+            <div key={c.id} style={{ padding: '12px 14px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', transition: 'border-color 0.15s' }}>
+              <span style={{ fontSize: '18px' }}>{c.icon}</span> <span style={{ flex: 1, fontWeight: '500', color: 'var(--text-main)' }}>{c.name.toLowerCase()}</span>
+              <button onClick={() => openEditCat(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px' }}>✏️</button>
             </div>
           ))}
         </div>
@@ -503,29 +514,29 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
       </Section>
 
       {/* ── GROUP 3: ADMINISTRASI & DATA ────────────────────────────── */}
-      <h2 style={{ fontSize: '11px', fontWeight: '800', color: '#ef4444', marginBottom: '12px', marginTop: '32px', letterSpacing: '0.1em' }}>ADMINISTRASI & DATA</h2>
+      <h2 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', marginBottom: '16px', marginTop: '48px', letterSpacing: '0.05em' }}>administrasi & data</h2>
       
       {(profile.role === 'owner' || profile.role === 'admin') && (
         <a href="/dashboard/settings/users" style={{ textDecoration: 'none' }}>
-        <Section title="Manajemen User">
+        <Section title="manajemen user">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>👥</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-color)' }}>👥</div>
               <div>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>Kelola Anggota Keluarga</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Tambah user atau ganti password admin</div>
+                <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-main)' }}>kelola anggota keluarga</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>tambah user atau ganti password admin</div>
               </div>
             </div>
-            <span style={{ color: 'var(--text-muted)' }}>→</span>
+            <span style={{ color: 'var(--text-muted)', opacity: 0.5 }}>→</span>
           </div>
         </Section>
         </a>
       )}
 
-      <div style={{ marginTop: '16px', border: `1px solid ${showDanger ? '#ef4444' : 'var(--border-color)'}`, borderRadius: '14px', padding: '20px', background: showDanger ? 'rgba(239,68,68,0.02)' : 'var(--card-bg)' }}>
+      <div style={{ marginTop: '16px', border: `1px solid ${showDanger ? 'var(--color-negative)' : 'var(--border-color)'}`, borderRadius: 'var(--radius-lg)', padding: '24px', background: showDanger ? 'var(--color-negative-bg)' : 'var(--card-bg)', transition: 'all 0.2s' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div><div style={{ fontSize: '14px', fontWeight: '700', color: showDanger ? '#ef4444' : 'var(--text-main)' }}>☢️ Danger Zone</div> {showDanger && <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Hapus data bersifat permanen.</div>}</div>
-          <button onClick={() => setShowDanger(!showDanger)} style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', background: 'transparent', border: `1px solid ${showDanger ? 'var(--border-color)' : '#ef4444'}`, color: showDanger ? 'var(--text-muted)' : '#ef4444' }}>{showDanger ? 'Tutup' : 'Buka'}</button>
+          <div><div style={{ fontSize: '15px', fontWeight: '500', color: showDanger ? 'var(--color-negative)' : 'var(--text-main)' }}>☢️ danger zone</div> {showDanger && <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>hapus data bersifat permanen.</div>}</div>
+          <button onClick={() => setShowDanger(!showDanger)} style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)', fontSize: '12px', fontWeight: '600', background: 'transparent', border: `1px solid ${showDanger ? 'var(--border-color)' : 'var(--color-negative)'}`, color: showDanger ? 'var(--text-muted)' : 'var(--color-negative)', cursor: 'pointer' }}>{showDanger ? 'tutup' : 'buka'}</button>
         </div>
 
         {showDanger && (
@@ -543,8 +554,8 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
         )}
       </div>
 
-      <div style={{ marginTop: '40px', textAlign: 'center' }}>
-        <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Sign Out</button>
+      <div style={{ marginTop: '48px', textAlign: 'center' }}>
+        <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'var(--color-negative)', fontSize: '14px', fontWeight: '600', cursor: 'pointer', letterSpacing: '0.02em' }}>sign out</button>
       </div>
 
       <ConfirmModal 

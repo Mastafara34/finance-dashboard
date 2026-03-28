@@ -17,7 +17,7 @@ const fmtK = (n: number) => {
   return n.toString();
 };
 const MONTH_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-const CAT_COLORS  = ['#2563eb','#6366f1','#8b5cf6','#a855f7','#ec4899','#f97316','#eab308','#22c55e','#14b8a6','#06b6d4'];
+const CAT_COLORS  = ['#D4D4D2', '#B5B5B3', '#969694', '#777775', '#585856', '#D9C5B2', '#BFA89E', '#A48B81', '#896E64', '#6F5147'];
 
 // ── Components ───────────────────────────────────────────────────────────────
 
@@ -28,36 +28,36 @@ function BarChart({ data, maxVal, showIncome, showExpense }: {
   const [tooltip, setTooltip] = useState<{x:number;y:number;d:typeof data[0]}|null>(null);
   return (
     <div style={{ position:'relative' }}>
-      <div style={{ display:'flex', alignItems:'flex-end', gap:'2px', height:'120px' }}>
+      <div style={{ display:'flex', alignItems:'flex-end', gap:'3px', height:'120px' }}>
         {data.map((d, i) => {
           const incH = maxVal > 0 ? Math.round((d.income/maxVal)*116) : 0;
           const expH = maxVal > 0 ? Math.round((d.expense/maxVal)*116) : 0;
           return (
-            <div key={i} style={{ flex:1, display:'flex', gap:'1px', alignItems:'flex-end', height:'120px', cursor:'default' }}
+            <div key={i} style={{ flex:1, display:'flex', gap:'2px', alignItems:'flex-end', height:'120px', cursor:'default' }}
               onMouseEnter={e => setTooltip({x:e.clientX,y:e.clientY,d})}
               onMouseLeave={() => setTooltip(null)}
             >
-              {showIncome  && <div style={{ flex:1, height:`${Math.max(incH,d.income>0?2:0)}px`, background:'#166534', borderRadius:'2px 2px 0 0' }}/>}
-              {showExpense && <div style={{ flex:1, height:`${Math.max(expH,d.expense>0?2:0)}px`, background:'#7f1d1d', borderRadius:'2px 2px 0 0' }}/>}
-              {d.income===0&&d.expense===0 && <div style={{ flex:1, height:'2px', background:'var(--border-color)' }}/>}
+              {showIncome  && <div style={{ flex:1, height:`${Math.max(incH,d.income>0?3:0)}px`, background:'var(--color-positive)', borderRadius:'1px 1px 0 0', opacity: 0.85 }}/>}
+              {showExpense && <div style={{ flex:1, height:`${Math.max(expH,d.expense>0?3:0)}px`, background:'var(--color-negative)', borderRadius:'1px 1px 0 0', opacity: 0.85 }}/>}
+              {d.income===0 && d.expense===0 && <div style={{ flex:1, height:'2px', background:'var(--border-color)' }}/>}
             </div>
           );
         })}
       </div>
-      <div style={{ display:'flex', gap:'2px', marginTop:'4px' }}>
+      <div style={{ display:'flex', gap:'3px', marginTop:'8px' }}>
         {data.map((d,i) => (
-          <div key={i} style={{ flex:1, textAlign:'center', fontSize:'9px', color:'var(--text-muted)' }}>{d.label}</div>
+          <div key={i} style={{ flex:1, textAlign:'center', fontSize:'12px', color:'var(--text-muted)' }}>{d.label}</div>
         ))}
       </div>
       {tooltip && (
         <div style={{
           position:'fixed', zIndex:999, left:tooltip.x+12, top:tooltip.y-60,
-          background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'8px',
-          padding:'8px 12px', fontSize:'12px', pointerEvents:'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
+          background:'var(--bg-elevated)', border:'1px solid var(--border-color-md)', borderRadius:'var(--radius-md)',
+          padding:'10px 14px', fontSize:'12px', pointerEvents:'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)'
         }}>
-          <div style={{ fontWeight:'600', color:'var(--text-main)', marginBottom:'4px' }}>{tooltip.d.label}</div>
-          {showIncome  && <div style={{ color:'#4ade80' }}>↑ {fmt(tooltip.d.income)}</div>}
-          {showExpense && <div style={{ color:'#f87171' }}>↓ {fmt(tooltip.d.expense)}</div>}
+          <div style={{ fontWeight:'500', color:'var(--text-main)', marginBottom:'6px' }}>{tooltip.d.label}</div>
+          {showIncome  && <div style={{ color:'var(--color-positive)', display:'flex', justifyContent:'space-between', gap:'12px' }}><span>Masuk</span> <span>{fmt(tooltip.d.income)}</span></div>}
+          {showExpense && <div style={{ color:'var(--color-negative)', display:'flex', justifyContent:'space-between', gap:'12px' }}><span>Keluar</span> <span>{fmt(tooltip.d.expense)}</span></div>}
         </div>
       )}
     </div>
@@ -69,7 +69,6 @@ function BarChart({ data, maxVal, showIncome, showExpense }: {
 export default function AnalyticsClient({ transactions }: { transactions: Transaction[] }) {
   const [mode, setMode] = useState<'standard'|'strategic'>('standard');
   const [view, setView] = useState<'daily'|'monthly'|'yearly'>('monthly');
-  const [showType, setShowType] = useState<'both'|'income'|'expense'>('both');
   const [catType,  setCatType]  = useState<'expense'|'income'>('expense');
   
   const now = new Date();
@@ -114,7 +113,6 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
 
   const mIncome     = useMemo(() => transactions.filter(t => t.date.startsWith(targetMonth) && t.type === 'income').reduce((s,t) => s + t.amount, 0), [transactions, targetMonth]);
   const mExpense    = useMemo(() => transactions.filter(t => t.date.startsWith(targetMonth) && t.type === 'expense').reduce((s,t) => s + t.amount, 0), [transactions, targetMonth]);
-  const avgExpense  = useMemo(() => monthlyHistory.reduce((s,d) => s + d.expense, 0) / (monthlyHistory.length || 1), [monthlyHistory]);
   
   const weeklyData = useMemo(() => {
     const weeks: { label: string; income: number; expense: number }[] = [];
@@ -147,31 +145,31 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
   const catTotal = useMemo(() => catData.reduce((s, d) => s + d.value, 0), [catData]);
 
   const btnStyle = (active: boolean): React.CSSProperties => ({
-    padding:'7px 14px', borderRadius:'10px', border:'1px solid',
-    fontSize:'12px', cursor:'pointer', fontWeight:'600',
-    borderColor: active?'var(--accent-primary)':'var(--border-color)',
-    background: active?'rgba(37, 99, 235, 0.1)':'transparent',
-    color: active?'var(--accent-primary)':'var(--text-muted)',
-    transition: 'all 0.2s',
+    padding:'8px 16px', borderRadius:'var(--radius-md)', border:'1px solid',
+    fontSize:'13px', cursor:'pointer', fontWeight:'500',
+    borderColor: active?'var(--accent-primary)':'var(--border-color-md)',
+    background: active?'var(--accent-primary)':'transparent',
+    color: active?'var(--accent-primary-fg)':'var(--text-muted)',
+    transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
   });
 
   return (
-    <div style={{ color:'var(--text-main)', fontFamily:'"DM Sans",system-ui,sans-serif' }}>
-      <header style={{ marginBottom:'24px', display:'flex', justifyContent:'space-between', alignItems:'flex-end', flexWrap:'wrap', gap:'16px' }}>
+    <div style={{ color:'var(--text-main)', fontFamily:'var(--font-main, system-ui, sans-serif)' }}>
+      <header style={{ marginBottom:'32px', display:'flex', justifyContent:'space-between', alignItems:'flex-end', flexWrap:'wrap', gap:'16px' }}>
         <div>
-            <h1 style={{ fontSize:'24px', fontWeight:'800', margin:'0 0 4px', letterSpacing: '-0.5px' }}>Audit & Strategi</h1>
-            <div style={{ display:'flex', gap:'8px', marginTop:'8px' }}>
-                <button onClick={() => setMode('standard')} style={btnStyle(mode==='standard')}>Audit Histori Terpadu</button>
-                <button onClick={() => setMode('strategic')} style={btnStyle(mode==='strategic')}>Tinjauan Strategi Kekayaan</button>
+            <h1 style={{ fontSize:'24px', fontWeight:'600', margin:'0 0 8px', letterSpacing: '-0.3px', color:'var(--text-main)' }}>audit & strategi</h1>
+            <div style={{ display:'flex', gap:'8px' }}>
+                <button onClick={() => setMode('standard')} style={btnStyle(mode==='standard')}>audit histori</button>
+                <button onClick={() => setMode('strategic')} style={btnStyle(mode==='strategic')}>tinjauan strategi</button>
             </div>
         </div>
         <select 
             value={targetMonth} 
             onChange={e => setTargetMonth(e.target.value)}
             style={{ 
-                padding:'10px 16px', borderRadius:'10px', background:'var(--card-bg)', 
-                border:'1px solid var(--border-color)', color:'var(--text-main)', 
-                fontSize:'13px', fontWeight:'700', outline:'none', cursor:'pointer' 
+                padding:'10px 16px', borderRadius:'var(--radius-md)', background:'var(--card-bg)', 
+                border:'1px solid var(--border-color-md)', color:'var(--text-main)', 
+                fontSize:'14px', fontWeight:'500', outline:'none', cursor:'pointer' 
             }}
         >
             {availableMonths.map(m => {
@@ -186,49 +184,49 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
       ) : (
           <>
             {/* KPI Overview */}
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:'12px', marginBottom:'20px' }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:'12px', marginBottom:'24px' }}>
                 {[ 
-                  { label:'Total Masuk', value:fmt(mIncome), color:'#10b981' }, 
-                  { label:'Total Keluar', value:fmt(mExpense), color:'#f87171' }, 
-                  { label:'Net Surplus', value:fmt(mIncome - mExpense), color:(mIncome-mExpense)>0?'#10b981':'#f87171' } 
+                  { label:'pemasukan', value:fmt(mIncome), color:'var(--color-positive)' }, 
+                  { label:'pengeluaran', value:fmt(mExpense), color:'var(--color-negative)' }, 
+                  { label:'net surplus', value:fmt(mIncome - mExpense), color:(mIncome-mExpense)>0?'var(--color-positive)':'var(--color-negative)' } 
                 ].map(k => (
-                    <Card key={k.label} style={{ padding:'16px' }}>
-                        <div style={{ fontSize:'10px', color:'var(--text-muted)', fontWeight:'700', marginBottom:'6px', textTransform:'uppercase' }}>{k.label}</div>
-                        <div style={{ fontSize:'18px', fontWeight:'800', color:k.color }}>{k.value}</div>
+                    <Card key={k.label} style={{ padding:'20px' }}>
+                        <div style={{ fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'8px' }}>{k.label}</div>
+                        <div style={{ fontSize:'22px', fontWeight:'600', color:k.color, letterSpacing:'-0.5px' }}>{k.value}</div>
                     </Card>
                 ))}
             </div>
 
             {/* Chart Block */}
-            <Card style={{ marginBottom:'20px', padding:'20px' }}>
-                <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'16px' }}>
-                    <div style={{ display:'flex', gap:'6px' }}>
-                        {(['daily','monthly','yearly'] as const).map(v => <button key={v} onClick={()=>setView(v)} style={btnStyle(view===v)}>{v==='daily'?'Detail Hari':v==='monthly'?'Tren Bulan':'Sejarah Tahun'}</button>)}
+            <Card style={{ marginBottom:'24px', padding:'24px' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'20px' }}>
+                    <div style={{ display:'flex', gap:'8px' }}>
+                        {(['daily','monthly','yearly'] as const).map(v => <button key={v} onClick={()=>setView(v)} style={btnStyle(view===v)}>{v==='daily'?'detail hari':v==='monthly'?'tren bulan':'sejarah tahun'}</button>)}
                     </div>
                 </div>
                 <BarChart data={chartData} maxVal={maxVal} showIncome={true} showExpense={true} />
             </Card>
 
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))', gap:'14px' }}>
-                {/* Categories with Labels */}
-                <Card style={{ padding:'20px' }}>
-                    <div style={{ fontSize:'14px', fontWeight:'800', marginBottom:'16px' }}>Dominasi Kategori ({MONTH_NAMES[tMonthIdx-1]})</div>
-                    <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))', gap:'16px' }}>
+                {/* Categories */}
+                <Card style={{ padding:'24px' }}>
+                    <div style={{ fontSize:'14px', fontWeight:'500', marginBottom:'20px' }}>dominasi kategori</div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
                         {catData.slice(0,6).map((d,i) => {
                             const p = Math.round((d.value/catTotal)*100);
                             return (
-                                <div key={i} style={{ display:'flex', alignItems:'center', gap:'12px' }}>
-                                    <span style={{ fontSize:'24px', width:'30px' }}>{d.icon}</span>
+                                <div key={i} style={{ display:'flex', alignItems:'center', gap:'14px' }}>
+                                    <span style={{ fontSize:'24px', width:'32px' }}>{d.icon}</span>
                                     <div style={{ flex:1 }}>
-                                        <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'4px' }}>
-                                            <span style={{ fontSize:'12px', fontWeight:'700', color:'var(--text-main)' }}>{d.name}</span>
-                                            <span style={{ fontSize:'11px', color:'var(--text-muted)' }}>{p}%</span>
+                                        <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'6px' }}>
+                                            <span style={{ fontSize:'13px', fontWeight:'500', color:'var(--text-main)' }}>{d.name.toLowerCase()}</span>
+                                            <span style={{ fontSize:'12px', color:'var(--text-muted)' }}>{p}%</span>
                                         </div>
-                                        <div style={{ height:'6px', background:'var(--bg-secondary)', borderRadius:'99px', overflow:'hidden' }}>
-                                            <div style={{ height:'100%', width:`${p}%`, background:d.color }}/>
+                                        <div style={{ height:'3px', background:'var(--bg-secondary)', borderRadius:'99px', overflow:'hidden' }}>
+                                            <div style={{ height:'100%', width:`${p}%`, background:d.color, opacity: 0.8 }}/>
                                         </div>
                                     </div>
-                                    <span style={{ fontSize:'12px', fontWeight:'800', width:'65px', textAlign:'right' }}>{fmtK(d.value)}</span>
+                                    <span style={{ fontSize:'13px', fontWeight:'500', width:'65px', textAlign:'right', color:'var(--text-main)' }}>{fmtK(d.value)}</span>
                                 </div>
                             );
                         })}
@@ -236,42 +234,42 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
                 </Card>
 
                 {/* Weekly Monitor */}
-                <Card style={{ padding:'20px' }}>
-                    <div style={{ fontSize:'14px', fontWeight:'800', marginBottom:'16px' }}>Laporan Mingguan Terperinci</div>
-                    <div style={{ display:'flex', flexDirection:'column', gap:'1px' }}>
-                        <div style={{ display:'grid', gridTemplateColumns:'85px 1fr 1fr', padding:'5px 8px', fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase' }}>
-                            <span>Minggu</span>
-                            <span style={{ textAlign:'right' }}>Masuk</span>
-                            <span style={{ textAlign:'right' }}>Keluar</span>
+                <Card style={{ padding:'24px' }}>
+                    <div style={{ fontSize:'14px', fontWeight:'500', marginBottom:'20px' }}>laporan mingguan</div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:'4px' }}>
+                        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', padding:'0 12px 12px', fontSize:'12px', color:'var(--text-muted)' }}>
+                            <span>minggu</span>
+                            <span style={{ textAlign:'right' }}>masuk</span>
+                            <span style={{ textAlign:'right' }}>keluar</span>
                         </div>
                         {weeklyData.map((d,i) => (
-                            <div key={i} style={{ display:'grid', gridTemplateColumns:'85px 1fr 1fr', padding:'10px 8px', borderRadius:'8px', fontSize:'13px', background: i%2===0?'transparent':'var(--bg-secondary)' }}>
-                                <span style={{ fontWeight:'700' }}>{d.label}</span>
-                                <span style={{ textAlign:'right', color:'#10b981' }}>{fmtK(d.income)}</span>
-                                <span style={{ textAlign:'right', color:'#f87171' }}>{fmtK(d.expense)}</span>
+                            <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', padding:'12px', borderRadius:'var(--radius-md)', fontSize:'13px', background: i%2===0?'transparent':'var(--bg-primary)', border:'1px solid transparent' }}>
+                                <span style={{ fontWeight:'500', color:'var(--text-main)' }}>{d.label.toLowerCase()}</span>
+                                <span style={{ textAlign:'right', color:'var(--color-positive)' }}>{fmtK(d.income)}</span>
+                                <span style={{ textAlign:'right', color:'var(--color-negative)' }}>{fmtK(d.expense)}</span>
                             </div>
                         ))}
                     </div>
                 </Card>
 
-                {/* Monthly Monitor (New Component Style) */}
-                <Card style={{ padding:'20px' }}>
-                    <div style={{ fontSize:'14px', fontWeight:'800', marginBottom:'16px' }}>Monitor Histori Bulanan</div>
-                    <div style={{ display:'flex', flexDirection:'column', gap:'1px' }}>
-                        <div style={{ display:'grid', gridTemplateColumns:'80px 1fr 1fr 1fr', padding:'5px 8px', fontSize:'10px', color:'var(--text-muted)', textTransform:'uppercase' }}>
-                            <span>Bulan</span>
-                            <span style={{ textAlign:'right' }}>In</span>
-                            <span style={{ textAlign:'right' }}>Out</span>
-                            <span style={{ textAlign:'right' }}>Net</span>
+                {/* Monthly Monitor */}
+                <Card style={{ padding:'24px' }}>
+                    <div style={{ fontSize:'14px', fontWeight:'500', marginBottom:'20px' }}>histori bulanan</div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:'4px' }}>
+                        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', padding:'0 12px 12px', fontSize:'12px', color:'var(--text-muted)' }}>
+                            <span>bulan</span>
+                            <span style={{ textAlign:'right' }}>in</span>
+                            <span style={{ textAlign:'right' }}>out</span>
+                            <span style={{ textAlign:'right' }}>net</span>
                         </div>
                         {monthlyHistory.slice().reverse().slice(0,6).map((d,i) => {
                             const diff = d.income - d.expense;
                             return (
-                                <div key={i} style={{ display:'grid', gridTemplateColumns:'80px 1fr 1fr 1fr', padding:'10px 8px', borderRadius:'8px', fontSize:'13px', background: i%2===0?'transparent':'var(--bg-secondary)' }}>
-                                    <span style={{ fontWeight:'800' }}>{d.label}</span>
-                                    <span style={{ textAlign:'right', color:'#10b981' }}>{fmtK(d.income)}</span>
-                                    <span style={{ textAlign:'right', color:'#f87171' }}>{fmtK(d.expense)}</span>
-                                    <span style={{ textAlign:'right', fontWeight:'900', color:diff>=0?'#10b981':'#f87171' }}>{fmtK(diff)}</span>
+                                <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', padding:'12px', borderRadius:'var(--radius-md)', fontSize:'13px', background: i%2===0?'transparent':'var(--bg-primary)' }}>
+                                    <span style={{ fontWeight:'500', color:'var(--text-main)' }}>{d.label.toLowerCase()}</span>
+                                    <span style={{ textAlign:'right', color:'var(--color-positive)' }}>{fmtK(d.income)}</span>
+                                    <span style={{ textAlign:'right', color:'var(--color-negative)' }}>{fmtK(d.expense)}</span>
+                                    <span style={{ textAlign:'right', fontWeight:'600', color:diff>=0?'var(--color-positive)':'var(--color-negative)' }}>{fmtK(diff)}</span>
                                 </div>
                             );
                         })}
@@ -285,7 +283,14 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
 }
 
 const Card = ({ children, style }: { children: React.ReactNode, style?: React.CSSProperties }) => (
-  <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'14px', boxShadow: 'var(--card-shadow)', ...style }}>
+  <div style={{ 
+    background:'var(--card-bg)', 
+    border:'1px solid var(--border-color)', 
+    borderRadius:'var(--radius-lg)', 
+    boxShadow: 'none', 
+    transition: 'border-color 0.2s ease',
+    ...style 
+  }}>
     {children}
   </div>
 );

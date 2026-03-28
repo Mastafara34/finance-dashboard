@@ -96,34 +96,38 @@ Dicetak pada: ${new Date().toLocaleString('id-ID')}
   };
 
   return (
-    <div style={{ color: 'var(--text-main)', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
-      <header style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+    <div style={{ color: 'var(--text-main)' }}>
+      <header style={{ marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px', color: 'var(--text-main)' }}>Riwayat Laporan Terperinci</h1>
-          <p style={{ color: 'var(--text-muted)' }}>Analisis mendalam arus kas mingguan dan bulanan Anda.</p>
+          <h1 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-main)', letterSpacing: '-0.3px' }}>riwayat laporan</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>analisis mendalam arus kas mingguan dan bulanan anda.</p>
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '10px' }}>
           <button 
             disabled={isSaving}
             onClick={() => handleGenerateReport('weekly')}
-            style={{ padding: '8px 16px', background: 'rgba(99, 102, 241, 0.12)', color: '#4338ca', border: '1px solid rgba(99, 102, 241, 0.35)', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+            style={{ padding: '10px 20px', background: 'var(--bg-secondary)', color: 'var(--text-main)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.15s' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--text-muted)'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-color)'}
           >
-            + Mingguan
+            + mingguan
           </button>
           <button 
             disabled={isSaving}
             onClick={() => handleGenerateReport('monthly')}
-            style={{ padding: '8px 16px', background: 'var(--bg-secondary)', color: 'var(--text-muted)', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+            style={{ padding: '10px 20px', background: 'var(--accent-primary)', color: 'var(--accent-primary-fg)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.15s' }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
           >
-            + Bulanan
+            + bulanan
           </button>
         </div>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: selectedReport ? '1fr 1fr' : '1fr', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: selectedReport ? '1fr 1fr' : '1fr', gap: '24px' }}>
         {/* List History */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Riwayat Laporan</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <h2 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '4px' }}>riwayat laporan</h2>
           {reports.length === 0 ? (
             <Card style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
               Belum ada history laporan. Laporan akan terbuat otomatis setiap minggu/bulan.
@@ -138,39 +142,39 @@ Dicetak pada: ${new Date().toLocaleString('id-ID')}
                   setPlanText(r.improvement_plan || '');
                 }}
                 style={{ 
-                  background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px', 
-                  cursor: 'pointer', transition: 'all 0.2s',
+                  background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '20px', 
+                  cursor: 'pointer', transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
                   borderColor: selectedReport?.id === r.id ? 'var(--accent-primary)' : 'var(--border-color)',
-                  boxShadow: selectedReport?.id === r.id ? '0 0 15px rgba(37,99,235,0.12)' : 'var(--card-shadow)'
+                  boxShadow: selectedReport?.id === r.id ? '0 8px 32px rgba(0,0,0,0.2)' : 'none'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <span style={{ 
-                      fontSize: '10px', background: r.type === 'weekly' ? 'rgba(99, 102, 241, 0.12)' : 'var(--bg-secondary)', 
-                      color: r.type === 'weekly' ? '#4338ca' : 'var(--text-muted)', 
-                      padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: '700', marginRight: '8px' 
+                      fontSize: '11px', background: r.type === 'weekly' ? 'var(--bg-secondary)' : 'var(--bg-secondary)', 
+                      color: 'var(--text-main)', 
+                      padding: '2px 10px', borderRadius: 'var(--radius-sm)', fontWeight: '600', border: '1px solid var(--border-color)'
                     }}>
-                      {r.type === 'weekly' ? 'Mingguan' : 'Bulanan'}
+                      {r.type === 'weekly' ? 'mingguan' : 'bulanan'}
                     </span>
-                    <span style={{ fontSize: '14px', fontWeight: '600' }}>{new Date(r.period_start).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} - {new Date(r.period_end).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    <span style={{ fontSize: '15px', fontWeight: '500' }}>{new Date(r.period_start).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} - {new Date(r.period_end).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                   </div>
-                  <span style={{ fontSize: '12px', color: r.status === 'achieved' ? '#4ade80' : '#f87171' }}>
-                    {r.status === 'achieved' ? '✅ Tercapai' : '⚠️ Butuh Evaluasi'}
+                  <span style={{ fontSize: '13px', fontWeight: '500', color: r.status === 'achieved' ? 'var(--color-positive)' : 'var(--color-negative)' }}>
+                    {r.status === 'achieved' ? '✓ tercapai' : '✕ butuh evaluasi'}
                   </span>
                 </div>
-                <div style={{ display: 'flex', gap: '20px', marginTop: '12px' }}>
+                <div style={{ display: 'flex', gap: '24px', marginTop: '16px' }}>
                   <div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Income</div>
-                    <div style={{ fontSize: '13px', fontWeight: '600' }}>{fmt(r.data.income)}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>pemasukan</div>
+                    <div style={{ fontSize: '14px', fontWeight: '600' }}>{fmt(r.data.income)}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Expense</div>
-                    <div style={{ fontSize: '13px', fontWeight: '600' }}>{fmt(r.data.expense)}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>pengeluaran</div>
+                    <div style={{ fontSize: '14px', fontWeight: '600' }}>{fmt(r.data.expense)}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Saving Rate</div>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: r.data.saving_rate >= 20 ? '#4ade80' : '#f59e0b' }}>{r.data.saving_rate.toFixed(1)}%</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>saving rate</div>
+                    <div style={{ fontSize: '14px', fontWeight: '600', color: r.data.saving_rate >= 20 ? 'var(--color-positive)' : 'var(--color-neutral)' }}>{r.data.saving_rate.toFixed(1)}%</div>
                   </div>
                 </div>
               </div>
@@ -180,11 +184,11 @@ Dicetak pada: ${new Date().toLocaleString('id-ID')}
 
         {/* Evaluation Panel */}
         {selectedReport && (
-          <div style={{ position: 'sticky', top: '20px' }}>
-            <Card style={{ border: '1px solid #2563eb', background: 'rgba(37,99,235,0.02)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: '700' }}>Detail & Evaluasi Manual</h2>
-                <button onClick={() => setSelectedReport(null)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}>✕</button>
+          <div style={{ position: 'sticky', top: '24px' }}>
+            <div style={{ background: 'var(--card-bg)', border: '1px solid var(--accent-primary)', borderRadius: 'var(--radius-lg)', padding: '28px', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: '500' }}>detail & evaluasi</h2>
+                <button onClick={() => setSelectedReport(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '20px' }}>✕</button>
               </div>
 
               <div style={{ marginBottom: '20px' }}>
@@ -201,15 +205,18 @@ Dicetak pada: ${new Date().toLocaleString('id-ID')}
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>Rencana Perbaikan Periode Berikutnya</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: '500' }}>rencana perbaikan periode berikutnya</div>
                 <textarea 
                   value={planText}
                   onChange={(e) => setPlanText(e.target.value)}
                   placeholder="Contoh: Mengurangi makan di luar di minggu depan untuk menyeimbangkan budget..."
                   style={{ 
                     width: '100%', minHeight: '100px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', 
-                    borderRadius: '8px', padding: '12px', color: 'var(--text-main)', fontSize: '13px', outline: 'none'
+                    borderRadius: 'var(--radius-md)', padding: '14px', color: 'var(--text-main)', fontSize: '14px', outline: 'none',
+                    transition: 'border-color 0.15s'
                   }}
+                  onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+                  onBlur={e => e.target.style.borderColor = 'var(--border-color)'}
                 />
               </div>
 
@@ -217,24 +224,24 @@ Dicetak pada: ${new Date().toLocaleString('id-ID')}
                 disabled={isSaving}
                 onClick={handleSaveEvaluation}
                 style={{ 
-                  width: '100%', padding: '12px', background: '#2563eb', color: '#fff', 
-                  border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer',
-                  opacity: isSaving ? 0.5 : 1, marginBottom: '10px'
+                  width: '100%', padding: '14px', background: 'var(--accent-primary)', color: 'var(--accent-primary-fg)', 
+                  border: 'none', borderRadius: 'var(--radius-md)', fontWeight: '600', cursor: 'pointer',
+                  opacity: isSaving ? 0.7 : 1, marginBottom: '12px', fontSize: '14px'
                 }}
               >
-                {isSaving ? 'Menyimpan...' : 'Simpan Evaluasi'}
+                {isSaving ? 'menyimpan...' : 'simpan evaluasi'}
               </button>
 
               <button 
                 onClick={() => downloadReport(selectedReport)}
                 style={{ 
-                  width: '100%', padding: '12px', background: 'var(--card-bg)', color: 'var(--text-main)', 
-                  border: '1px solid var(--border-color)', borderRadius: '8px', fontWeight: '600', cursor: 'pointer'
+                  width: '100%', padding: '14px', background: 'transparent', color: 'var(--text-main)', 
+                  border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', fontWeight: '600', cursor: 'pointer', fontSize: '14px'
                 }}
               >
-                📥 Unduh Laporan (.txt)
+                unduh laporan (.txt)
               </button>
-            </Card>
+            </div>
           </div>
         )}
       </div>
