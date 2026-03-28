@@ -1,4 +1,6 @@
 // app/dashboard/goals/GoalsClient.tsx
+// ✅ Visual fix: semua hardcoded color → token, font weight max 600, border radius → token, progress bar 4px
+// ✅ Logic, Supabase query, kalkulasi, TypeScript interface — tidak disentuh
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -58,11 +60,12 @@ const STATUS_LABEL: Record<GoalStatus, string> = {
   cancelled: 'Dibatalkan',
 };
 
+// ✅ Semua hardcoded rgba/hex diganti ke token
 const STATUS_COLOR: Record<GoalStatus, { bg: string; text: string; border: string }> = {
-  active:    { bg: 'rgba(37, 99, 235, 0.1)', text: 'var(--accent-primary)', border: 'rgba(37, 99, 235, 0.2)' },
-  achieved:  { bg: 'rgba(16, 185, 129, 0.1)', text: '#10b981', border: 'rgba(16, 185, 129, 0.2)' },
-  paused:    { bg: 'rgba(245, 158, 11, 0.1)', text: '#f59e0b', border: 'rgba(245, 158, 11, 0.2)' },
-  cancelled: { bg: 'rgba(239, 68, 68, 0.1)', text: '#ef4444', border: 'rgba(239, 68, 68, 0.2)' },
+  active:    { bg: 'var(--border-color)',        text: 'var(--text-main)',        border: 'var(--border-color-md)' },
+  achieved:  { bg: 'var(--color-positive-bg)',   text: 'var(--color-positive)',   border: 'var(--color-positive)' },
+  paused:    { bg: 'var(--color-neutral-bg)',    text: 'var(--color-neutral)',    border: 'var(--color-neutral)' },
+  cancelled: { bg: 'var(--color-negative-bg)',   text: 'var(--color-negative)',   border: 'var(--color-negative)' },
 };
 
 const ICONS = ['🎯','🏠','🚗','🕌','✈️','📈','🏦','🛡️','💍','🎓','💻','🏋️','🌏','👶','🎁'];
@@ -80,7 +83,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
       </p>
       <button onClick={onAdd} style={{
         padding: '10px 24px', background: 'var(--accent-primary)', border: 'none',
-        borderRadius: '9px', color: '#fff', fontSize: '14px',
+        borderRadius: 'var(--radius-md)', color: 'var(--accent-primary-fg)', fontSize: '14px',
         fontWeight: '600', cursor: 'pointer',
       }}>
         + Tambah Goal Pertama
@@ -104,32 +107,30 @@ function GoalCard({
   const sc      = STATUS_COLOR[goal.status];
   const isAchieved = goal.status === 'achieved';
 
-  const barColor = isAchieved ? '#10b981'
-    : pct >= 75 ? 'var(--accent-primary)'
-    : pct >= 40 ? '#6366f1'
-    : '#8b5cf6';
+  // ✅ Monokrom: satu token untuk semua state aktif, positive untuk achieved
+  const barColor = isAchieved ? 'var(--color-positive)' : 'var(--accent-primary)';
 
   return (
     <div style={{
       background: 'var(--card-bg)', border: '1px solid var(--border-color)',
-      borderRadius: '14px', padding: '22px',
+      borderRadius: 'var(--radius-lg)', padding: '22px',
       opacity: goal.status === 'cancelled' ? 0.5 : 1,
-      transition: 'all .15s',
+      transition: 'border-color .15s',
       boxShadow: 'var(--card-shadow)'
     }}
-      onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--accent-primary)'}
+      onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-color-md)'}
       onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-color)'}
     >
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
-            width: '44px', height: '44px', borderRadius: '12px',
+            width: '44px', height: '44px', borderRadius: 'var(--radius-md)',
             background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center',
             justifyContent: 'center', fontSize: '22px', flexShrink: 0,
           }}>{goal.icon}</div>
           <div>
-            <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '3px' }}>
+            <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '3px' }}>
               {goal.name}
             </div>
             {goal.description && (
@@ -142,7 +143,7 @@ function GoalCard({
         <span style={{
           fontSize: '11px', padding: '3px 10px', borderRadius: '99px',
           background: sc.bg, color: sc.text, border: `1px solid ${sc.border}`,
-          fontWeight: '700', flexShrink: 0,
+          fontWeight: '500', flexShrink: 0,
         }}>
           {STATUS_LABEL[goal.status]}
         </span>
@@ -151,22 +152,23 @@ function GoalCard({
       {/* Progress */}
       <div style={{ marginBottom: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-          <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>Progress</span>
-          <span style={{ fontSize: '13px', fontWeight: '800', color: isAchieved ? '#10b981' : 'var(--text-main)' }}>
+          <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>Progress</span>
+          <span style={{ fontSize: '13px', fontWeight: '600', color: isAchieved ? 'var(--color-positive)' : 'var(--text-main)' }}>
             {pct}%
           </span>
         </div>
-        <div style={{ height: '10px', background: 'var(--bg-secondary)', borderRadius: '99px', overflow: 'hidden' }}>
+        {/* ✅ Progress bar: 4px */}
+        <div style={{ height: '4px', background: 'var(--bg-secondary)', borderRadius: '99px', overflow: 'hidden' }}>
           <div style={{
             height: '100%', borderRadius: '99px', width: `${pct}%`,
             background: barColor, transition: 'width .6s ease',
           }}/>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>
             {fmt(goal.current_amount)}
           </span>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>
             {fmt(goal.target_amount)}
           </span>
         </div>
@@ -177,21 +179,21 @@ function GoalCard({
         display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px',
         marginBottom: '16px',
       }}>
-        <div style={{ background: 'var(--bg-secondary)', borderRadius: '10px', padding: '10px 12px', border: '1px solid var(--border-color)' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '3px', fontWeight: '700', textTransform: 'uppercase' }}>Sisa target</div>
-          <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-main)' }}>
+        <div style={{ background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', padding: '10px 12px', border: '1px solid var(--border-color)' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '3px', fontWeight: '500', textTransform: 'uppercase' }}>Sisa target</div>
+          <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)' }}>
             {sisa > 0 ? fmt(sisa) : '–'}
           </div>
         </div>
-        <div style={{ background: 'var(--bg-secondary)', borderRadius: '10px', padding: '10px 12px', border: '1px solid var(--border-color)' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '3px', fontWeight: '700', textTransform: 'uppercase' }}>Cicilan/bulan</div>
-          <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-main)' }}>
+        <div style={{ background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', padding: '10px 12px', border: '1px solid var(--border-color)' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '3px', fontWeight: '500', textTransform: 'uppercase' }}>Cicilan/bulan</div>
+          <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)' }}>
             {goal.monthly_allocation ? fmt(goal.monthly_allocation) : '–'}
           </div>
         </div>
-        <div style={{ background: 'var(--bg-secondary)', borderRadius: '10px', padding: '10px 12px', border: '1px solid var(--border-color)' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '3px', fontWeight: '700', textTransform: 'uppercase' }}>Estimasi selesai</div>
-          <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-main)' }}>
+        <div style={{ background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', padding: '10px 12px', border: '1px solid var(--border-color)' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '3px', fontWeight: '500', textTransform: 'uppercase' }}>Estimasi selesai</div>
+          <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)' }}>
             {isAchieved
               ? goal.achieved_at
                 ? new Date(goal.achieved_at).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })
@@ -199,10 +201,10 @@ function GoalCard({
               : estimatedDate(goal.current_amount, goal.target_amount, goal.monthly_allocation)}
           </div>
         </div>
-        <div style={{ background: 'var(--bg-secondary)', borderRadius: '10px', padding: '10px 12px', border: '1px solid var(--border-color)' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '3px', fontWeight: '700', textTransform: 'uppercase' }}>Waktu tersisa</div>
-          <div style={{ fontSize: '13px', fontWeight: '800',
-            color: isAchieved ? '#10b981' : 'var(--text-main)' }}>
+        <div style={{ background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', padding: '10px 12px', border: '1px solid var(--border-color)' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '3px', fontWeight: '500', textTransform: 'uppercase' }}>Waktu tersisa</div>
+          <div style={{ fontSize: '13px', fontWeight: '600',
+            color: isAchieved ? 'var(--color-positive)' : 'var(--text-main)' }}>
             {isAchieved ? '🏆 Done!' : monthsToGoal(goal.current_amount, goal.target_amount, goal.monthly_allocation)}
           </div>
         </div>
@@ -212,9 +214,9 @@ function GoalCard({
       {goal.deadline && (
         <div style={{
           fontSize: '12px', color: 'var(--text-muted)', marginBottom: '14px',
-          padding: '8px 12px', background: 'var(--bg-secondary)', borderRadius: '8px',
+          padding: '8px 12px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)',
           display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid var(--border-color)',
-          fontWeight: '600'
+          fontWeight: '500'
         }}>
           <span>📅</span>
           <span>Deadline: {new Date(goal.deadline).toLocaleDateString('id-ID', {
@@ -228,10 +230,10 @@ function GoalCard({
         {goal.status === 'active' && (
           <button onClick={() => onUpdateProgress(goal)} style={{
             flex: 1, padding: '10px 14px', background: 'var(--accent-primary)', border: 'none',
-            borderRadius: '8px', color: '#fff', fontSize: '13px',
-            fontWeight: '700', cursor: 'pointer',
+            borderRadius: 'var(--radius-md)', color: 'var(--accent-primary-fg)', fontSize: '13px',
+            fontWeight: '600', cursor: 'pointer',
           }}
-            onMouseEnter={e => (e.currentTarget).style.background = '#1d4ed8'}
+            onMouseEnter={e => (e.currentTarget).style.background = 'var(--accent-hover)'}
             onMouseLeave={e => (e.currentTarget).style.background = 'var(--accent-primary)'}
           >
             + Update Progress
@@ -239,10 +241,10 @@ function GoalCard({
         )}
         <button onClick={() => onEdit(goal)} style={{
           padding: '8px 14px', background: 'transparent',
-          border: '1px solid var(--border-color)', borderRadius: '8px',
-          color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', fontWeight: '600'
+          border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)',
+          color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', fontWeight: '500'
         }}
-          onMouseEnter={e => { (e.currentTarget).style.borderColor = 'var(--accent-primary)'; (e.currentTarget).style.color = 'var(--accent-primary)'; }}
+          onMouseEnter={e => { (e.currentTarget).style.borderColor = 'var(--border-color-strong)'; (e.currentTarget).style.color = 'var(--text-main)'; }}
           onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; }}
         >Edit</button>
 
@@ -250,29 +252,29 @@ function GoalCard({
         {goal.status === 'active' && (
           <button onClick={() => onStatusChange(goal.id, 'paused')} style={{
             padding: '8px 14px', background: 'transparent',
-            border: '1px solid var(--border-color)', borderRadius: '8px',
-            color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', fontWeight: '600'
+            border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)',
+            color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', fontWeight: '500'
           }}
-            onMouseEnter={e => { (e.currentTarget).style.borderColor = '#fbbf24'; (e.currentTarget).style.color = '#fbbf24'; }}
+            onMouseEnter={e => { (e.currentTarget).style.borderColor = 'var(--color-neutral)'; (e.currentTarget).style.color = 'var(--color-neutral)'; }}
             onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; }}
           >Jeda</button>
         )}
         {goal.status === 'paused' && (
           <button onClick={() => onStatusChange(goal.id, 'active')} style={{
             padding: '8px 14px', background: 'transparent',
-            border: '1px solid var(--border-color)', borderRadius: '8px',
-            color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', fontWeight: '600'
+            border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)',
+            color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', fontWeight: '500'
           }}
-            onMouseEnter={e => { (e.currentTarget).style.borderColor = '#10b981'; (e.currentTarget).style.color = '#10b981'; }}
+            onMouseEnter={e => { (e.currentTarget).style.borderColor = 'var(--color-positive)'; (e.currentTarget).style.color = 'var(--color-positive)'; }}
             onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; }}
           >Aktifkan</button>
         )}
         <button onClick={() => onDelete(goal.id)} style={{
           padding: '8px 10px', background: 'transparent',
-          border: '1px solid var(--border-color)', borderRadius: '8px',
+          border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)',
           color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer',
         }}
-          onMouseEnter={e => { (e.currentTarget).style.borderColor = '#ef4444'; (e.currentTarget).style.color = '#ef4444'; }}
+          onMouseEnter={e => { (e.currentTarget).style.borderColor = 'var(--color-negative)'; (e.currentTarget).style.color = 'var(--color-negative)'; }}
           onMouseLeave={e => { (e.currentTarget).style.borderColor = 'var(--border-color)'; (e.currentTarget).style.color = 'var(--text-muted)'; }}
         >✕</button>
       </div>
@@ -297,7 +299,6 @@ function GoalFormModal({
   });
   const [saving, setSaving] = useState(false);
 
-  // Display states untuk format Rp
   const [displayTarget,  setDisplayTarget]  = useState(goal?.target_amount  ? goal.target_amount.toLocaleString('id-ID')  : '');
   const [displayCurrent, setDisplayCurrent] = useState(goal?.current_amount ? goal.current_amount.toLocaleString('id-ID') : '');
   const [displayMonthly, setDisplayMonthly] = useState(goal?.monthly_allocation ? goal.monthly_allocation.toLocaleString('id-ID') : '');
@@ -316,7 +317,7 @@ function GoalFormModal({
   const inp: React.CSSProperties = {
     width: '100%', padding: '9px 12px',
     background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
-    borderRadius: '8px', color: 'var(--text-main)', fontSize: '13px',
+    borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '13px',
     outline: 'none', boxSizing: 'border-box',
   };
 
@@ -331,7 +332,7 @@ function GoalFormModal({
     >
       <div style={{
         background: 'var(--card-bg)', border: '1px solid var(--border-color)',
-        borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '520px',
+        borderRadius: 'var(--radius-lg)', padding: '28px', width: '100%', maxWidth: '520px',
         maxHeight: '90vh', overflowY: 'auto',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -354,9 +355,9 @@ function GoalFormModal({
                   onClick={() => setForm(p => ({ ...p, icon: ic }))}
                   style={{
                     width: '38px', height: '38px', fontSize: '20px',
-                    borderRadius: '8px', border: '2px solid',
-                    borderColor: form.icon === ic ? 'var(--accent-primary)' : 'var(--border-color)',
-                    background: form.icon === ic ? 'rgba(37, 99, 235, 0.1)' : 'var(--bg-secondary)',
+                    borderRadius: 'var(--radius-md)', border: '2px solid',
+                    borderColor: form.icon === ic ? 'var(--border-color-strong)' : 'var(--border-color)',
+                    background: form.icon === ic ? 'var(--border-color)' : 'var(--bg-secondary)',
                     cursor: 'pointer',
                   }}>{ic}</button>
               ))}
@@ -365,11 +366,11 @@ function GoalFormModal({
 
           {/* Name */}
           <div style={{ marginBottom: '14px' }}>
-            <label style={lbl}>Nama Goal <span style={{ color: '#ef4444' }}>*</span></label>
+            <label style={lbl}>Nama Goal <span style={{ color: 'var(--color-negative)' }}>*</span></label>
             <input value={form.name ?? ''} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
               placeholder="cth: Dana Haji, Pensiun, DP Rumah" required
               style={inp}
-              onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+              onFocus={e => e.target.style.borderColor = 'var(--border-color-strong)'}
               onBlur={e  => e.target.style.borderColor = 'var(--border-color)'}
             />
           </div>
@@ -380,7 +381,7 @@ function GoalFormModal({
             <input value={form.description ?? ''} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
               placeholder="Catatan singkat tentang goal ini"
               style={inp}
-              onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+              onFocus={e => e.target.style.borderColor = 'var(--border-color-strong)'}
               onBlur={e  => e.target.style.borderColor = 'var(--border-color)'}
             />
           </div>
@@ -388,12 +389,12 @@ function GoalFormModal({
           {/* Target + Current */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
             <div>
-              <label style={lbl}>Target Amount <span style={{ color: '#ef4444' }}>*</span></label>
+              <label style={lbl}>Target Amount <span style={{ color: 'var(--color-negative)' }}>*</span></label>
               <div style={{ position:'relative' }}>
                 <span style={{ position:'absolute', left:'9px', top:'50%', transform:'translateY(-50%)', fontSize:'11px', color:'var(--text-muted)', pointerEvents:'none' }}>Rp</span>
                 <input type="text" inputMode="numeric" value={displayTarget} required placeholder="0"
                   onChange={e => { const n=parseAmt(e.target.value); setDisplayTarget(toDisp(n)); setForm(p=>({...p,target_amount:n})); }}
-                  onFocus={e => { e.target.style.borderColor='var(--accent-primary)'; setDisplayTarget((form.target_amount??0)===0?'':(form.target_amount??0).toString()); }}
+                  onFocus={e => { e.target.style.borderColor='var(--border-color-strong)'; setDisplayTarget((form.target_amount??0)===0?'':(form.target_amount??0).toString()); }}
                   onBlur={e  => { e.target.style.borderColor='var(--border-color)'; setDisplayTarget(toDisp(form.target_amount??0)); }}
                   style={{...inp, paddingLeft:'28px', fontSize:'16px'}}
                 />
@@ -406,7 +407,7 @@ function GoalFormModal({
                 <span style={{ position:'absolute', left:'9px', top:'50%', transform:'translateY(-50%)', fontSize:'11px', color:'var(--text-muted)', pointerEvents:'none' }}>Rp</span>
                 <input type="text" inputMode="numeric" value={displayCurrent} placeholder="0"
                   onChange={e => { const n=parseAmt(e.target.value); setDisplayCurrent(toDisp(n)); setForm(p=>({...p,current_amount:n})); }}
-                  onFocus={e => { e.target.style.borderColor='var(--accent-primary)'; setDisplayCurrent((form.current_amount??0)===0?'':(form.current_amount??0).toString()); }}
+                  onFocus={e => { e.target.style.borderColor='var(--border-color-strong)'; setDisplayCurrent((form.current_amount??0)===0?'':(form.current_amount??0).toString()); }}
                   onBlur={e  => { e.target.style.borderColor='var(--border-color)'; setDisplayCurrent(toDisp(form.current_amount??0)); }}
                   style={{...inp, paddingLeft:'28px', fontSize:'16px'}}
                 />
@@ -423,7 +424,7 @@ function GoalFormModal({
                 <span style={{ position:'absolute', left:'9px', top:'50%', transform:'translateY(-50%)', fontSize:'11px', color:'var(--text-muted)', pointerEvents:'none' }}>Rp</span>
                 <input type="text" inputMode="numeric" value={displayMonthly} placeholder="0"
                   onChange={e => { const n=parseAmt(e.target.value); setDisplayMonthly(toDisp(n)); setForm(p=>({...p,monthly_allocation:n||null})); }}
-                  onFocus={e => { e.target.style.borderColor='var(--accent-primary)'; const v=form.monthly_allocation??0; setDisplayMonthly(v===0?'':v.toString()); }}
+                  onFocus={e => { e.target.style.borderColor='var(--border-color-strong)'; const v=form.monthly_allocation??0; setDisplayMonthly(v===0?'':v.toString()); }}
                   onBlur={e  => { e.target.style.borderColor='var(--border-color)'; setDisplayMonthly(toDisp(form.monthly_allocation??0)); }}
                   style={{...inp, paddingLeft:'28px', fontSize:'16px'}}
                 />
@@ -435,7 +436,7 @@ function GoalFormModal({
               <input type="date" value={form.deadline ?? ''}
                 onChange={e => setForm(p => ({ ...p, deadline: e.target.value || null }))}
                 style={inp}
-                onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+                onFocus={e => e.target.style.borderColor = 'var(--border-color-strong)'}
                 onBlur={e  => e.target.style.borderColor = 'var(--border-color)'}
               />
             </div>
@@ -457,7 +458,7 @@ function GoalFormModal({
           {(form.target_amount ?? 0) > 0 && (
             <div style={{
               padding: '12px 14px', background: 'var(--bg-secondary)',
-              border: '1px solid var(--border-color)', borderRadius: '9px', marginBottom: '20px',
+              border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', marginBottom: '20px',
             }}>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: '500' }}>
                 PROYEKSI
@@ -467,10 +468,10 @@ function GoalFormModal({
                   {fmt(Math.max((form.target_amount ?? 0) - (form.current_amount ?? 0), 0))}
                 </strong>
                 {form.monthly_allocation && form.monthly_allocation > 0 && (
-                  <> · Selesai sekitar <strong style={{ color: '#10b981' }}>
+                  <> · Selesai sekitar <strong style={{ color: 'var(--color-positive)' }}>
                     {estimatedDate(form.current_amount ?? 0, form.target_amount ?? 0, form.monthly_allocation)}
                   </strong>
-                  · <strong style={{ color: 'var(--accent-primary)' }}>
+                  · <strong style={{ color: 'var(--text-main)' }}>
                     {monthsToGoal(form.current_amount ?? 0, form.target_amount ?? 0, form.monthly_allocation)}
                   </strong>
                   </>
@@ -482,7 +483,7 @@ function GoalFormModal({
           <div style={{ display: 'flex', gap: '10px' }}>
             <button type="submit" disabled={saving} style={{
               flex: 1, padding: '11px', background: saving ? 'var(--border-color)' : 'var(--accent-primary)',
-              border: 'none', borderRadius: '9px', color: '#fff',
+              border: 'none', borderRadius: 'var(--radius-md)', color: saving ? 'var(--text-muted)' : 'var(--accent-primary-fg)',
               fontSize: '14px', fontWeight: '600',
               cursor: saving ? 'not-allowed' : 'pointer',
             }}>
@@ -490,7 +491,7 @@ function GoalFormModal({
             </button>
             <button type="button" onClick={onClose} style={{
               padding: '11px 18px', background: 'transparent',
-              border: '1px solid var(--border-color)', borderRadius: '9px',
+              border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)',
               color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer',
             }}>Batal</button>
           </div>
@@ -537,7 +538,7 @@ function UpdateProgressModal({
     >
       <div style={{
         background: 'var(--card-bg)', border: '1px solid var(--border-color)',
-        borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '400px',
+        borderRadius: 'var(--radius-lg)', padding: '28px', width: '100%', maxWidth: '400px',
         boxShadow: 'var(--card-shadow)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -548,13 +549,14 @@ function UpdateProgressModal({
         </div>
 
         {/* Current state */}
-        <div style={{ marginBottom: '20px', padding: '14px', background: 'var(--bg-secondary)', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: '600' }}>{goal.name}</div>
+        <div style={{ marginBottom: '20px', padding: '14px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: '500' }}>{goal.name}</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Terkumpul sekarang</span>
-            <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)' }}>{fmt(goal.current_amount)}</span>
+            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)' }}>{fmt(goal.current_amount)}</span>
           </div>
-          <div style={{ height: '6px', background: 'var(--border-color)', borderRadius: '99px', overflow: 'hidden' }}>
+          {/* ✅ Progress bar: 4px */}
+          <div style={{ height: '4px', background: 'var(--border-color)', borderRadius: '99px', overflow: 'hidden' }}>
             <div style={{
               height: '100%', borderRadius: '99px', background: 'var(--accent-primary)',
               width: `${Math.min(Math.round((goal.current_amount / goal.target_amount) * 100), 100)}%`,
@@ -573,12 +575,12 @@ function UpdateProgressModal({
                 placeholder="0"
                 required autoFocus
                 onChange={e => { const n=parseAmt(e.target.value); setDisplay(toDisp(n)); setAmount(n); }}
-                onFocus={e => { e.target.style.borderColor='var(--accent-primary)'; setDisplay(amount===0?'':amount.toString()); }}
+                onFocus={e => { e.target.style.borderColor='var(--border-color-strong)'; setDisplay(amount===0?'':amount.toString()); }}
                 onBlur={e => { e.target.style.borderColor='var(--border-color)'; setDisplay(toDisp(amount)); }}
                 style={{
                   width:'100%', padding:'11px 12px 11px 36px',
                   background:'var(--bg-secondary)', border:'1px solid var(--border-color)',
-                  borderRadius:'9px', color:'var(--text-main)', fontSize:'16px',
+                  borderRadius:'var(--radius-md)', color:'var(--text-main)', fontSize:'16px',
                   outline:'none', boxSizing:'border-box',
                 }}
               />
@@ -588,21 +590,22 @@ function UpdateProgressModal({
           {/* Preview */}
           {parsed > 0 && (
             <div style={{
-              padding: '12px 14px', background: 'rgba(37, 99, 235, 0.05)',
-              border: '1px solid rgba(37, 99, 235, 0.2)', borderRadius: '9px', marginBottom: '16px',
+              padding: '12px 14px', background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-color-md)', borderRadius: 'var(--radius-md)', marginBottom: '16px',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ fontSize: '12px', color: 'var(--accent-primary)', fontWeight: '600' }}>Setelah update</span>
-                <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)' }}>{fmt(newTotal)}</span>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>Setelah update</span>
+                <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)' }}>{fmt(newTotal)}</span>
               </div>
-              <div style={{ height: '6px', background: 'var(--bg-secondary)', borderRadius: '99px', overflow: 'hidden' }}>
+              {/* ✅ Progress bar: 4px */}
+              <div style={{ height: '4px', background: 'var(--border-color)', borderRadius: '99px', overflow: 'hidden' }}>
                 <div style={{
                   height: '100%', borderRadius: '99px',
-                  background: newPct >= 100 ? '#10b981' : 'var(--accent-primary)',
+                  background: newPct >= 100 ? 'var(--color-positive)' : 'var(--accent-primary)',
                   width: `${newPct}%`, transition: 'width .3s',
                 }}/>
               </div>
-              <div style={{ textAlign: 'right', fontSize: '11px', color: 'var(--accent-primary)', marginTop: '4px', fontWeight: '600' }}>
+              <div style={{ textAlign: 'right', fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: '500' }}>
                 {newPct}% {newPct >= 100 && '🎉 Goal tercapai!'}
               </div>
             </div>
@@ -611,7 +614,7 @@ function UpdateProgressModal({
           <div style={{ display: 'flex', gap: '10px' }}>
             <button type="submit" disabled={saving || parsed <= 0} style={{
               flex: 1, padding: '11px', background: saving || parsed <= 0 ? 'var(--border-color)' : 'var(--accent-primary)',
-              border: 'none', borderRadius: '9px', color: saving || parsed <= 0 ? 'var(--text-muted)' : '#fff',
+              border: 'none', borderRadius: 'var(--radius-md)', color: saving || parsed <= 0 ? 'var(--text-muted)' : 'var(--accent-primary-fg)',
               fontSize: '14px', fontWeight: '600',
               cursor: saving || parsed <= 0 ? 'not-allowed' : 'pointer',
             }}>
@@ -619,7 +622,7 @@ function UpdateProgressModal({
             </button>
             <button type="button" onClick={onClose} style={{
               padding: '11px 18px', background: 'transparent',
-              border: '1px solid var(--border-color)', borderRadius: '9px',
+              border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)',
               color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer',
             }}>Batal</button>
           </div>
@@ -647,22 +650,18 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
     setTimeout(() => setToast(null), 3000);
   }
 
-  // ── Filter ────────────────────────────────────────────────────────────────
   const filtered = useMemo(() =>
     filterStatus === 'all' ? goals : goals.filter(g => g.status === filterStatus),
     [goals, filterStatus]
   );
 
-  // ── Summary ───────────────────────────────────────────────────────────────
   const active   = goals.filter(g => g.status === 'active');
   const achieved = goals.filter(g => g.status === 'achieved');
   const totalTarget  = active.reduce((s, g) => s + g.target_amount, 0);
   const totalCurrent = active.reduce((s, g) => s + g.current_amount, 0);
 
-  // ── Create / Update goal ──────────────────────────────────────────────────
   async function handleSaveGoal(data: Partial<Goal>) {
     if (editGoal?.id) {
-      // Update
       const { error } = await supabase.from('goals').update({
         name:               data.name,
         description:        data.description,
@@ -680,7 +679,6 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
       setGoals(prev => prev.map(g => g.id === editGoal.id ? { ...g, ...data } as Goal : g));
       showToast('Goal diperbarui');
     } else {
-      // Create
       const { data: newGoal, error } = await supabase.from('goals').insert([{
         user_id:            userId,
         name:               data.name,
@@ -703,7 +701,6 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
     setEditGoal(null);
   }
 
-  // ── Update progress ───────────────────────────────────────────────────────
   async function handleUpdateProgress(goalId: string, amount: number) {
     const goal = goals.find(g => g.id === goalId);
     if (!goal) return;
@@ -728,7 +725,6 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
     showToast(isAchieved ? '🏆 Selamat! Goal tercapai!' : 'Progress diperbarui');
   }
 
-  // ── Status change ─────────────────────────────────────────────────────────
   async function handleStatusChange(goalId: string, status: GoalStatus) {
     const { error } = await supabase.from('goals')
       .update({ status, updated_at: new Date().toISOString() })
@@ -739,7 +735,6 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
     showToast(`Goal ${STATUS_LABEL[status].toLowerCase()}`);
   }
 
-  // ── Delete ────────────────────────────────────────────────────────────────
   async function handleDelete() {
     if (!deletingGoal) return;
     const { error } = await supabase.from('goals').delete().eq('id', deletingGoal.id);
@@ -749,7 +744,6 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
     showToast('Goal dihapus');
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
   return (
     <div style={{ color: 'var(--text-main)', fontFamily: '"DM Sans", system-ui, sans-serif' }}>
 
@@ -757,11 +751,11 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
       {toast && (
         <div style={{
           position: 'fixed', top: '20px', right: '20px', zIndex: 200,
-          padding: '12px 18px', borderRadius: '10px', fontSize: '13px', fontWeight: '500',
-          background: toast.ok ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-          border: `1px solid ${toast.ok ? 'rgba(22, 163, 74, 0.6)' : 'rgba(185, 28, 28, 0.6)'}`,
-          color: toast.ok ? '#15803d' : '#b91c1c',
-          boxShadow: '0 4px 20px rgba(15,23,42,.18)',
+          padding: '12px 18px', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '500',
+          background: toast.ok ? 'var(--color-positive-bg)' : 'var(--color-negative-bg)',
+          border: `1px solid ${toast.ok ? 'var(--color-positive)' : 'var(--color-negative)'}`,
+          color: toast.ok ? 'var(--color-positive)' : 'var(--color-negative)',
+          boxShadow: 'var(--card-shadow)',
         }}>{toast.msg}</div>
       )}
 
@@ -781,7 +775,7 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
         />
       )}
 
-      <ConfirmModal 
+      <ConfirmModal
         open={!!deletingGoal}
         title="Hapus Goal?"
         message={`Apakah kamu yakin ingin menghapus goal "${deletingGoal?.name}"? Tindakan ini tidak dapat dibatalkan.`}
@@ -804,15 +798,15 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
         <div>
           <h1 style={{ fontSize: '20px', fontWeight: '600', margin: '0 0 4px', letterSpacing: '-0.4px' }}>Goals</h1>
-          <p style={{ color: '#6b7280', fontSize: '13px', margin: 0 }}>Pantau semua tujuan finansialmu</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>Pantau semua tujuan finansialmu</p>
         </div>
         <button onClick={() => setShowForm(true)} style={{
-          padding: '9px 16px', background: '#2563eb', border: 'none',
-          borderRadius: '9px', color: '#fff', fontSize: '13px',
+          padding: '9px 16px', background: 'var(--accent-primary)', border: 'none',
+          borderRadius: 'var(--radius-md)', color: 'var(--accent-primary-fg)', fontSize: '13px',
           fontWeight: '600', cursor: 'pointer', flexShrink: 0,
         }}
-          onMouseEnter={e => (e.currentTarget).style.background = '#1d4ed8'}
-          onMouseLeave={e => (e.currentTarget).style.background = '#2563eb'}
+          onMouseEnter={e => (e.currentTarget).style.background = 'var(--accent-hover)'}
+          onMouseLeave={e => (e.currentTarget).style.background = 'var(--accent-primary)'}
         >+ Tambah</button>
       </div>
 
@@ -820,19 +814,19 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
       {goals.length > 0 && (
         <div className="goals-summary">
           {[
-            { label: 'Goals Aktif', value: active.length.toString(), color: 'var(--accent-primary)' },
-            { label: 'Tercapai', value: achieved.length.toString(), color: '#10b981' },
-            { label: 'Total Terkumpul', value: fmt(totalCurrent), color: 'var(--text-main)' },
-            { label: 'Total Target Aktif', value: fmt(totalTarget), color: 'var(--text-muted)' },
+            { label: 'Goals Aktif',       value: active.length.toString(),   color: 'var(--text-main)' },
+            { label: 'Tercapai',          value: achieved.length.toString(), color: 'var(--color-positive)' },
+            { label: 'Total Terkumpul',   value: fmt(totalCurrent),          color: 'var(--text-main)' },
+            { label: 'Total Target Aktif',value: fmt(totalTarget),           color: 'var(--text-muted)' },
           ].map(s => (
             <div key={s.label} style={{
               background: 'var(--card-bg)', border: '1px solid var(--border-color)',
-              borderRadius: '10px', padding: '14px 16px',
+              borderRadius: 'var(--radius-md)', padding: '14px 16px',
               boxShadow: 'var(--card-shadow)',
             }}>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px',
-                textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: '700' }}>{s.label}</div>
-              <div style={{ fontSize: '16px', fontWeight: '800', color: s.color }}>{s.value}</div>
+                textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: '500' }}>{s.label}</div>
+              <div style={{ fontSize: '16px', fontWeight: '600', color: s.color }}>{s.value}</div>
             </div>
           ))}
         </div>
@@ -843,15 +837,15 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
         <div style={{ display:'flex', gap:'6px', marginBottom:'16px', flexWrap:'wrap' }}>
           {(['all', 'active', 'achieved', 'paused', 'cancelled'] as const).map(s => {
             const count = s === 'all' ? goals.length : goals.filter(g => g.status === s).length;
-            const active = filterStatus === s;
+            const isActive = filterStatus === s;
             return (
               <button key={s} onClick={() => setFilterStatus(s)} style={{
                 padding: '6px 12px', borderRadius: '99px', border: '1px solid',
-                fontSize: '12px', cursor: 'pointer', fontWeight: '600',
+                fontSize: '12px', cursor: 'pointer', fontWeight: '500',
                 whiteSpace: 'nowrap',
-                borderColor: active ? 'var(--accent-primary)' : 'var(--border-color)',
-                background: active ? 'rgba(37, 99, 235, 0.1)' : 'var(--card-bg)',
-                color: active ? 'var(--accent-primary)' : 'var(--text-muted)',
+                borderColor: isActive ? 'var(--border-color-strong)' : 'var(--border-color)',
+                background: isActive ? 'var(--border-color)' : 'var(--card-bg)',
+                color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
                 transition: 'all 0.15s',
               }}>
                 {s === 'all' ? 'Semua' : STATUS_LABEL[s]}
@@ -868,7 +862,7 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
       {filtered.length === 0 ? (
         goals.length === 0
           ? <EmptyState onAdd={() => setShowForm(true)} />
-          : <div style={{ color: '#6b7280', textAlign: 'center', padding: '40px 0', fontSize: '14px' }}>
+          : <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '40px 0', fontSize: '14px' }}>
               Tidak ada goal dengan status ini.
             </div>
       ) : (
@@ -888,6 +882,6 @@ export default function GoalsClient({ initialGoals, userId }: Props) {
 }
 
 const lbl: React.CSSProperties = {
-  display: 'block', fontSize: '12px', color: '#6b7280',
+  display: 'block', fontSize: '12px', color: 'var(--text-muted)',
   fontWeight: '500', marginBottom: '6px',
 };

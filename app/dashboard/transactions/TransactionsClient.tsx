@@ -1,4 +1,6 @@
 // app/dashboard/transactions/TransactionsClient.tsx
+// ✅ Visual fix: semua hardcoded color → token, font weight max 600, border radius → token
+// ✅ Logic, Supabase query, filter, sort — tidak disentuh
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -113,8 +115,8 @@ export default function TransactionsClient({ transactions, categories, userId }:
 
   const inp: React.CSSProperties = {
     width:'100%', padding:'8px 10px', background:'var(--bg-secondary)',
-    border:'1px solid var(--border-color)', borderRadius:'7px', color:'var(--text-main)',
-    fontSize:'16px', outline:'none', boxSizing:'border-box',
+    border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)',
+    color:'var(--text-main)', fontSize:'16px', outline:'none', boxSizing:'border-box',
   };
 
   return (
@@ -142,10 +144,10 @@ export default function TransactionsClient({ transactions, categories, userId }:
       {toast && (
         <div style={{
           position:'fixed', top:'20px', right:'20px', zIndex:999,
-          padding:'12px 16px', borderRadius:'10px', fontSize:'13px', fontWeight:'500',
-          background: toast.ok ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-          border:`1px solid ${toast.ok ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
-          color: toast.ok ? '#10b981' : '#ef4444',
+          padding:'12px 16px', borderRadius:'var(--radius-md)', fontSize:'13px', fontWeight:'500',
+          background: toast.ok ? 'var(--color-positive-bg)' : 'var(--color-negative-bg)',
+          border:`1px solid ${toast.ok ? 'var(--color-positive)' : 'var(--color-negative)'}`,
+          color: toast.ok ? 'var(--color-positive)' : 'var(--color-negative)',
           backdropFilter: 'blur(8px)',
           boxShadow: 'var(--card-shadow)',
         }}>{toast.msg}</div>
@@ -153,23 +155,23 @@ export default function TransactionsClient({ transactions, categories, userId }:
 
       {/* Header */}
       <div style={{ marginBottom:'20px' }}>
-        <h1 style={{ fontSize:'20px', fontWeight:'700', margin:'0 0 4px', color:'var(--text-main)' }}>Transaksi</h1>
+        <h1 style={{ fontSize:'20px', fontWeight:'600', margin:'0 0 4px', color:'var(--text-main)' }}>Transaksi</h1>
         <p style={{ color:'var(--text-muted)', fontSize:'13px', margin:0, fontWeight:'500' }}>Riwayat 3 bulan terakhir</p>
       </div>
 
       {/* Summary */}
       <div className="tx-summary">
-        <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'12px', padding:'12px 14px', boxShadow:'var(--card-shadow)' }}>
-          <div style={{ fontSize:'11px', color:'var(--text-muted)', marginBottom:'4px', textTransform:'uppercase', letterSpacing:'.05em', fontWeight:'700' }}>Pemasukan</div>
-          <div style={{ fontSize:'16px', fontWeight:'800', color:'#10b981' }}>{fmt(summary.income)}</div>
+        <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', padding:'12px 14px', boxShadow:'var(--card-shadow)' }}>
+          <div style={{ fontSize:'11px', color:'var(--text-muted)', marginBottom:'4px', textTransform:'uppercase', letterSpacing:'.05em', fontWeight:'500' }}>Pemasukan</div>
+          <div style={{ fontSize:'16px', fontWeight:'600', color:'var(--color-positive)' }}>{fmt(summary.income)}</div>
         </div>
-        <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'12px', padding:'12px 14px', boxShadow:'var(--card-shadow)' }}>
-          <div style={{ fontSize:'11px', color:'var(--text-muted)', marginBottom:'4px', textTransform:'uppercase', letterSpacing:'.05em', fontWeight:'700' }}>Pengeluaran</div>
-          <div style={{ fontSize:'16px', fontWeight:'800', color:'#ef4444' }}>{fmt(summary.expense)}</div>
+        <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', padding:'12px 14px', boxShadow:'var(--card-shadow)' }}>
+          <div style={{ fontSize:'11px', color:'var(--text-muted)', marginBottom:'4px', textTransform:'uppercase', letterSpacing:'.05em', fontWeight:'500' }}>Pengeluaran</div>
+          <div style={{ fontSize:'16px', fontWeight:'600', color:'var(--color-negative)' }}>{fmt(summary.expense)}</div>
         </div>
-        <div className="tx-sum-3" style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'12px', padding:'12px 14px', boxShadow:'var(--card-shadow)' }}>
-          <div style={{ fontSize:'11px', color:'var(--text-muted)', marginBottom:'4px', textTransform:'uppercase', letterSpacing:'.05em', fontWeight:'700' }}>Transaksi</div>
-          <div style={{ fontSize:'16px', fontWeight:'800', color:'var(--text-main)' }}>{summary.count} item</div>
+        <div className="tx-sum-3" style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', padding:'12px 14px', boxShadow:'var(--card-shadow)' }}>
+          <div style={{ fontSize:'11px', color:'var(--text-muted)', marginBottom:'4px', textTransform:'uppercase', letterSpacing:'.05em', fontWeight:'500' }}>Transaksi</div>
+          <div style={{ fontSize:'16px', fontWeight:'600', color:'var(--text-main)' }}>{summary.count} item</div>
         </div>
       </div>
 
@@ -177,30 +179,30 @@ export default function TransactionsClient({ transactions, categories, userId }:
       <div className="tx-filters" style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '16px' }}>
         <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
           <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '14px', pointerEvents: 'none' }}>🔍</span>
-          <input 
-            placeholder="Cari catatan, kategori, atau nominal..." 
-            value={search} 
+          <input
+            placeholder="Cari catatan, kategori, atau nominal..."
+            value={search}
             onChange={e => setSearch(e.target.value)}
-            style={{ 
+            style={{
               width: '100%', padding: '10px 12px 10px 38px', background: 'var(--card-bg)',
-              border: '1px solid var(--border-color)', borderRadius: '10px', color: 'var(--text-main)',
+              border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)',
               fontSize: '14px', outline: 'none', boxShadow: 'var(--card-shadow)',
-              transition: 'all 0.2s'
+              transition: 'border-color 0.2s',
             }}
-            onFocus={e => { e.target.style.borderColor = 'var(--accent-primary)'; e.target.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.1)'; }}
+            onFocus={e => { e.target.style.borderColor = 'var(--border-color-strong)'; e.target.style.boxShadow = 'none'; }}
             onBlur={e => { e.target.style.borderColor = 'var(--border-color)'; e.target.style.boxShadow = 'var(--card-shadow)'; }}
           />
         </div>
         <select value={filterType} onChange={e => setFilterType(e.target.value as any)}
           style={{ padding:'10px 12px', background:'var(--card-bg)', border:'1px solid var(--border-color)',
-            borderRadius:'10px', color:'var(--text-main)', fontSize:'14px', outline:'none', boxShadow:'var(--card-shadow)', cursor: 'pointer' }}>
+            borderRadius:'var(--radius-md)', color:'var(--text-main)', fontSize:'14px', outline:'none', boxShadow:'var(--card-shadow)', cursor: 'pointer' }}>
           <option value="all">Semua Tipe</option>
           <option value="income">Pemasukan</option>
           <option value="expense">Pengeluaran</option>
         </select>
         <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)}
           style={{ padding:'10px 12px', background:'var(--card-bg)', border:'1px solid var(--border-color)',
-            borderRadius:'10px', color:'var(--text-main)', fontSize:'14px', outline:'none', boxShadow:'var(--card-shadow)', cursor: 'pointer' }}>
+            borderRadius:'var(--radius-md)', color:'var(--text-main)', fontSize:'14px', outline:'none', boxShadow:'var(--card-shadow)', cursor: 'pointer' }}>
           <option value="all">Semua Bulan</option>
           {months.map(m => (
             <option key={m} value={m}>
@@ -208,12 +210,12 @@ export default function TransactionsClient({ transactions, categories, userId }:
             </option>
           ))}
         </select>
-        <button 
+        <button
           onClick={() => showToast('Mengekspor data ke CSV...')}
-          style={{ 
-            padding: '10px 16px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', 
-            borderRadius: '10px', color: 'var(--text-main)', fontSize: '14px', fontWeight: '700', 
-            boxShadow: 'var(--card-shadow)', display: 'flex', alignItems: 'center', gap: '8px' 
+          style={{
+            padding: '10px 16px', background: 'var(--card-bg)', border: '1px solid var(--border-color)',
+            borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px', fontWeight: '500',
+            boxShadow: 'var(--card-shadow)', display: 'flex', alignItems: 'center', gap: '8px',
           }}
         >
           <span>📥</span> <span className="hide-mobile">Export CSV</span>
@@ -221,36 +223,36 @@ export default function TransactionsClient({ transactions, categories, userId }:
       </div>
 
       {/* Table */}
-      <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'12px', overflow:'hidden', boxShadow:'var(--card-shadow)' }}>
+      <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', overflow:'hidden', boxShadow:'var(--card-shadow)' }}>
         {/* Header — desktop only via CSS */}
         <div className="tx-table-header" style={{
           padding:'12px 16px', borderBottom:'1px solid var(--border-color)',
-          fontSize:'11px', color:'var(--text-muted)', fontWeight:'700', textTransform:'uppercase',
+          fontSize:'11px', color:'var(--text-muted)', fontWeight:'500', textTransform:'uppercase',
           background:'var(--bg-secondary)'
         }}>
-          <span 
+          <span
             onClick={() => {
               if (sortField === 'note') setSortOrder(p => p === 'asc' ? 'desc' : 'asc');
               else { setSortField('note'); setSortOrder('asc'); }
-            }} 
+            }}
             style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
           >
             Catatan / Kategori {sortField === 'note' && (sortOrder === 'asc' ? '↑' : '↓')}
           </span>
-          <span 
+          <span
             onClick={() => {
               if (sortField === 'amount') setSortOrder(p => p === 'asc' ? 'desc' : 'asc');
               else { setSortField('amount'); setSortOrder('desc'); }
-            }} 
+            }}
             style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
           >
             Nominal {sortField === 'amount' && (sortOrder === 'asc' ? '↑' : '↓')}
           </span>
-          <span 
+          <span
             onClick={() => {
               if (sortField === 'date') setSortOrder(p => p === 'asc' ? 'desc' : 'asc');
               else { setSortField('date'); setSortOrder('desc'); }
-            }} 
+            }}
             style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
           >
             Tanggal {sortField === 'date' && (sortOrder === 'asc' ? '↑' : '↓')}
@@ -266,12 +268,13 @@ export default function TransactionsClient({ transactions, categories, userId }:
           <div key={t.id}>
             {editingId !== t.id ? (
               <>
+              {/* ── Desktop row ─────────────────────────────────────────────── */}
               <div className="tx-row-desktop" style={{
                 borderBottom: i < filtered.length-1 ? '1px solid var(--border-color)' : 'none',
               }}>
                 <div style={{ minWidth:0, display:'flex', alignItems:'center', gap:'12px' }}>
-                  <div style={{ 
-                    width:'36px', height:'36px', borderRadius:'10px', background:'var(--bg-secondary)',
+                  <div style={{
+                    width:'36px', height:'36px', borderRadius:'var(--radius-md)', background:'var(--bg-secondary)',
                     display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px'
                   }}>
                     {t.categories?.icon ?? '💰'}
@@ -281,13 +284,13 @@ export default function TransactionsClient({ transactions, categories, userId }:
                     <div style={{ fontSize:'11px', color:'var(--text-muted)', fontWeight:'500' }}>{t.categories?.name ?? 'Umum'}</div>
                   </div>
                 </div>
-                <div style={{ fontSize:'15px', fontWeight:'700', color: t.type==='income'?'#10b981':'var(--text-main)' }}>
+                <div style={{ fontSize:'15px', fontWeight:'500', color: t.type==='income' ? 'var(--color-positive)' : 'var(--text-main)' }}>
                   {t.type==='income'?'+':'-'}{fmt(t.amount)}
                 </div>
                 <div style={{ fontSize:'13px', color:'var(--text-muted)', fontWeight:'500' }}>{fmtDate(t.date)}</div>
                 <div style={{ display:'flex', gap:'8px', justifyContent:'flex-end' }}>
-                  <button onClick={() => startEdit(t)} style={{ padding:'6px', borderRadius:'6px', background:'transparent', border:'1px solid var(--border-color)', cursor:'pointer', color:'var(--text-muted)' }}>✎</button>
-                  <button onClick={() => setConfirmId(t.id)} disabled={deletingId===t.id} style={{ padding:'6px', borderRadius:'6px', background:'transparent', border:'1px solid var(--border-color)', cursor:'pointer', color:'#ef4444' }}>{deletingId===t.id?'...':'✕'}</button>
+                  <button onClick={() => startEdit(t)} style={{ padding:'6px', borderRadius:'var(--radius-sm)', background:'transparent', border:'1px solid var(--border-color)', cursor:'pointer', color:'var(--text-muted)' }}>✎</button>
+                  <button onClick={() => setConfirmId(t.id)} disabled={deletingId===t.id} style={{ padding:'6px', borderRadius:'var(--radius-sm)', background:'transparent', border:'1px solid var(--border-color)', cursor:'pointer', color:'var(--color-negative)' }}>{deletingId===t.id?'...':'✕'}</button>
                 </div>
               </div>
 
@@ -297,8 +300,8 @@ export default function TransactionsClient({ transactions, categories, userId }:
               }}>
                 {/* Kiri: info */}
                 <div style={{ flex:1, minWidth:0, display:'flex', alignItems:'center', gap:'12px' }}>
-                  <div style={{ 
-                    width:'36px', height:'36px', borderRadius:'10px', background:'var(--bg-secondary)',
+                  <div style={{
+                    width:'36px', height:'36px', borderRadius:'var(--radius-md)', background:'var(--bg-secondary)',
                     display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px'
                   }}>
                     {t.categories?.icon ?? '💰'}
@@ -307,18 +310,18 @@ export default function TransactionsClient({ transactions, categories, userId }:
                     <div style={{ fontSize:'14px', fontWeight:'600', color:'var(--text-main)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{t.note || t.categories?.name || 'Tanpa Catatan'}</div>
                     <div style={{ fontSize:'11px', color:'var(--text-muted)', fontWeight:'500', display:'flex', gap:'5px', flexWrap:'wrap' }}>
                       <span>{t.categories?.name ?? 'Umum'}</span>
-                      <span style={{ color:'var(--border-color)' }}>· {fmtDateShort(t.date)}</span>
+                      <span style={{ color:'var(--border-color-md)' }}>· {fmtDateShort(t.date)}</span>
                     </div>
                   </div>
                 </div>
                 {/* Kanan: amount + tombol */}
                 <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'6px', flexShrink:0 }}>
-                  <div style={{ fontSize:'15px', fontWeight:'800', color: t.type==='income'?'#10b981':'#ef4444' }}>
+                  <div style={{ fontSize:'15px', fontWeight:'600', color: t.type==='income' ? 'var(--color-positive)' : 'var(--color-negative)' }}>
                     {t.type==='income'?'+':'-'}{fmt(t.amount)}
                   </div>
                   <div style={{ display:'flex', gap:'5px' }}>
-                    <button onClick={() => startEdit(t)} style={{ padding:'5px 12px', background:'transparent', border:'1px solid var(--border-color)', borderRadius:'6px', color:'var(--text-muted)', fontSize:'12px', cursor:'pointer' }}>Edit</button>
-                    <button onClick={() => setConfirmId(t.id)} disabled={deletingId===t.id} style={{ padding:'5px 10px', background:'transparent', border:'1px solid var(--border-color)', borderRadius:'6px', color:'#ef4444', fontSize:'12px', cursor:'pointer' }}>{deletingId===t.id?'...':'✕'}</button>
+                    <button onClick={() => startEdit(t)} style={{ padding:'5px 12px', background:'transparent', border:'1px solid var(--border-color)', borderRadius:'var(--radius-sm)', color:'var(--text-muted)', fontSize:'12px', cursor:'pointer' }}>Edit</button>
+                    <button onClick={() => setConfirmId(t.id)} disabled={deletingId===t.id} style={{ padding:'5px 10px', background:'transparent', border:'1px solid var(--border-color)', borderRadius:'var(--radius-sm)', color:'var(--color-negative)', fontSize:'12px', cursor:'pointer' }}>{deletingId===t.id?'...':'✕'}</button>
                   </div>
                 </div>
               </div>
@@ -327,13 +330,13 @@ export default function TransactionsClient({ transactions, categories, userId }:
               <div style={{ padding:'16px', background:'var(--bg-secondary)' }}>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginBottom:'12px' }}>
                   <div>
-                    <label style={{ display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'700', marginBottom:'4px', textTransform:'uppercase' }}>Catatan</label>
+                    <label style={{ display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'4px', textTransform:'uppercase' }}>Catatan</label>
                     <input value={editForm.note??''} onChange={e => setEditForm(p=>({...p,note:e.target.value}))} style={inp}/>
                   </div>
                   <div>
-                    <label style={{ display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'700', marginBottom:'4px', textTransform:'uppercase' }}>Nominal</label>
+                    <label style={{ display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'4px', textTransform:'uppercase' }}>Nominal</label>
                     <div style={{ position:'relative' }}>
-                      <span style={{ position:'absolute', left:'10px', top:'50%', transform:'translateY(-50%)', fontSize:'12px', color:'var(--text-muted)', fontWeight:'600' }}>Rp</span>
+                      <span style={{ position:'absolute', left:'10px', top:'50%', transform:'translateY(-50%)', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500' }}>Rp</span>
                       <input type="text" inputMode="numeric" value={amountDisplay}
                         onChange={e => {
                           const raw = e.target.value.replace(/[^0-9]/g,'');
@@ -341,25 +344,25 @@ export default function TransactionsClient({ transactions, categories, userId }:
                           setAmountDisplay(num===0?'':num.toLocaleString('id-ID'));
                           setEditForm(p=>({...p,amount:num}));
                         }}
-                        onFocus={e => { e.target.style.borderColor='var(--accent-primary)'; setAmountDisplay((editForm.amount??0).toString()); }}
+                        onFocus={e => { e.target.style.borderColor='var(--border-color-strong)'; setAmountDisplay((editForm.amount??0).toString()); }}
                         onBlur={e => { e.target.style.borderColor='var(--border-color)'; setAmountDisplay((editForm.amount??0)===0?'':(editForm.amount??0).toLocaleString('id-ID')); }}
                         style={{...inp, paddingLeft:'32px'}}/>
                     </div>
                   </div>
                   <div>
-                    <label style={{ display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'700', marginBottom:'4px', textTransform:'uppercase' }}>Tipe</label>
+                    <label style={{ display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'4px', textTransform:'uppercase' }}>Tipe</label>
                     <select value={editForm.type} onChange={e=>setEditForm(p=>({...p,type:e.target.value as any}))} style={{...inp,cursor:'pointer'}}>
                       <option value="expense">Pengeluaran</option>
                       <option value="income">Pemasukan</option>
                     </select>
                   </div>
                   <div>
-                    <label style={{ display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'700', marginBottom:'4px', textTransform:'uppercase' }}>Tanggal</label>
+                    <label style={{ display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'4px', textTransform:'uppercase' }}>Tanggal</label>
                     <input type="date" value={editForm.date??''} onChange={e=>setEditForm(p=>({...p,date:e.target.value}))} style={inp}/>
                   </div>
                 </div>
                 <div style={{ marginBottom:'12px' }}>
-                  <label style={{ display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'700', marginBottom:'4px', textTransform:'uppercase' }}>Kategori</label>
+                  <label style={{ display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'4px', textTransform:'uppercase' }}>Kategori</label>
                   <select value={(editForm.categories as any)?.id??''}
                     onChange={e => { const cat=categories.find(c=>c.id===e.target.value); setEditForm(p=>({...p,categories:cat??null})); }}
                     style={{...inp,cursor:'pointer'}}>
@@ -372,11 +375,11 @@ export default function TransactionsClient({ transactions, categories, userId }:
                 <div style={{ display:'flex', gap:'10px' }}>
                   <button onClick={saveEdit} disabled={saving} style={{
                     flex:1, padding:'10px', background:'var(--accent-primary)', border:'none',
-                    borderRadius:'8px', color:'#fff', fontSize:'14px', fontWeight:'700', cursor:'pointer',
+                    borderRadius:'var(--radius-md)', color:'var(--accent-primary-fg)', fontSize:'14px', fontWeight:'600', cursor:'pointer',
                   }}>{saving?'Menyimpan...':'Simpan Perubahan'}</button>
                   <button onClick={()=>setEditingId(null)} style={{
                     padding:'10px 20px', background:'transparent', border:'1px solid var(--border-color)',
-                    borderRadius:'8px', color:'var(--text-muted)', fontSize:'14px', fontWeight:'600', cursor:'pointer',
+                    borderRadius:'var(--radius-md)', color:'var(--text-muted)', fontSize:'14px', fontWeight:'500', cursor:'pointer',
                   }}>Batal</button>
                 </div>
               </div>
@@ -395,7 +398,7 @@ export default function TransactionsClient({ transactions, categories, userId }:
       />
 
       {filtered.length > 0 && (
-        <div style={{ textAlign:'center', color:'var(--text-muted)', fontSize:'12px', marginTop:'16px', fontWeight:'700' }}>
+        <div style={{ textAlign:'center', color:'var(--text-muted)', fontSize:'12px', marginTop:'16px', fontWeight:'500' }}>
           Menampilkan {filtered.length} dari {data.length} transaksi
         </div>
       )}
