@@ -33,10 +33,10 @@ interface Props {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const ROLE_META: Record<Role, { label: string; color: string; bg: string; border: string; desc: string }> = {
-  owner:    { label: 'owner',    color: 'var(--accent-primary)', bg: 'var(--bg-secondary)', border: 'var(--accent-primary)', desc: 'akses penuh + kelola user' },
-  admin:    { label: 'admin',    color: 'var(--color-neutral)', bg: 'var(--bg-secondary)', border: 'var(--border-color)', desc: 'akses penuh, tidak bisa hapus owner' },
-  user:     { label: 'user',     color: 'var(--color-positive)', bg: 'var(--bg-secondary)', border: 'var(--color-positive)', desc: 'input & lihat data sendiri' },
-  readonly: { label: 'readonly', color: 'var(--text-muted)', bg: 'var(--bg-secondary)', border: 'var(--border-color)', desc: 'hanya bisa lihat, tidak bisa edit' },
+  owner:    { label: 'Owner',    color: 'var(--accent-primary)', bg: 'var(--bg-secondary)', border: 'var(--accent-primary)', desc: 'Akses penuh + kelola user' },
+  admin:    { label: 'Admin',    color: 'var(--color-neutral)', bg: 'var(--bg-secondary)', border: 'var(--border-color)', desc: 'Akses penuh, tidak bisa hapus owner' },
+  user:     { label: 'User',     color: 'var(--color-positive)', bg: 'var(--bg-secondary)', border: 'var(--color-positive)', desc: 'Input & lihat data sendiri' },
+  readonly: { label: 'Readonly', color: 'var(--text-muted)', bg: 'var(--bg-secondary)', border: 'var(--border-color)', desc: 'Hanya bisa lihat, tidak bisa edit' },
 };
 
 const inpStyle: React.CSSProperties = {
@@ -118,8 +118,8 @@ function AddUserModal({ onSave, onClose }: {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' }}>
           <div>
-            <h2 style={{ color: 'var(--text-main)', fontSize: '18px', fontWeight: '500', margin: '0 0 6px' }}>tambah user baru</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>isi minimal chat id atau email</p>
+            <h2 style={{ color: 'var(--text-main)', fontSize: '18px', fontWeight: '500', margin: '0 0 6px' }}>Tambah User Baru</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>Isi minimal Chat ID atau Email</p>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '24px', cursor: 'pointer', lineHeight: 1, opacity: 0.6 }}>×</button>
         </div>
@@ -128,7 +128,7 @@ function AddUserModal({ onSave, onClose }: {
           {/* Nama */}
           <div style={{ marginBottom: '16px' }}>
             <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500', marginBottom: '8px' }}>
-              nama <span style={{ color: 'var(--color-negative)' }}>*</span>
+              Nama <span style={{ color: 'var(--color-negative)' }}>*</span>
             </label>
             <input value={displayName} onChange={e => setDisplayName(e.target.value)}
               placeholder="cth: athia, ananda, dll" style={inpStyle}
@@ -139,7 +139,7 @@ function AddUserModal({ onSave, onClose }: {
           {/* Email */}
           <div style={{ marginBottom: '16px' }}>
             <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500', marginBottom: '8px' }}>
-              email (untuk login dashboard)
+              Email (untuk login Dashboard)
             </label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)}
               placeholder="cth: athia@gmail.com"
@@ -147,7 +147,7 @@ function AddUserModal({ onSave, onClose }: {
               onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
               onBlur={e  => e.target.style.borderColor = 'var(--border-color)'} />
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
-              wajib jika user ingin akses dashboard via web
+              Wajib jika user ingin akses dashboard via web
             </div>
           </div>
 
@@ -392,11 +392,11 @@ function UserCard({
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '15px', fontWeight: '500', color: 'var(--text-main)' }}>
-              {u.display_name?.toLowerCase() ?? 'tanpa nama'}
+              {u.display_name ?? 'tanpa nama'}
             </span>
             {isMe && (
               <span style={{ fontSize: '10px', padding: '1px 8px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', color: 'var(--accent-primary)', border: '1px solid var(--accent-primary)', fontWeight: '600' }}>
-                saya
+                Saya
               </span>
             )}
             <span style={{ fontSize: '10px', padding: '1px 8px', borderRadius: 'var(--radius-sm)', border: `1px solid ${meta.color}`, color: meta.color, fontWeight: '600' }}>
@@ -650,7 +650,7 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
           backdropFilter: 'blur(12px)',
           boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
           animation: 'slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-        }}>{toast.msg.toLowerCase()}</div>
+        }}>{toast.msg}</div>
       )}
 
       {showAdd && (
@@ -663,7 +663,7 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: '600', margin: '0 0 6px', color: 'var(--text-main)', letterSpacing: '-0.3px' }}>kelola user</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: '600', margin: '0 0 6px', color: 'var(--text-main)', letterSpacing: '-0.3px' }}>Kelola User</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: 0 }}>
             {userList.length} user terdaftar
           </p>
@@ -675,7 +675,7 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
         }}
           onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
           onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-        >+ tambah user</button>
+        >+ Tambah User</button>
       </div>
 
       {/* Role legend */}
@@ -700,7 +700,7 @@ export default function UsersClient({ currentUserId, currentUserRole, users, whi
         {/* Family Section */}
         <section>
           <h2 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', marginBottom: '16px', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            akun keluarga <span style={{ padding: '2px 8px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', fontSize: '11px', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}>{familyUsers.length}</span>
+            AKUN KELUARGA <span style={{ padding: '2px 8px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', fontSize: '11px', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}>{familyUsers.length}</span>
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {familyUsers.map(u => (

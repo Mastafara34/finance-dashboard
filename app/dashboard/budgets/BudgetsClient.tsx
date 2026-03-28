@@ -44,10 +44,10 @@ const fmtK = (n: number) => {
 };
 
 function statusConfig(pct: number) {
-  if (pct >= 100) return { color: 'var(--color-negative)', bg: 'var(--color-negative-bg)', border: 'var(--color-negative)', label: 'melebihi limit' };
-  if (pct >= 80)  return { color: 'var(--color-neutral)', bg: 'var(--color-neutral-bg)', border: 'var(--color-neutral)', label: 'hampir habis' };
-  if (pct >= 50)  return { color: 'var(--accent-primary)', bg: 'rgba(255, 255, 255, 0.05)', border: 'var(--border-color-md)', label: 'setengah jalan' };
-  return           { color: 'var(--color-positive)', bg: 'var(--color-positive-bg)', border: 'var(--color-positive)', label: 'aman' };
+  if (pct >= 100) return { color: 'var(--color-negative)', bg: 'var(--color-negative-bg)', border: 'var(--color-negative)', label: 'Melebihi Limit' };
+  if (pct >= 80)  return { color: 'var(--color-neutral)', bg: 'var(--color-neutral-bg)', border: 'var(--color-neutral)', label: 'Hampir Habis' };
+  if (pct >= 50)  return { color: 'var(--accent-primary)', bg: 'rgba(255, 255, 255, 0.05)', border: 'var(--border-color-md)', label: 'Setengah Jalan' };
+  return           { color: 'var(--color-positive)', bg: 'var(--color-positive-bg)', border: 'var(--color-positive)', label: 'Aman' };
 }
 
 // ─── Envelope Card ────────────────────────────────────────────────────────────
@@ -83,7 +83,7 @@ function EnvelopeCard({
           </div>
           <div>
             <div style={{ fontSize: '15px', fontWeight: '500', color: 'var(--text-main)' }}>
-              {budget.categories?.name.toLowerCase() ?? 'kategori'}
+              {budget.categories?.name ?? 'Kategori'}
             </div>
             <div style={{ fontSize: '12px', marginTop: '2px', color: sc.color, fontWeight: '500' }}>
               {sc.label}
@@ -117,9 +117,9 @@ function EnvelopeCard({
       {/* Numbers */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '16px' }}>
         {[
-          { label: 'terpakai',  value: fmt(spent),               color: 'var(--color-negative)' },
-          { label: 'sisa',      value: fmt(sisa),                 color: sisa > 0 ? 'var(--color-positive)' : 'var(--color-negative)' },
-          { label: 'limit',     value: fmt(budget.limit_amount),  color: 'var(--text-muted)' },
+          { label: 'Terpakai',  value: fmt(spent),               color: 'var(--color-negative)' },
+          { label: 'Sisa',      value: fmt(sisa),                 color: sisa > 0 ? 'var(--color-positive)' : 'var(--color-negative)' },
+          { label: 'Limit',     value: fmt(budget.limit_amount),  color: 'var(--text-muted)' },
         ].map(s => (
           <div key={s.label} style={{
             background: 'transparent', borderRadius: 'var(--radius-md)', padding: '10px 8px', textAlign: 'center',
@@ -215,9 +215,9 @@ function BudgetFormModal({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div>
             <h2 style={{ color: 'var(--text-main)', fontSize: '18px', fontWeight: '500', margin: '0 0 6px' }}>
-              {isEdit ? 'edit budget' : 'set budget baru'}
+              {isEdit ? 'Edit Budget' : 'Set Budget Baru'}
             </h2>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{monthLabel.toLowerCase()}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{monthLabel}</div>
           </div>
           <button onClick={onClose} style={{
             background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer',
@@ -227,14 +227,14 @@ function BudgetFormModal({
         <form onSubmit={handleSubmit}>
           {/* Category */}
           <div style={{ marginBottom: '16px' }}>
-            <label style={lbl}>kategori <span style={{ color: 'var(--color-negative)' }}>*</span></label>
+            <label style={lbl}>Kategori <span style={{ color: 'var(--color-negative)' }}>*</span></label>
             {isEdit ? (
               <div style={{
                 ...inp, display: 'flex', alignItems: 'center', gap: '8px',
                 cursor: 'not-allowed', opacity: 0.6, background: 'var(--bg-primary)'
               }}>
                 <span>{budget?.categories?.icon}</span>
-                <span>{budget?.categories?.name.toLowerCase()}</span>
+                <span>{budget?.categories?.name}</span>
               </div>
             ) : (
               <select value={catId} onChange={e => setCatId(e.target.value)} required
@@ -244,7 +244,7 @@ function BudgetFormModal({
               >
                 <option value="">— pilih kategori —</option>
                 {available.map(c => (
-                  <option key={c.id} value={c.id}>{c.icon} {c.name.toLowerCase()}</option>
+                  <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
                 ))}
               </select>
             )}
@@ -252,7 +252,7 @@ function BudgetFormModal({
 
           {/* Limit */}
           <div style={{ marginBottom: '24px' }}>
-            <label style={lbl}>limit per bulan <span style={{ color: 'var(--color-negative)' }}>*</span></label>
+            <label style={lbl}>Limit Per Bulan <span style={{ color: 'var(--color-negative)' }}>*</span></label>
             <div style={{ position: 'relative' }}>
               <span style={{
                 position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
@@ -506,10 +506,10 @@ export default function BudgetsClient({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
         <div>
           <h1 style={{ fontSize: '24px', fontWeight: '600', margin: '0 0 6px', letterSpacing: '-0.4px', color: 'var(--text-main)' }}>
-            budget
+            Budget
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>
-            amplop digital — {monthLabel.toLowerCase()}
+            Amplop Digital — {monthLabel}
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -524,7 +524,7 @@ export default function BudgetsClient({
               onMouseEnter={e => e.currentTarget.style.background = 'var(--color-positive-bg)'}
               onMouseLeave={e => e.currentTarget.style.background = 'var(--card-bg)'}
             >
-              {isCopying ? 'menyalin...' : '📋 salin bulan lalu'}
+              {isCopying ? 'Menyalin...' : '📋 Salin Bulan Lalu'}
             </button>
           )}
           {canEditTargets && (
@@ -544,7 +544,7 @@ export default function BudgetsClient({
             }}
             onMouseEnter={e => { if (categories.length !== existingCatIds.length) (e.currentTarget).style.opacity = '0.9'; }}
             onMouseLeave={e => { if (categories.length !== existingCatIds.length) (e.currentTarget).style.opacity = '1'; }}
-          >+ set budget</button>
+          >+ Set Budget</button>
         </div>
       </div>
 
@@ -559,20 +559,20 @@ export default function BudgetsClient({
             background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '16px',
             width: '100%', maxWidth: '400px', padding: '24px',
           }}>
-            <h2 style={{ fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>target finansial</h2>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px' }}>atur persentase ideal untuk alokasi budget anda.</p>
+            <h2 style={{ fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>Target Finansial</h2>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px' }}>Atur persentase ideal untuk alokasi budget Anda.</p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
               <div>
-                <label style={lbl}>target tabungan (%)</label>
+                <label style={lbl}>Target Tabungan (%)</label>
                 <input type="number" value={targetSaving} onChange={e => setTargetSaving(Number(e.target.value))} style={inp} />
               </div>
               <div>
-                <label style={lbl}>batas keinginan / wants (%)</label>
+                <label style={lbl}>Batas Keinginan / Wants (%)</label>
                 <input type="number" value={targetWants} onChange={e => setTargetWants(Number(e.target.value))} style={inp} />
               </div>
               <div>
-                <label style={lbl}>batas kebutuhan / needs (%)</label>
+                <label style={lbl}>Batas Kebutuhan / Needs (%)</label>
                 <input type="number" value={targetNeeds} onChange={e => setTargetNeeds(Number(e.target.value))} style={inp} />
               </div>
               <div style={{ padding: '12px', background: (targetSaving + targetWants + targetNeeds > 100) ? 'var(--color-negative-bg)' : 'var(--color-positive-bg)', borderRadius: 'var(--radius-md)', fontSize: '12px', color: (targetSaving + targetWants + targetNeeds > 100) ? 'var(--color-negative)' : 'var(--color-positive)', border: '1px solid transparent' }}>
@@ -645,7 +645,7 @@ export default function BudgetsClient({
           display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.9
         }}>
           🚨 {overBudget.length} kategori melebihi budget:{' '}
-          <strong>{overBudget.map(b => b.categories?.name.toLowerCase()).join(', ')}</strong>
+          <strong>{overBudget.map(b => b.categories?.name).join(', ')}</strong>
         </div>
       )}
       {nearLimit.length > 0 && (
@@ -657,7 +657,7 @@ export default function BudgetsClient({
           display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.9
         }}>
           ⚠️ {nearLimit.length} kategori hampir habis:{' '}
-          <strong>{nearLimit.map(b => b.categories?.name.toLowerCase()).join(', ')}</strong>
+          <strong>{nearLimit.map(b => b.categories?.name).join(', ')}</strong>
         </div>
       )}
 
@@ -670,7 +670,7 @@ export default function BudgetsClient({
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '500' }}>
-              total budget {monthLabel.toLowerCase()}
+              Total Budget {monthLabel}
             </span>
             <span style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-main)' }}>
               {fmt(totalSpent)}{' '}
@@ -691,9 +691,9 @@ export default function BudgetsClient({
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginTop: '20px' }}>
             {[
-              { label: 'total limit', value: fmt(totalLimit), color: 'var(--text-muted)' },
-              { label: 'total terpakai', value: fmt(totalSpent), color: 'var(--color-negative)' },
-              { label: 'sisa budget', value: fmt(Math.max(totalLimit - totalSpent, 0)), color: 'var(--color-positive)' },
+              { label: 'Total Limit', value: fmt(totalLimit), color: 'var(--text-muted)' },
+              { label: 'Total Terpakai', value: fmt(totalSpent), color: 'var(--color-negative)' },
+              { label: 'Sisa Budget', value: fmt(Math.max(totalLimit - totalSpent, 0)), color: 'var(--color-positive)' },
             ].map(s => (
               <div key={s.label} style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: '500' }}>{s.label}</div>

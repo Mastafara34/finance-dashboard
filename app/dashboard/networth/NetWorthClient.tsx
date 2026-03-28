@@ -21,12 +21,12 @@ type AssetType = Asset['type'];
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const TYPE_META: Record<AssetType, { label: string; icon: string; color: string }> = {
-  cash:       { label: 'kas & tabungan',  icon: '🏦', color: 'var(--text-main)' },
-  investment: { label: 'investasi',       icon: '📈', color: 'var(--color-positive)' },
-  property:   { label: 'properti',        icon: '🏠', color: 'var(--color-neutral)' },
-  vehicle:    { label: 'kendaraan',       icon: '🚗', color: 'var(--text-muted)' },
-  receivable: { label: 'piutang',         icon: '🤝', color: 'var(--accent-primary)' },
-  other:      { label: 'lainnya',         icon: '📦', color: 'var(--text-subtle)' },
+  cash:       { label: 'Kas & Tabungan',  icon: '🏦', color: 'var(--text-main)' },
+  investment: { label: 'Investasi',       icon: '📈', color: 'var(--color-positive)' },
+  property:   { label: 'Properti',        icon: '🏠', color: 'var(--color-neutral)' },
+  vehicle:    { label: 'Kendaraan',       icon: '🚗', color: 'var(--text-muted)' },
+  receivable: { label: 'Piutang',         icon: '🤝', color: 'var(--accent-primary)' },
+  other:      { label: 'Lainnya',         icon: '📦', color: 'var(--text-subtle)' },
 };
 
 const ASSET_TYPES = Object.keys(TYPE_META) as AssetType[];
@@ -267,7 +267,7 @@ function AssetRow({ asset, onEdit, onDelete }: {
           {asset.is_liability ? '-' : ''}{fmt(asset.value)}
         </div>
         <div style={{ fontSize: '12px', color: daysAgo > 30 ? 'var(--color-neutral)' : 'var(--text-muted)', marginTop: '1px' }}>
-          {daysAgo === 0 ? 'hari ini' : daysAgo === 1 ? 'kemarin' : `${daysAgo} hari lalu`}
+          {daysAgo === 0 ? 'Hari ini' : daysAgo === 1 ? 'Kemarin' : `${daysAgo} hari lalu`}
           {daysAgo > 30 && ' ⚠️'}
         </div>
       </div>
@@ -430,10 +430,10 @@ export default function NetWorthClient({ initialAssets, userId }: {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
         <div>
           <h1 style={{ fontSize: '24px', fontWeight: '600', margin: '0 0 6px', letterSpacing: '-0.4px', color: 'var(--text-main)' }}>
-            net worth
+            Net Worth
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>
-            kekayaan bersih = total aset − total liabilitas
+            Kekayaan Bersih = Total Aset − Total Liabilitas
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -444,7 +444,7 @@ export default function NetWorthClient({ initialAssets, userId }: {
           }}
             onMouseEnter={e => (e.currentTarget).style.opacity = '0.9'}
             onMouseLeave={e => (e.currentTarget).style.opacity = '1'}
-          >+ aset</button>
+          >+ Aset</button>
           <button onClick={() => { setFormLiab(true); setShowForm(true); }} style={{
             padding: '9px 18px', background: 'transparent',
             border: '1px solid var(--color-negative)', borderRadius: 'var(--radius-md)',
@@ -452,7 +452,7 @@ export default function NetWorthClient({ initialAssets, userId }: {
           }}
             onMouseEnter={e => { (e.currentTarget).style.background = 'var(--color-negative-bg)'; }}
             onMouseLeave={e => { (e.currentTarget).style.background = 'transparent'; }}
-          >+ liabilitas</button>
+          >+ Liabilitas</button>
         </div>
       </div>
 
@@ -475,7 +475,7 @@ export default function NetWorthClient({ initialAssets, userId }: {
       }}>
         <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px',
           letterSpacing: '0.05em', fontWeight: '500' }}>
-          kekayaan bersih keseluruhan
+          Kekayaan Bersih Keseluruhan
         </div>
         <div style={{
           fontSize: '36px', fontWeight: '600', letterSpacing: '-0.8px',
@@ -498,12 +498,12 @@ export default function NetWorthClient({ initialAssets, userId }: {
             <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', fontSize: '13px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-positive)' }} />
-                <span style={{ color: 'var(--text-muted)' }}>aset</span>
+                <span style={{ color: 'var(--text-muted)' }}>Aset</span>
                 <span style={{ color: 'var(--text-main)', fontWeight: '500' }}>{fmtK(totalAset)}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-negative)' }} />
-                <span style={{ color: 'var(--text-muted)' }}>liabilitas</span>
+                <span style={{ color: 'var(--text-muted)' }}>Liabilitas</span>
                 <span style={{ color: 'var(--text-main)', fontWeight: '500' }}>{fmtK(totalLiab)}</span>
               </div>
             </div>
@@ -521,7 +521,7 @@ export default function NetWorthClient({ initialAssets, userId }: {
           height: 'fit-content',
         }}>
           <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-main)', marginBottom: '20px', letterSpacing: '0.02em' }}>
-            komposisi aset
+            Komposisi Aset
           </div>
           {byType.length === 0 ? (
             <div style={{ color: 'var(--text-muted)', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>
@@ -568,7 +568,7 @@ export default function NetWorthClient({ initialAssets, userId }: {
               background: 'var(--color-positive-bg)',
             }}>
               <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--color-positive)', letterSpacing: '0.02em' }}>
-                aset ({asetList.length})
+                Aset ({asetList.length})
               </span>
               <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-positive)' }}>
                 {fmt(totalAset)}
@@ -599,7 +599,7 @@ export default function NetWorthClient({ initialAssets, userId }: {
               background: 'var(--color-negative-bg)',
             }}>
               <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--color-negative)', letterSpacing: '0.02em' }}>
-                liabilitas ({liabList.length})
+                Liabilitas ({liabList.length})
               </span>
               <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-negative)' }}>
                 {totalLiab > 0 ? `-${fmt(totalLiab)}` : fmt(0)}

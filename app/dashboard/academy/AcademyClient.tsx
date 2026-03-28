@@ -7,8 +7,8 @@ import { Card } from '../components/DashboardComponents';
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Tip { id: string; icon: string; title: string; content: string; tip: string; category: string; isCustom?: boolean; }
 
-const CATEGORIES = ['semua','tabungan','investasi','hutang','anggaran','psikologi uang','produktivitas','proteksi'];
-const CAT_COLORS: Record<string,string> = { 'tabungan':'var(--color-positive)','investasi':'var(--accent-primary)','hutang':'var(--color-negative)','anggaran':'var(--color-neutral)','psikologi uang':'var(--text-muted)','produktivitas':'var(--text-main)','proteksi':'var(--text-muted)' };
+const CATEGORIES = ['Semua','Tabungan','Investasi','Hutang','Anggaran','Psikologi Uang','Produktivitas','Proteksi'];
+const CAT_COLORS: Record<string,string> = { 'Tabungan':'var(--color-positive)','Investasi':'var(--accent-primary)','Hutang':'var(--color-negative)','Anggaran':'var(--color-neutral)','Psikologi Uang':'var(--text-muted)','Produktivitas':'var(--text-main)','Proteksi':'var(--text-muted)' };
 
 const INITIAL_TIPS: Tip[] = [
   { id:'1',  category:'Anggaran',       icon:'📊', title:'Aturan 50/30/20',              content:'Alokasikan 50% kebutuhan pokok, 30% keinginan, dan 20% tabungan/investasi. Standar kebahagiaan finansial yang diakui global.', tip:'Cek "Target Budget" di menu Budget untuk menyesuaikan rasio ini.' },
@@ -87,10 +87,10 @@ const QUIZ_QUESTIONS: QuizQ[] = [
 
 // ─── Tab Nav ──────────────────────────────────────────────────────────────────
 const TABS = [
-  { id:'tips',      label:'📚 strategi & tips' },
-  { id:'checklist', label:'✓ checklist bulanan' },
-  { id:'calc',      label:'🧮 kalkulator' },
-  { id:'quiz',      label:'📝 quiz finansial' },
+  { id:'tips',      label:'📚 Strategi & Tips' },
+  { id:'checklist', label:'✓ Checklist Bulanan' },
+  { id:'calc',      label:'🧮 Kalkulator' },
+  { id:'quiz',      label:'📝 Quiz Finansial' },
 ];
 
 // ─── Calculator Component ──────────────────────────────────────────────────────
@@ -141,9 +141,9 @@ function KalkulatorTab() {
     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(340px,1fr))', gap:'20px' }}>
       {/* Dana Darurat */}
       <div style={cardStyle}>
-        <h3 style={{ fontWeight:'500', fontSize:'16px', marginBottom:'6px' }}>dana darurat ideal</h3>
-        <p style={{ color:'var(--text-muted)', fontSize:'13px', marginBottom:'20px' }}>hitung berapa yang perlu dikumpulkan sebagai safety net.</p>
-        <label style={lbl}>pengeluaran bulanan (rp)</label>
+        <h3 style={{ fontWeight:'500', fontSize:'16px', marginBottom:'6px' }}>Dana Darurat Ideal</h3>
+        <p style={{ color:'var(--text-muted)', fontSize:'13px', marginBottom:'20px' }}>Hitung berapa yang perlu dikumpulkan sebagai safety net.</p>
+        <label style={lbl}>Pengeluaran Bulanan (Rp)</label>
         <input style={inp} type="text" inputMode="numeric" placeholder="Misal: 5.000.000" value={expense} 
           onChange={e => setExpense(e.target.value.replace(/[^0-9.]/g,''))}
           onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
@@ -152,11 +152,11 @@ function KalkulatorTab() {
         <div style={{ display:'flex', gap:'8px', marginTop:'12px' }}>
           {(['single','family'] as const).map(s => (
             <button key={s} onClick={() => setStatus(s)} style={{ flex:1, padding:'10px', borderRadius:'var(--radius-md)', border:'1px solid', cursor:'pointer', fontWeight:'600', fontSize:'12px', transition:'all 0.15s', background: status===s ? 'var(--accent-primary)' : 'transparent', color: status===s ? 'var(--accent-primary-fg)' : 'var(--text-muted)', borderColor: status===s ? 'var(--accent-primary)' : 'var(--border-color)' }}>
-              {s === 'single' ? '👤 single (3×)' : '👪 keluarga (6×)'}
+              {s === 'single' ? '👤 Single (3×)' : '👪 Keluarga (6×)'}
             </button>
           ))}
         </div>
-        {emergencyTarget > 0 && <div style={res}><div style={{ color:'var(--text-muted)', fontSize:'12px' }}>target dana darurat</div><div style={{ fontSize:'24px', fontWeight:'600', color:'var(--accent-primary)', marginTop:'4px' }}>{fmt(emergencyTarget)}</div></div>}
+        {emergencyTarget > 0 && <div style={res}><div style={{ color:'var(--text-muted)', fontSize:'12px' }}>Target Dana Darurat</div><div style={{ fontSize:'24px', fontWeight:'600', color:'var(--accent-primary)', marginTop:'4px' }}>{fmt(emergencyTarget)}</div></div>}
       </div>
 
       {/* Rule of 72 */}
@@ -363,8 +363,8 @@ export default function AcademyClient() {
     <div style={{ color:'var(--text-main)' }}>
       {/* Header */}
       <header style={{ marginBottom:'40px' }}>
-        <h1 style={{ fontSize:'24px', fontWeight:'600', marginBottom:'6px', letterSpacing:'-0.3px' }}>akademi finansial</h1>
-        <p style={{ color:'var(--text-muted)', fontSize:'14px', margin:0 }}>strategi, tools, dan evaluasi untuk mempercepat kebebasan finansial anda.</p>
+        <h1 style={{ fontSize:'24px', fontWeight:'600', marginBottom:'6px', letterSpacing:'-0.3px' }}>Akademi Finansial</h1>
+        <p style={{ color:'var(--text-muted)', fontSize:'14px', margin:0 }}>Strategi, tools, dan evaluasi untuk mempercepat kebebasan finansial Anda.</p>
       </header>
 
       {/* Tabs */}
@@ -385,26 +385,26 @@ export default function AcademyClient() {
         <>
           <div style={{ marginBottom:'24px', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'16px' }}>
             <div style={{ display:'flex', flexDirection:'column', gap:'12px', flex:1 }}>
-              <input placeholder="🔍 cari strategi..." value={search} onChange={e => setSearch(e.target.value)} style={{ padding:'12px 16px', background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', color:'var(--text-main)', fontSize:'14px', outline:'none', width:'100%', boxSizing:'border-box', transition:'border-color 0.15s' }} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} />
+              <input placeholder="🔍 Cari strategi..." value={search} onChange={e => setSearch(e.target.value)} style={{ padding:'12px 16px', background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', color:'var(--text-main)', fontSize:'14px', outline:'none', width:'100%', boxSizing:'border-box', transition:'border-color 0.15s' }} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} />
               <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
                 {CATEGORIES.map(cat => <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding:'6px 14px', borderRadius:'99px', border:'1px solid', fontSize:'12px', fontWeight:'500', cursor:'pointer', transition:'all .15s', background:activeCategory===cat ? 'var(--accent-primary)' : 'transparent', borderColor:activeCategory===cat ? 'var(--accent-primary)' : 'var(--border-color)', color:activeCategory===cat ? 'var(--accent-primary-fg)' : 'var(--text-muted)' }}>{cat}</button>)}
               </div>
             </div>
-            <button onClick={() => setIsAdding(true)} style={{ padding:'12px 20px', background:'var(--accent-primary)', border:'none', borderRadius:'var(--radius-md)', color:'var(--accent-primary-fg)', fontSize:'13px', fontWeight:'600', cursor:'pointer', flexShrink:0 }}>+ tambah</button>
+            <button onClick={() => setIsAdding(true)} style={{ padding:'12px 20px', background:'var(--accent-primary)', border:'none', borderRadius:'var(--radius-md)', color:'var(--accent-primary-fg)', fontSize:'13px', fontWeight:'600', cursor:'pointer', flexShrink:0 }}>+ Tambah</button>
           </div>
-          <div style={{ fontSize:'12px', color:'var(--text-muted)', marginBottom:'20px' }}>menampilkan <strong style={{ color:'var(--text-main)' }}>{filtered.length}</strong> dari {tips.length} strategi</div>
+          <div style={{ fontSize:'12px', color:'var(--text-muted)', marginBottom:'20px' }}>Menampilkan <strong style={{ color:'var(--text-main)' }}>{filtered.length}</strong> dari {tips.length} strategi</div>
           {isAdding && (
             <div style={{ padding:'28px', marginBottom:'28px', background:'var(--bg-secondary)', border:'1px solid var(--accent-primary)', borderRadius:'var(--radius-lg)' }}>
-              <h3 style={{ fontSize:'16px', fontWeight:'500', marginBottom:'20px' }}>{editingId ? 'edit strategi' : 'tambah strategi baru'}</h3>
+              <h3 style={{ fontSize:'16px', fontWeight:'500', marginBottom:'20px' }}>{editingId ? 'Edit Strategi' : 'Tambah Strategi Baru'}</h3>
               <form onSubmit={handleSubmit} style={{ display:'grid', gap:'16px' }}>
                 <div style={{ display:'flex', gap:'12px', flexWrap:'wrap' }}>
-                  <div style={{ width:'80px' }}><label style={lbl}>icon</label><input style={inp} value={formData.icon} onChange={e => setFormData({...formData,icon:e.target.value})} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
-                  <div style={{ flex:1, minWidth:'200px' }}><label style={lbl}>judul</label><input style={inp} required value={formData.title} onChange={e => setFormData({...formData,title:e.target.value})} placeholder="Nama strategi..." onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
-                  <div style={{ width:'160px' }}><label style={lbl}>kategori</label><select style={{...inp,cursor:'pointer'}} value={formData.category} onChange={e => setFormData({...formData,category:e.target.value})}>{CATEGORIES.filter(c=>c!=='semua').map(c=><option key={c} value={c}>{c}</option>)}</select></div>
+                  <div style={{ width:'80px' }}><label style={lbl}>Icon</label><input style={inp} value={formData.icon} onChange={e => setFormData({...formData,icon:e.target.value})} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
+                  <div style={{ flex:1, minWidth:'200px' }}><label style={lbl}>Judul</label><input style={inp} required value={formData.title} onChange={e => setFormData({...formData,title:e.target.value})} placeholder="Nama strategi..." onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
+                  <div style={{ width:'160px' }}><label style={lbl}>Kategori</label><select style={{...inp,cursor:'pointer'}} value={formData.category} onChange={e => setFormData({...formData,category:e.target.value})}>{CATEGORIES.filter(c=>c!=='Semua').map(c=><option key={c} value={c}>{c}</option>)}</select></div>
                 </div>
-                <div><label style={lbl}>penjelasan</label><textarea style={{...inp,height:'80px',paddingTop:'12px',resize:'none'}} required value={formData.content} onChange={e => setFormData({...formData,content:e.target.value})} placeholder="Jelaskan konsep strategi ini..." onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
-                <div><label style={lbl}>aksi di dashboard</label><input style={inp} required value={formData.tip} onChange={e => setFormData({...formData,tip:e.target.value})} placeholder="Tindakan konkret..." onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
-                <div style={{ display:'flex', gap:'12px', marginTop:'8px' }}><button type="submit" style={{ flex:1, padding:'12px', background:'var(--accent-primary)', color:'var(--accent-primary-fg)', border:'none', borderRadius:'var(--radius-md)', fontWeight:'600', cursor:'pointer' }}>simpan</button><button type="button" onClick={resetForm} style={{ padding:'12px 24px', background:'transparent', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', color:'var(--text-muted)', cursor:'pointer', fontWeight:'500' }}>batal</button></div>
+                <div><label style={lbl}>Penjelasan</label><textarea style={{...inp,height:'80px',paddingTop:'12px',resize:'none'}} required value={formData.content} onChange={e => setFormData({...formData,content:e.target.value})} placeholder="Jelaskan konsep strategi ini..." onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
+                <div><label style={lbl}>Aksi di Dashboard</label><input style={inp} required value={formData.tip} onChange={e => setFormData({...formData,tip:e.target.value})} placeholder="Tindakan konkret..." onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
+                <div style={{ display:'flex', gap:'12px', marginTop:'8px' }}><button type="submit" style={{ flex:1, padding:'12px', background:'var(--accent-primary)', color:'var(--accent-primary-fg)', border:'none', borderRadius:'var(--radius-md)', fontWeight:'600', cursor:'pointer' }}>Simpan</button><button type="button" onClick={resetForm} style={{ padding:'12px 24px', background:'transparent', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', color:'var(--text-muted)', cursor:'pointer', fontWeight:'500' }}>Batal</button></div>
               </form>
             </div>
           )}
@@ -417,14 +417,14 @@ export default function AcademyClient() {
                 <div style={{ fontSize:'32px', flexShrink:0 }}>{t.icon}</div>
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'8px', marginBottom:'8px' }}>
-                    <h3 style={{ fontSize:'15px', fontWeight:'500', margin:0, lineHeight:'1.4' }}>{t.title.toLowerCase()}</h3>
+                    <h3 style={{ fontSize:'15px', fontWeight:'500', margin:0, lineHeight:'1.4' }}>{t.title}</h3>
                     <div style={{ display:'flex', alignItems:'center', gap:'6px', flexShrink:0 }}>
-                      <span style={{ padding:'2px 8px', borderRadius:'var(--radius-sm)', fontSize:'10px', fontWeight:'600', background:'var(--bg-secondary)', color:'var(--text-muted)', border:'1px solid var(--border-color)', whiteSpace:'nowrap' }}>{t.category.toLowerCase()}</span>
+                      <span style={{ padding:'2px 8px', borderRadius:'var(--radius-sm)', fontSize:'10px', fontWeight:'600', background:'var(--bg-secondary)', color:'var(--text-muted)', border:'1px solid var(--border-color)', whiteSpace:'nowrap' }}>{t.category}</span>
                       {t.isCustom && <><button onClick={() => startEdit(t)} style={{ border:'none', background:'transparent', fontSize:'12px', cursor:'pointer', opacity:0.6 }}>✏️</button><button onClick={() => handleDelete(t.id)} style={{ border:'none', background:'transparent', fontSize:'12px', cursor:'pointer', opacity:0.6 }}>🗑️</button></>}
                     </div>
                   </div>
-                  <p style={{ fontSize:'13px', color:'var(--text-muted)', lineHeight:'1.6', margin:'0 0 12px' }}>{t.content.toLowerCase()}</p>
-                  <div style={{ padding:'10px 14px', background:'var(--bg-secondary)', borderRadius:'var(--radius-md)', border:'1px solid var(--border-color)', fontSize:'12px', fontWeight:'500', lineHeight:'1.5', color:'var(--text-main)' }}>💡 {t.tip.toLowerCase()}</div>
+                  <p style={{ fontSize:'13px', color:'var(--text-muted)', lineHeight:'1.6', margin:'0 0 12px' }}>{t.content}</p>
+                  <div style={{ padding:'10px 14px', background:'var(--bg-secondary)', borderRadius:'var(--radius-md)', border:'1px solid var(--border-color)', fontSize:'12px', fontWeight:'500', lineHeight:'1.5', color:'var(--text-main)' }}>💡 {t.tip}</div>
                 </div>
               </div>
             ))}
@@ -439,8 +439,8 @@ export default function AcademyClient() {
           <div style={{ background:'var(--card-bg)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-lg)', padding:'28px', marginBottom:'24px' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'20px', flexWrap:'wrap', gap:'16px' }}>
               <div>
-                <h2 style={{ fontWeight:'500', fontSize:'18px', margin:'0 0 6px' }}>checklist bulanan</h2>
-                <p style={{ color:'var(--text-muted)', fontSize:'14px', margin:0 }}>selesaikan semua tugas ini untuk kesehatan finansial optimal.</p>
+                <h2 style={{ fontWeight:'500', fontSize:'18px', margin:'0 0 6px' }}>Checklist Keuangan Bulan Ini</h2>
+                <p style={{ color:'var(--text-muted)', fontSize:'14px', margin:0 }}>Selesaikan semua tugas ini untuk kesehatan finansial optimal.</p>
               </div>
               <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
                 <input type="month" value={checkMonth} onChange={e => { setCheckMonth(e.target.value); setCheckedItems(new Set(JSON.parse(localStorage.getItem(`checklist_${e.target.value}`)||'[]'))); }} style={{ padding:'8px 12px', background:'var(--bg-secondary)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', color:'var(--text-main)', fontSize:'13px', cursor:'pointer', outline:'none' }} />
@@ -453,12 +453,12 @@ export default function AcademyClient() {
               </div>
               <span style={{ fontSize:'14px', fontWeight:'600', color: checkPct===100 ? 'var(--color-positive)' : 'var(--text-main)', minWidth:'48px' }}>{totalChecked}/{CHECKLIST.length}</span>
             </div>
-            {checkPct === 100 && <div style={{ marginTop:'20px', padding:'12px', background:'var(--color-positive-bg)', border:'1px solid var(--color-positive)', borderRadius:'var(--radius-md)', fontSize:'13px', color:'var(--color-positive)', textAlign:'center', fontWeight:'500' }}>🏆 luar biasa! semua tugas bulan ini selesai. anda adalah elite financier!</div>}
+            {checkPct === 100 && <div style={{ marginTop:'20px', padding:'12px', background:'var(--color-positive-bg)', border:'1px solid var(--color-positive)', borderRadius:'var(--radius-md)', fontSize:'13px', color:'var(--color-positive)', textAlign:'center', fontWeight:'500' }}>🏆 Luar biasa! Semua tugas bulan ini selesai. Anda adalah Elite Financier!</div>}
           </div>
 
           {checkCategories.map(cat => (
             <div key={cat} style={{ marginBottom:'24px' }}>
-              <h3 style={{ fontSize:'12px', fontWeight:'500', color:'var(--text-muted)', letterSpacing:'.06em', marginBottom:'12px', paddingLeft:'4px' }}>{cat.toLowerCase()}</h3>
+              <h3 style={{ fontSize:'12px', fontWeight:'500', color:'var(--text-muted)', letterSpacing:'.06em', marginBottom:'12px', paddingLeft:'4px' }}>{cat}</h3>
               <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
                 {CHECKLIST.filter(c => c.category===cat).map(item => {
                   const checked = checkedItems.has(item.id);
@@ -467,7 +467,7 @@ export default function AcademyClient() {
                       <div style={{ width:'22px', height:'22px', borderRadius:'var(--radius-sm)', border:`2px solid ${checked ? 'var(--color-positive)' : 'var(--border-color)'}`, background: checked ? 'var(--color-positive)' : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.15s', padding: '2px' }}>
                         {checked && <svg width="14" height="14" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                       </div>
-                      <span style={{ fontSize:'14px', color:'var(--text-main)', textDecoration: checked ? 'line-through' : 'none', lineHeight:'1.5' }}>{item.text.toLowerCase()}</span>
+                      <span style={{ fontSize:'14px', color:'var(--text-main)', textDecoration: checked ? 'line-through' : 'none', lineHeight:'1.5' }}>{item.text}</span>
                     </div>
                   );
                 })}

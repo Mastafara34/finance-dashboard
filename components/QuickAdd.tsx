@@ -70,9 +70,9 @@ export default function QuickAdd({ userId, categories }: Props) {
     }]);
 
     setSaving(false);
-    if (error) { showToast('gagal menyimpan', false); return; }
+    if (error) { showToast('Gagal menyimpan', false); return; }
 
-    showToast('transaksi tersimpan', true);
+    showToast('Transaksi tersimpan', true);
     resetForm();
     setOpen(false);
 
@@ -149,7 +149,7 @@ export default function QuickAdd({ userId, categories }: Props) {
       )}
 
       {/* FAB button */}
-      <button className="qa-fab" onClick={() => setOpen(true)} title="tambah transaksi">
+      <button className="qa-fab" onClick={() => setOpen(true)} title="Tambah Transaksi">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
       </button>
 
@@ -163,7 +163,7 @@ export default function QuickAdd({ userId, categories }: Props) {
             {/* Title */}
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'24px' }}>
               <h3 style={{ color:'var(--text-main)', fontSize:'18px', fontWeight:'500', margin:0 }}>
-                tambah transaksi
+                Tambah Transaksi
               </h3>
               <button onClick={() => setOpen(false)} style={{
                 background:'none', border:'none', color:'var(--text-muted)',
@@ -181,7 +181,7 @@ export default function QuickAdd({ userId, categories }: Props) {
                   color: type===t ? (t==='expense'?'var(--color-negative)':'var(--color-positive)') : 'var(--text-muted)',
                   boxShadow: type===t ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
                 }}>
-                  {t==='expense' ? 'pengeluaran' : 'pemasukan'}
+                  {t==='expense' ? 'Pengeluaran' : 'Pemasukan'}
                 </button>
               ))}
             </div>
@@ -189,7 +189,7 @@ export default function QuickAdd({ userId, categories }: Props) {
             {/* Amount */}
             <div style={{ marginBottom:'20px' }}>
               <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'8px' }}>
-                nominal <span style={{ color:'var(--color-negative)' }}>*</span>
+                Nominal <span style={{ color:'var(--color-negative)' }}>*</span>
               </label>
               <div style={{ position:'relative' }}>
                 <span style={{
@@ -223,7 +223,7 @@ export default function QuickAdd({ userId, categories }: Props) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
               <div>
                 <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'8px' }}>
-                  kategori
+                  Kategori
                 </label>
                 <select value={catId} onChange={e => setCatId(e.target.value)} style={{
                   width:'100%', padding:'12px',
@@ -233,13 +233,13 @@ export default function QuickAdd({ userId, categories }: Props) {
                 }}>
                   <option value="">— pilih —</option>
                   {filteredCats.map(c => (
-                    <option key={c.id} value={c.id}>{c.icon} {c.name.toLowerCase()}</option>
+                    <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
                   ))}
                 </select>
               </div>
               <div>
                 <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'8px' }}>
-                  tanggal
+                  Tanggal
                 </label>
                 <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{
                   width:'100%', padding:'12px',
@@ -256,7 +256,7 @@ export default function QuickAdd({ userId, categories }: Props) {
             {/* Note */}
             <div style={{ marginBottom:'28px' }}>
               <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'8px' }}>
-                catatan
+                Catatan
               </label>
               <input value={note} onChange={e => setNote(e.target.value)}
                 placeholder="cth: makan siang, bensin..."
@@ -287,7 +287,7 @@ export default function QuickAdd({ userId, categories }: Props) {
               onMouseEnter={e => { if(!saving && amount > 0) e.currentTarget.style.opacity = '0.9'; }}
               onMouseLeave={e => { if(!saving && amount > 0) e.currentTarget.style.opacity = '1'; }}
             >
-              {saving ? 'menyimpan...' : 'simpan transaksi'}
+              {saving ? 'Menyimpan...' : 'Simpan Transaksi'}
             </button>
           </div>
         </div>

@@ -90,7 +90,7 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram, cur
         {/* User Selector for Owner */}
         {isOwner && (
           <div style={{ padding: '0 12px 16px', borderBottom: '1px solid var(--border-color)', marginTop: '16px' }}>
-            <div style={{ fontSize: '10px', fontWeight: '500', color: 'var(--text-subtle)', marginBottom: '8px', paddingLeft: '8px' }}>PILIH TAMPILAN</div>
+            <div style={{ fontSize: '10px', fontWeight: '500', color: 'var(--text-subtle)', marginBottom: '8px', paddingLeft: '8px' }}>Pilih Tampilan</div>
             <UserSelector
               users={allUsers}
               currentViewId={viewUserId}
@@ -146,7 +146,7 @@ export default function DashboardSidebar({ userName, userEmail, hasTelegram, cur
             background: 'var(--color-neutral-bg)', border: '1px solid var(--color-neutral)', borderRadius: 'var(--radius-md)',
           }}>
             <div style={{ color: 'var(--color-neutral)', fontSize: '12px', fontWeight: '600', marginBottom: '2px' }}>
-              Bot belum terhubung
+              Bot Belum Terhubung
             </div>
             <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>
               Hubungkan Telegram untuk input otomatis

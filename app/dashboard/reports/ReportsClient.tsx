@@ -99,8 +99,8 @@ Dicetak pada: ${new Date().toLocaleString('id-ID')}
     <div style={{ color: 'var(--text-main)' }}>
       <header style={{ marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-main)', letterSpacing: '-0.3px' }}>riwayat laporan</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>analisis mendalam arus kas mingguan dan bulanan anda.</p>
+          <h1 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-main)', letterSpacing: '-0.3px' }}>Riwayat Laporan</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Analisis mendalam arus kas mingguan dan bulanan Anda.</p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
           <button 
@@ -110,7 +110,7 @@ Dicetak pada: ${new Date().toLocaleString('id-ID')}
             onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--text-muted)'}
             onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-color)'}
           >
-            + mingguan
+            + Mingguan
           </button>
           <button 
             disabled={isSaving}
@@ -119,7 +119,7 @@ Dicetak pada: ${new Date().toLocaleString('id-ID')}
             onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
             onMouseLeave={e => e.currentTarget.style.opacity = '1'}
           >
-            + bulanan
+            + Bulanan
           </button>
         </div>
       </header>
@@ -127,7 +127,7 @@ Dicetak pada: ${new Date().toLocaleString('id-ID')}
       <div style={{ display: 'grid', gridTemplateColumns: selectedReport ? '1fr 1fr' : '1fr', gap: '24px' }}>
         {/* List History */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <h2 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '4px' }}>riwayat laporan</h2>
+          <h2 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '4px' }}>RIWAYAT LAPORAN</h2>
           {reports.length === 0 ? (
             <Card style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
               Belum ada history laporan. Laporan akan terbuat otomatis setiap minggu/bulan.
@@ -155,25 +155,25 @@ Dicetak pada: ${new Date().toLocaleString('id-ID')}
                       color: 'var(--text-main)', 
                       padding: '2px 10px', borderRadius: 'var(--radius-sm)', fontWeight: '600', border: '1px solid var(--border-color)'
                     }}>
-                      {r.type === 'weekly' ? 'mingguan' : 'bulanan'}
+                      {r.type === 'weekly' ? 'Mingguan' : 'Bulanan'}
                     </span>
                     <span style={{ fontSize: '15px', fontWeight: '500' }}>{new Date(r.period_start).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} - {new Date(r.period_end).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                   </div>
                   <span style={{ fontSize: '13px', fontWeight: '500', color: r.status === 'achieved' ? 'var(--color-positive)' : 'var(--color-negative)' }}>
-                    {r.status === 'achieved' ? '✓ tercapai' : '✕ butuh evaluasi'}
+                    {r.status === 'achieved' ? '✓ Tercapai' : '✕ Butuh Evaluasi'}
                   </span>
                 </div>
                 <div style={{ display: 'flex', gap: '24px', marginTop: '16px' }}>
                   <div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>pemasukan</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>Pemasukan</div>
                     <div style={{ fontSize: '14px', fontWeight: '600' }}>{fmt(r.data.income)}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>pengeluaran</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>Pengeluaran</div>
                     <div style={{ fontSize: '14px', fontWeight: '600' }}>{fmt(r.data.expense)}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>saving rate</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>Saving Rate</div>
                     <div style={{ fontSize: '14px', fontWeight: '600', color: r.data.saving_rate >= 20 ? 'var(--color-positive)' : 'var(--color-neutral)' }}>{r.data.saving_rate.toFixed(1)}%</div>
                   </div>
                 </div>
@@ -187,7 +187,7 @@ Dicetak pada: ${new Date().toLocaleString('id-ID')}
           <div style={{ position: 'sticky', top: '24px' }}>
             <div style={{ background: 'var(--card-bg)', border: '1px solid var(--accent-primary)', borderRadius: 'var(--radius-lg)', padding: '28px', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: '500' }}>detail & evaluasi</h2>
+                <h2 style={{ fontSize: '18px', fontWeight: '500' }}>Detail & Evaluasi</h2>
                 <button onClick={() => setSelectedReport(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '20px' }}>✕</button>
               </div>
 
@@ -205,7 +205,7 @@ Dicetak pada: ${new Date().toLocaleString('id-ID')}
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: '500' }}>rencana perbaikan periode berikutnya</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: '500' }}>Rencana Perbaikan Periode Berikutnya</div>
                 <textarea 
                   value={planText}
                   onChange={(e) => setPlanText(e.target.value)}
@@ -229,7 +229,7 @@ Dicetak pada: ${new Date().toLocaleString('id-ID')}
                   opacity: isSaving ? 0.7 : 1, marginBottom: '12px', fontSize: '14px'
                 }}
               >
-                {isSaving ? 'menyimpan...' : 'simpan evaluasi'}
+                {isSaving ? 'Menyimpan...' : 'Simpan Evaluasi'}
               </button>
 
               <button 
@@ -239,7 +239,7 @@ Dicetak pada: ${new Date().toLocaleString('id-ID')}
                   border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', fontWeight: '600', cursor: 'pointer', fontSize: '14px'
                 }}
               >
-                unduh laporan (.txt)
+                Unduh Laporan (.txt)
               </button>
             </div>
           </div>

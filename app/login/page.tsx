@@ -98,9 +98,9 @@ function LoginForm() {
           <h1 style={{
             color: 'var(--text-main)', fontSize: '24px', fontWeight: '500',
             margin: '0 0 6px', letterSpacing: '-0.4px',
-          }}>fintrack ai</h1>
+          }}>FinTrack AI</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '15px', margin: 0 }}>
-            dashboard keuangan pribadi
+            Dashboard Keuangan Pribadi
           </p>
         </div>
 
@@ -127,7 +127,7 @@ function LoginForm() {
                   color: mode === m ? 'var(--text-main)' : 'var(--text-muted)',
                   boxShadow: mode === m ? '0 2px 8px rgba(0,0,0,0.05)' : 'none',
                 }}>
-                {m === 'password' ? 'password' : 'magic link'}
+                {m === 'password' ? 'Password' : 'Magic Link'}
               </button>
             ))}
           </div>
@@ -135,7 +135,7 @@ function LoginForm() {
           <form onSubmit={mode === 'password' ? handlePasswordLogin : handleMagicLink}>
             {/* Email */}
             <div style={{ marginBottom: '20px' }}>
-              <label style={labelStyle}>email</label>
+              <label style={labelStyle}>Email</label>
               <input type="email" value={email} placeholder="kamu@email.com"
                 onChange={e => setEmail(e.target.value)} required
                 style={inputStyle}
@@ -147,7 +147,7 @@ function LoginForm() {
             {/* Password */}
             {mode === 'password' && (
               <div style={{ marginBottom: '28px' }}>
-                <label style={labelStyle}>password</label>
+                <label style={labelStyle}>Password</label>
                 <input type="password" value={password} placeholder="••••••••"
                   onChange={e => setPassword(e.target.value)} required
                   style={inputStyle}
@@ -190,7 +190,7 @@ function LoginForm() {
               onMouseEnter={e => { if (!loading) (e.currentTarget).style.opacity = '0.9'; }}
               onMouseLeave={e => { if (!loading) (e.currentTarget).style.opacity = '1'; }}
             >
-              {loading ? 'memproses...' : mode === 'password' ? 'masuk' : 'kirim magic link'}
+              {loading ? 'Memproses...' : mode === 'password' ? 'Masuk' : 'Kirim Magic Link'}
             </button>
           </form>
         </div>
@@ -198,7 +198,7 @@ function LoginForm() {
         {/* Demo button */}
         <div style={{ marginTop: '24px' }}>
           <div style={{ textAlign:'center', fontSize:'12px', color:'var(--text-muted)', marginBottom:'12px' }}>
-            ingin lihat dulu sebelum daftar?
+            Ingin lihat dulu sebelum daftar?
           </div>
           <button
             type="button"
@@ -219,12 +219,12 @@ function LoginForm() {
             onMouseEnter={e => (e.currentTarget).style.background='var(--bg-secondary)'}
             onMouseLeave={e => (e.currentTarget).style.background='transparent'}
           >
-            🎭 lihat demo gratis
+            🎭 Lihat Demo Gratis
           </button>
         </div>
 
         <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px', marginTop: '24px' }}>
-          akses terbatas. hubungi admin untuk pendaftaran.
+          Akses terbatas. Hubungi admin untuk pendaftaran.
         </p>
       </div>
     </div>
@@ -239,7 +239,7 @@ export default function LoginPage() {
         minHeight: '100vh', background: 'var(--color-bg)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <div style={{ color: 'var(--text-muted)', fontSize: '14px' }}>memuat...</div>
+        <div style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Memuat...</div>
       </div>
     }>
       <LoginForm />

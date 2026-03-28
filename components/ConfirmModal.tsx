@@ -18,7 +18,7 @@ interface Props {
 
 export default function ConfirmModal({
   open, title = 'Konfirmasi', message,
-  confirmLabel = 'Ya, lanjutkan', cancelLabel = 'Batal',
+  confirmLabel = 'Ya, Lanjutkan', cancelLabel = 'Batal',
   danger = true, requireWord, onConfirm, onCancel,
 }: Props) {
   const [inputValue, setInputValue] = useState('');
@@ -65,19 +65,19 @@ export default function ConfirmModal({
 
           {/* Title */}
           <div style={{ fontSize:'18px', fontWeight:'500', color:'var(--text-main)', marginBottom:'12px', letterSpacing:'-0.01em' }}>
-            {title.toLowerCase()}
+            {title}
           </div>
 
           {/* Message */}
           <div style={{ fontSize:'14px', color:'var(--text-muted)', marginBottom: requireWord ? '20px' : '32px', lineHeight:'1.6' }}>
-            {message.toLowerCase()}
+            {message}
           </div>
 
           {/* Verification Word Input */}
           {requireWord && (
             <div style={{ marginBottom: '32px' }}>
               <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '10px', fontWeight: '400' }}>
-                ketik <span style={{ color: 'var(--color-negative)', fontWeight: '600', fontFamily: 'monospace', background: 'var(--color-negative-bg)', padding: '2px 8px', borderRadius: '4px' }}>{requireWord.toUpperCase()}</span> untuk konfirmasi:
+                Ketik <span style={{ color: 'var(--color-negative)', fontWeight: '600', fontFamily: 'monospace', background: 'var(--color-negative-bg)', padding: '2px 8px', borderRadius: '4px' }}>{requireWord.toUpperCase()}</span> untuk konfirmasi:
               </p>
               <input 
                 type="text"
@@ -105,7 +105,7 @@ export default function ConfirmModal({
               fontSize:'14px', fontWeight:'500', cursor:'pointer',
               transition:'all 0.2s',
             }}>
-              {cancelLabel.toLowerCase()}
+              {cancelLabel}
             </button>
             <button 
               onClick={() => { if (isConfirmed) onConfirm(); }} 
@@ -120,7 +120,7 @@ export default function ConfirmModal({
                 boxShadow: isConfirmed ? '0 10px 20px rgba(0,0,0,0.2)' : 'none',
               }}
             >
-              {confirmLabel.toLowerCase()}
+              {confirmLabel}
             </button>
           </div>
         </div>

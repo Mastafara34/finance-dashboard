@@ -68,8 +68,8 @@ function Section({ title, subtitle, children }: {
       boxShadow: 'none'
     }}>
       <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)' }}>
-        <div style={{ fontSize: '15px', fontWeight: '500', color: 'var(--text-main)', letterSpacing: '0.01em' }}>{title.toLowerCase()}</div>
-        {subtitle && <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: '400' }}>{subtitle.toLowerCase()}</div>}
+        <div style={{ fontSize: '15px', fontWeight: '500', color: 'var(--text-main)', letterSpacing: '0.01em' }}>{title}</div>
+        {subtitle && <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: '400' }}>{subtitle}</div>}
       </div>
       <div style={{ padding: '20px' }}>{children}</div>
     </div>
@@ -83,7 +83,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <label style={{
         display: 'block', fontSize: '12px', color: 'var(--text-muted)',
         fontWeight: '500', marginBottom: '8px',
-      }}>{label.toLowerCase()}</label>
+      }}>{label}</label>
       {children}
     </div>
   );
@@ -290,32 +290,32 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
           display: 'flex', alignItems: 'center', gap: '12px'
         }}>
           <span style={{ fontSize: '18px' }}>{toast.ok ? '✅' : '❌'}</span>
-          <span>{toast.msg.toLowerCase()}</span>
+          <span>{toast.msg}</span>
         </div>
       )}
 
       <div style={{ marginBottom: '40px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: '600', margin: '0 0 6px', letterSpacing: '-0.4px', color: 'var(--text-main)' }}>pengaturan</h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>kelola profil, tampilan, dan integrasi aplikasi</p>
+        <h1 style={{ fontSize: '24px', fontWeight: '600', margin: '0 0 6px', letterSpacing: '-0.4px', color: 'var(--text-main)' }}>Pengaturan</h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Kelola profil, tampilan, dan integrasi aplikasi</p>
       </div>
 
       {/* ── GROUP 1: AKUN & KEAMANAN ─────────────────────────────────── */}
-      <h2 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', marginBottom: '16px', letterSpacing: '0.05em' }}>akun & keamanan</h2>
+      <h2 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', marginBottom: '16px', letterSpacing: '0.05em' }}>AKUN & KEAMANAN</h2>
       
       <Section title="Profil" subtitle="Informasi identitas akun kamu">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-          <Field label="nama lengkap">
+          <Field label="Nama Lengkap">
             <input value={displayName} onChange={e => setDisplayName(e.target.value)} style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} />
           </Field>
-          <Field label="email">
+          <Field label="Email">
             <input value={authEmail} disabled style={{ ...inputStyle, opacity: 0.5, cursor: 'not-allowed' }} />
           </Field>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
-          <Field label="pendapatan bulanan">
+          <Field label="Pendapatan Bulanan">
             <input value={incomeDisplay} onChange={e => { const raw = e.target.value.replace(/\D/g, ''); setIncomeDisplay(raw ? parseInt(raw).toLocaleString('id-ID') : ''); setMonthlyIncome(parseInt(raw) || 0); }} style={inputStyle} placeholder="cth: 5.000.000" onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} />
           </Field>
-          <Field label="zona waktu">
+          <Field label="Zona Waktu">
             <select value={timezone} onChange={e => setTimezone(e.target.value)} style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'}>
               <option value="Asia/Jakarta">WIB (UTC+7)</option>
               <option value="Asia/Makassar">WITA (UTC+8)</option>
@@ -324,7 +324,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
           </Field>
         </div>
         <button onClick={saveProfile} disabled={savingProfile} style={{ padding: '10px 24px', background: 'var(--accent-primary)', color: 'var(--accent-primary-fg)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', opacity: savingProfile ? 0.7 : 1 }}>
-          {savingProfile ? 'menyimpan...' : 'simpan profil'}
+          {savingProfile ? 'Menyimpan...' : 'Simpan Profil'}
         </button>
       </Section>
 
@@ -351,38 +351,38 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
                   }}/>
                 </div>
                 <div style={{ fontSize: '11px', fontWeight: '500', color: passStrength.color, letterSpacing: '0.02em' }}>
-                  kekuatan: {passStrength.label.toLowerCase()}
+                  Kekuatan: {passStrength.label}
                 </div>
               </div>
             )}
           </Field>
-          <Field label="konfirmasi password">
+          <Field label="Konfirmasi Password">
             <input type="password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} />
             {confirmPass && newPassword !== confirmPass && (
-              <div style={{ fontSize: '11px', color: 'var(--color-negative)', marginTop: '8px', fontWeight: '500' }}>⚠️ password tidak cocok</div>
+              <div style={{ fontSize: '11px', color: 'var(--color-negative)', marginTop: '8px', fontWeight: '500' }}>⚠️ Password tidak cocok</div>
             )}
           </Field>
         </div>
         <button onClick={changePassword} disabled={savingPass || !newPassword || newPassword !== confirmPass} style={{ padding: '10px 24px', background: !newPassword || newPassword !== confirmPass ? 'var(--bg-secondary)' : 'var(--accent-primary)', color: 'var(--accent-primary-fg)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', opacity: (savingPass || !newPassword || newPassword !== confirmPass) ? 0.7 : 1 }}>
-          {savingPass ? 'memproses...' : 'ubah password'}
+          {savingPass ? 'Memproses...' : 'Ubah Password'}
         </button>
       </Section>
 
       <Section title="Notifikasi Telegram" subtitle="Aktifkan laporan otomatis ke akun Telegram">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {[
-            { id: 'weekly',   label: 'laporan mingguan', sub: 'ringkasan performa setiap sabtu pagi', value: notifyWeekly, set: setNotifyWeekly },
-            { id: 'monthly',  label: 'laporan bulanan', sub: 'tinjauan mendalam setiap tanggal 1', value: notifyMonthly, set: setNotifyMonthly },
-            { id: 'ai',       label: 'vonis strategis ai', sub: 'insight tajam tentang pola belanja anda', value: notifyAi, set: setNotifyAi },
-            { id: 'reminder', label: 'pengingat isi transaksi', sub: 'notifikasi jika tidak ada transaksi > 2 hari', value: notifyRemind, set: setNotifyRemind },
-            { id: 'budget',   label: 'peringatan anggaran', sub: 'instan jika budget kategori terpakai > 80%', value: notifyBudget, set: setNotifyBudget },
-            { id: 'anomaly',  label: 'deteksi anomali belanja', sub: 'instan jika pengeluaran tidak wajar terdeteksi', value: notifyAnomaly, set: setNotifyAnomaly },
-            { id: 'forecast', label: 'prediksi defisit (forecast)', sub: 'peringatan dini saldo minus di akhir bulan', value: notifyForecast, set: setNotifyForecast },
+            { id: 'weekly',   label: 'Laporan Mingguan', sub: 'Ringkasan performa setiap Sabtu pagi', value: notifyWeekly, set: setNotifyWeekly },
+            { id: 'monthly',  label: 'Laporan Bulanan', sub: 'Tinjauan mendalam setiap tanggal 1', value: notifyMonthly, set: setNotifyMonthly },
+            { id: 'ai',       label: 'Vonis Strategis AI', sub: 'Insight tajam tentang pola belanja Anda', value: notifyAi, set: setNotifyAi },
+            { id: 'reminder', label: 'Pengingat Isi Transaksi', sub: 'Notifikasi jika tidak ada transaksi > 2 hari', value: notifyRemind, set: setNotifyRemind },
+            { id: 'budget',   label: 'Peringatan Anggaran', sub: 'Instan jika budget kategori terpakai > 80%', value: notifyBudget, set: setNotifyBudget },
+            { id: 'anomaly',  label: 'Deteksi Anomali Belanja', sub: 'Instan jika pengeluaran tidak wajar terdeteksi', value: notifyAnomaly, set: setNotifyAnomaly },
+            { id: 'forecast', label: 'Prediksi Defisit (Forecast)', sub: 'Peringatan dini saldo minus di akhir bulan', value: notifyForecast, set: setNotifyForecast },
           ].map(opt => (
             <div key={opt.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap:'16px' }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-main)' }}>{opt.label.toLowerCase()}</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{opt.sub.toLowerCase()}</div>
+                <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-main)' }}>{opt.label}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{opt.sub}</div>
               </div>
               
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -453,24 +453,24 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
             />
           </div>
           <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
-            ketik <b style={{ color: 'var(--text-main)' }}>/id</b> ke bot telegram anda untuk melihat nomor id anda, lalu masukkan di sini.
+            Ketik <b style={{ color: 'var(--text-main)' }}>/id</b> ke bot Telegram Anda untuk melihat nomor ID Anda, lalu masukkan di sini.
           </div>
         </div>
         <button onClick={saveProfile} disabled={savingProfile} style={{ marginTop:'24px', padding: '10px 24px', background: 'var(--accent-primary)', color: 'var(--accent-primary-fg)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
-          simpan pengaturan notifikasi
+          Simpan Pengaturan Notifikasi
         </button>
       </Section>
 
       {/* ── GROUP 2: APLIKASI & DATA ─────────────────────────────────── */}
-      <h2 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', marginBottom: '16px', marginTop: '48px', letterSpacing: '0.05em' }}>aplikasi & data</h2>
+      <h2 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', marginBottom: '16px', marginTop: '48px', letterSpacing: '0.05em' }}>APLIKASI & DATA</h2>
 
       <Section title="Mode Tampilan">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div onClick={() => applyTheme('dark')} style={{ padding: '16px', borderRadius: 'var(--radius-lg)', border: `1px solid ${theme === 'dark' ? 'var(--accent-primary)' : 'var(--border-color)'}`, cursor: 'pointer', background: theme === 'dark' ? 'var(--bg-primary)' : 'transparent', transition: 'all 0.2s' }}>
-            <div style={{ fontSize: '14px', fontWeight: '500', color: theme === 'dark' ? 'var(--text-main)' : 'var(--text-subtle)' }}>🌙 dark mode {theme === 'dark' && '✓'}</div>
+            <div style={{ fontSize: '14px', fontWeight: '500', color: theme === 'dark' ? 'var(--text-main)' : 'var(--text-subtle)' }}>🌙 Dark Mode {theme === 'dark' && '✓'}</div>
           </div>
           <div onClick={() => applyTheme('light')} style={{ padding: '16px', borderRadius: 'var(--radius-lg)', border: `1px solid ${theme === 'light' ? 'var(--accent-primary)' : 'var(--border-color)'}`, cursor: 'pointer', background: theme === 'light' ? '#fff' : 'transparent', transition: 'all 0.2s' }}>
-            <div style={{ fontSize: '14px', fontWeight: '500', color: theme === 'light' ? '#000' : 'var(--text-subtle)' }}>☀️ light mode {theme === 'light' && '✓'}</div>
+            <div style={{ fontSize: '14px', fontWeight: '500', color: theme === 'light' ? '#000' : 'var(--text-subtle)' }}>☀️ Light Mode {theme === 'light' && '✓'}</div>
           </div>
         </div>
       </Section>
@@ -478,28 +478,28 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
       <Section title="Kategori Transaksi" subtitle="Kelola kategori kustom kamu">
         <div style={{ display: 'flex', background: 'var(--bg-secondary)', padding: '4px', borderRadius: 'var(--radius-md)', marginBottom: '20px', border: '1px solid var(--border-color)' }}>
           {(['expense', 'income'] as const).map(t => (
-            <button key={t} onClick={() => { setCatTab(t); setCatPage(1); }} style={{ flex: 1, padding: '8px', borderRadius: 'var(--radius-sm)', border: 'none', fontSize: '13px', fontWeight: '500', cursor: 'pointer', background: catTab === t ? 'var(--card-bg)' : 'transparent', color: catTab === t ? 'var(--accent-primary)' : 'var(--text-muted)', transition: 'all 0.2s' }}>{t === 'expense' ? 'pengeluaran' : 'pemasukan'}</button>
+            <button key={t} onClick={() => { setCatTab(t); setCatPage(1); }} style={{ flex: 1, padding: '8px', borderRadius: 'var(--radius-sm)', border: 'none', fontSize: '13px', fontWeight: '500', cursor: 'pointer', background: catTab === t ? 'var(--card-bg)' : 'transparent', color: catTab === t ? 'var(--accent-primary)' : 'var(--text-muted)', transition: 'all 0.2s' }}>{t === 'expense' ? 'Pengeluaran' : 'Pemasukan'}</button>
           ))}
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '16px' }}>
-          <button onClick={openNewCat} style={{ fontSize: '12px', background: 'var(--bg-primary)', color: 'var(--accent-primary)', border: '1px solid var(--border-color)', padding: '8px 16px', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontWeight: '600' }}>+ kategori baru</button>
+          <button onClick={openNewCat} style={{ fontSize: '12px', background: 'var(--bg-primary)', color: 'var(--accent-primary)', border: '1px solid var(--border-color)', padding: '8px 16px', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontWeight: '600' }}>+ Kategori Baru</button>
         </div>
         {showCatForm && (
           <div style={{ background: 'var(--bg-primary)', padding: '20px', borderRadius: 'var(--radius-lg)', marginBottom: '16px', border: '1px solid var(--border-color)' }}>
-            <input value={catForm.name} onChange={e => setCatForm(p => ({ ...p, name: e.target.value }))} style={{ ...inputStyle, marginBottom: '12px' }} placeholder="nama kategori" onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} />
+            <input value={catForm.name} onChange={e => setCatForm(p => ({ ...p, name: e.target.value }))} style={{ ...inputStyle, marginBottom: '12px' }} placeholder="Nama Kategori" onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} />
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
               {CATEGORY_ICONS.slice(0, 10).map(ic => <button key={ic} onClick={() => setCatForm(p => ({ ...p, icon: ic }))} style={{ fontSize: '20px', padding: '8px', background: catForm.icon === ic ? 'var(--bg-secondary)' : 'transparent', border: `1px solid ${catForm.icon === ic ? 'var(--accent-primary)' : 'transparent'}`, borderRadius: 'var(--radius-md)', cursor: 'pointer', transition: 'all 0.15s' }}>{ic}</button>)}
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={saveCat} style={{ padding: '8px 20px', background: 'var(--accent-primary)', color: 'var(--accent-primary-fg)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>simpan</button>
-              <button onClick={() => setShowCatForm(false)} style={{ padding: '8px 20px', background: 'transparent', color: 'var(--text-muted)', border: 'none', fontSize: '13px', cursor: 'pointer' }}>batal</button>
+              <button onClick={saveCat} style={{ padding: '8px 20px', background: 'var(--accent-primary)', color: 'var(--accent-primary-fg)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>Simpan</button>
+              <button onClick={() => setShowCatForm(false)} style={{ padding: '8px 20px', background: 'transparent', color: 'var(--text-muted)', border: 'none', fontSize: '13px', cursor: 'pointer' }}>Batal</button>
             </div>
           </div>
         )}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
           {userCats.slice((catPage - 1) * CAT_PAGE_SIZE, catPage * CAT_PAGE_SIZE).map(c => (
             <div key={c.id} style={{ padding: '12px 14px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', transition: 'border-color 0.15s' }}>
-              <span style={{ fontSize: '18px' }}>{c.icon}</span> <span style={{ flex: 1, fontWeight: '500', color: 'var(--text-main)' }}>{c.name.toLowerCase()}</span>
+              <span style={{ fontSize: '18px' }}>{c.icon}</span> <span style={{ flex: 1, fontWeight: '500', color: 'var(--text-main)' }}>{c.name}</span>
               <button onClick={() => openEditCat(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px' }}>✏️</button>
             </div>
           ))}
@@ -514,17 +514,17 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
       </Section>
 
       {/* ── GROUP 3: ADMINISTRASI & DATA ────────────────────────────── */}
-      <h2 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', marginBottom: '16px', marginTop: '48px', letterSpacing: '0.05em' }}>administrasi & data</h2>
+      <h2 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', marginBottom: '16px', marginTop: '48px', letterSpacing: '0.05em' }}>ADMINISTRASI & DATA</h2>
       
       {(profile.role === 'owner' || profile.role === 'admin') && (
         <a href="/dashboard/settings/users" style={{ textDecoration: 'none' }}>
-        <Section title="manajemen user">
+        <Section title="Manajemen User">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-color)' }}>👥</div>
               <div>
-                <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-main)' }}>kelola anggota keluarga</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>tambah user atau ganti password admin</div>
+                <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-main)' }}>Kelola Anggota Keluarga</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>Tambah user atau ganti password admin</div>
               </div>
             </div>
             <span style={{ color: 'var(--text-muted)', opacity: 0.5 }}>→</span>
@@ -535,8 +535,8 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
 
       <div style={{ marginTop: '16px', border: `1px solid ${showDanger ? 'var(--color-negative)' : 'var(--border-color)'}`, borderRadius: 'var(--radius-lg)', padding: '24px', background: showDanger ? 'var(--color-negative-bg)' : 'var(--card-bg)', transition: 'all 0.2s' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div><div style={{ fontSize: '15px', fontWeight: '500', color: showDanger ? 'var(--color-negative)' : 'var(--text-main)' }}>☢️ danger zone</div> {showDanger && <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>hapus data bersifat permanen.</div>}</div>
-          <button onClick={() => setShowDanger(!showDanger)} style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)', fontSize: '12px', fontWeight: '600', background: 'transparent', border: `1px solid ${showDanger ? 'var(--border-color)' : 'var(--color-negative)'}`, color: showDanger ? 'var(--text-muted)' : 'var(--color-negative)', cursor: 'pointer' }}>{showDanger ? 'tutup' : 'buka'}</button>
+          <div><div style={{ fontSize: '15px', fontWeight: '500', color: showDanger ? 'var(--color-negative)' : 'var(--text-main)' }}>☢️ Danger Zone</div> {showDanger && <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Hapus data bersifat permanen.</div>}</div>
+          <button onClick={() => setShowDanger(!showDanger)} style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)', fontSize: '12px', fontWeight: '600', background: 'transparent', border: `1px solid ${showDanger ? 'var(--border-color)' : 'var(--color-negative)'}`, color: showDanger ? 'var(--text-muted)' : 'var(--color-negative)', cursor: 'pointer' }}>{showDanger ? 'Tutup' : 'Buka'}</button>
         </div>
 
         {showDanger && (
@@ -555,7 +555,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
       </div>
 
       <div style={{ marginTop: '48px', textAlign: 'center' }}>
-        <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'var(--color-negative)', fontSize: '14px', fontWeight: '600', cursor: 'pointer', letterSpacing: '0.02em' }}>sign out</button>
+        <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'var(--color-negative)', fontSize: '14px', fontWeight: '600', cursor: 'pointer', letterSpacing: '0.02em' }}>SIGN OUT</button>
       </div>
 
       <ConfirmModal 

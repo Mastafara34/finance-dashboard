@@ -157,10 +157,10 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
     <div style={{ color:'var(--text-main)', fontFamily:'var(--font-main, system-ui, sans-serif)' }}>
       <header style={{ marginBottom:'32px', display:'flex', justifyContent:'space-between', alignItems:'flex-end', flexWrap:'wrap', gap:'16px' }}>
         <div>
-            <h1 style={{ fontSize:'24px', fontWeight:'600', margin:'0 0 8px', letterSpacing: '-0.3px', color:'var(--text-main)' }}>audit & strategi</h1>
+            <h1 style={{ fontSize:'24px', fontWeight:'600', margin:'0 0 8px', letterSpacing: '-0.3px', color:'var(--text-main)' }}>Audit & Strategi</h1>
             <div style={{ display:'flex', gap:'8px' }}>
-                <button onClick={() => setMode('standard')} style={btnStyle(mode==='standard')}>audit histori</button>
-                <button onClick={() => setMode('strategic')} style={btnStyle(mode==='strategic')}>tinjauan strategi</button>
+                <button onClick={() => setMode('standard')} style={btnStyle(mode==='standard')}>Audit Histori</button>
+                <button onClick={() => setMode('strategic')} style={btnStyle(mode==='strategic')}>Tinjauan Strategi</button>
             </div>
         </div>
         <select 
@@ -186,9 +186,9 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
             {/* KPI Overview */}
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:'12px', marginBottom:'24px' }}>
                 {[ 
-                  { label:'pemasukan', value:fmt(mIncome), color:'var(--color-positive)' }, 
-                  { label:'pengeluaran', value:fmt(mExpense), color:'var(--color-negative)' }, 
-                  { label:'net surplus', value:fmt(mIncome - mExpense), color:(mIncome-mExpense)>0?'var(--color-positive)':'var(--color-negative)' } 
+                  { label:'Pemasukan', value:fmt(mIncome), color:'var(--color-positive)' }, 
+                  { label:'Pengeluaran', value:fmt(mExpense), color:'var(--color-negative)' }, 
+                  { label:'Net Surplus', value:fmt(mIncome - mExpense), color:(mIncome-mExpense)>0?'var(--color-positive)':'var(--color-negative)' } 
                 ].map(k => (
                     <Card key={k.label} style={{ padding:'20px' }}>
                         <div style={{ fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'8px' }}>{k.label}</div>
@@ -201,7 +201,7 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
             <Card style={{ marginBottom:'24px', padding:'24px' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'20px' }}>
                     <div style={{ display:'flex', gap:'8px' }}>
-                        {(['daily','monthly','yearly'] as const).map(v => <button key={v} onClick={()=>setView(v)} style={btnStyle(view===v)}>{v==='daily'?'detail hari':v==='monthly'?'tren bulan':'sejarah tahun'}</button>)}
+                        {(['daily','monthly','yearly'] as const).map(v => <button key={v} onClick={()=>setView(v)} style={btnStyle(view===v)}>{v==='daily'?'Detail Hari':v==='monthly'?'Tren Bulan':'Sejarah Tahun'}</button>)}
                     </div>
                 </div>
                 <BarChart data={chartData} maxVal={maxVal} showIncome={true} showExpense={true} />
@@ -210,7 +210,7 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))', gap:'16px' }}>
                 {/* Categories */}
                 <Card style={{ padding:'24px' }}>
-                    <div style={{ fontSize:'14px', fontWeight:'500', marginBottom:'20px' }}>dominasi kategori</div>
+                    <div style={{ fontSize:'14px', fontWeight:'500', marginBottom:'20px' }}>Dominasi Kategori</div>
                     <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
                         {catData.slice(0,6).map((d,i) => {
                             const p = Math.round((d.value/catTotal)*100);
@@ -219,7 +219,7 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
                                     <span style={{ fontSize:'24px', width:'32px' }}>{d.icon}</span>
                                     <div style={{ flex:1 }}>
                                         <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'6px' }}>
-                                            <span style={{ fontSize:'13px', fontWeight:'500', color:'var(--text-main)' }}>{d.name.toLowerCase()}</span>
+                                            <span style={{ fontSize:'13px', fontWeight:'500', color:'var(--text-main)' }}>{d.name}</span>
                                             <span style={{ fontSize:'12px', color:'var(--text-muted)' }}>{p}%</span>
                                         </div>
                                         <div style={{ height:'3px', background:'var(--bg-secondary)', borderRadius:'99px', overflow:'hidden' }}>
@@ -235,16 +235,16 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
 
                 {/* Weekly Monitor */}
                 <Card style={{ padding:'24px' }}>
-                    <div style={{ fontSize:'14px', fontWeight:'500', marginBottom:'20px' }}>laporan mingguan</div>
+                    <div style={{ fontSize:'14px', fontWeight:'500', marginBottom:'20px' }}>Laporan Mingguan</div>
                     <div style={{ display:'flex', flexDirection:'column', gap:'4px' }}>
                         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', padding:'0 12px 12px', fontSize:'12px', color:'var(--text-muted)' }}>
-                            <span>minggu</span>
-                            <span style={{ textAlign:'right' }}>masuk</span>
-                            <span style={{ textAlign:'right' }}>keluar</span>
+                            <span>Minggu</span>
+                            <span style={{ textAlign:'right' }}>Masuk</span>
+                            <span style={{ textAlign:'right' }}>Keluar</span>
                         </div>
                         {weeklyData.map((d,i) => (
                             <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', padding:'12px', borderRadius:'var(--radius-md)', fontSize:'13px', background: i%2===0?'transparent':'var(--bg-primary)', border:'1px solid transparent' }}>
-                                <span style={{ fontWeight:'500', color:'var(--text-main)' }}>{d.label.toLowerCase()}</span>
+                                <span style={{ fontWeight:'500', color:'var(--text-main)' }}>{d.label}</span>
                                 <span style={{ textAlign:'right', color:'var(--color-positive)' }}>{fmtK(d.income)}</span>
                                 <span style={{ textAlign:'right', color:'var(--color-negative)' }}>{fmtK(d.expense)}</span>
                             </div>
@@ -254,19 +254,19 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
 
                 {/* Monthly Monitor */}
                 <Card style={{ padding:'24px' }}>
-                    <div style={{ fontSize:'14px', fontWeight:'500', marginBottom:'20px' }}>histori bulanan</div>
+                    <div style={{ fontSize:'14px', fontWeight:'500', marginBottom:'20px' }}>Histori Bulanan</div>
                     <div style={{ display:'flex', flexDirection:'column', gap:'4px' }}>
                         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', padding:'0 12px 12px', fontSize:'12px', color:'var(--text-muted)' }}>
-                            <span>bulan</span>
-                            <span style={{ textAlign:'right' }}>in</span>
-                            <span style={{ textAlign:'right' }}>out</span>
-                            <span style={{ textAlign:'right' }}>net</span>
+                            <span>Bulan</span>
+                            <span style={{ textAlign:'right' }}>In</span>
+                            <span style={{ textAlign:'right' }}>Out</span>
+                            <span style={{ textAlign:'right' }}>Net</span>
                         </div>
                         {monthlyHistory.slice().reverse().slice(0,6).map((d,i) => {
                             const diff = d.income - d.expense;
                             return (
                                 <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', padding:'12px', borderRadius:'var(--radius-md)', fontSize:'13px', background: i%2===0?'transparent':'var(--bg-primary)' }}>
-                                    <span style={{ fontWeight:'500', color:'var(--text-main)' }}>{d.label.toLowerCase()}</span>
+                                    <span style={{ fontWeight:'500', color:'var(--text-main)' }}>{d.label}</span>
                                     <span style={{ textAlign:'right', color:'var(--color-positive)' }}>{fmtK(d.income)}</span>
                                     <span style={{ textAlign:'right', color:'var(--color-negative)' }}>{fmtK(d.expense)}</span>
                                     <span style={{ textAlign:'right', fontWeight:'600', color:diff>=0?'var(--color-positive)':'var(--color-negative)' }}>{fmtK(diff)}</span>
