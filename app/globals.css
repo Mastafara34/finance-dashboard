@@ -1,4 +1,6 @@
 /* app/globals.css */
+/* ─── Tailwind v4 ────────────────────────────────────────────────────────────── */
+@import "tailwindcss";
 
 /* ─── Reset & Base ──────────────────────────────────────────────────────────── */
 *, *::before, *::after {
@@ -8,41 +10,135 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ─── Design Tokens ─────────────────────────────────────────────────────────── */
+/*
+ * Warm Neutral + Monokrom Sharp — Dark First
+ * Semua token menggunakan warm undertone, bukan cool/blue-gray.
+ * Naming dual-layer:
+ *   - Legacy names (--bg-primary, --text-main, dst.) → backward compatible
+ *   - shadcn names (--background, --foreground, dst.) → siap pakai shadcn kapan saja
+ */
+
 :root {
+  /* ── Layout ── */
   --sidebar-width: 240px;
   --content-padding: 32px;
   --bottom-nav-height: 0px;
-  
-  /* Theme Variables Default (Dark) */
-  --bg-primary: #111118;
-  --bg-secondary: #0a0a0f;
-  --border-color: #1f1f2e;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --card-bg: #111118;
+
+  /* ── Radius ── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  /* ── Dark Mode (default) ── */
+
+  /* Backgrounds — warm near-black, bukan cool #111118 */
+  --bg-primary:   #141412;   /* main content area */
+  --bg-secondary: #0f0e0d;   /* outermost / page bg */
+  --bg-elevated:  #1c1b19;   /* modals, popovers, dropdowns */
+
+  /* Borders — opacity-based, adaptif di semua surface */
+  --border-color:        rgba(255, 255, 255, 0.08);
+  --border-color-md:     rgba(255, 255, 255, 0.14);
+  --border-color-strong: rgba(255, 255, 255, 0.22);
+
+  /* Text */
+  --text-main:   #f0ede8;   /* primary — warm white */
+  --text-muted:  #908e89;   /* secondary — warm gray */
+  --text-subtle: #5a5855;   /* tertiary — hints, placeholders */
+
+  /* Card */
+  --card-bg:     #1a1917;
   --card-shadow: none;
-  --accent-primary: #2563eb;
-  --skeleton-base: #111118;
-  --skeleton-highlight: #1a1a25;
+
+  /* Accent — monokrom sharp untuk CTA utama */
+  --accent-primary:      #f0ede8;   /* warm white — tombol utama */
+  --accent-primary-fg:   #0f0e0d;   /* teks di atas accent */
+  --accent-hover:        #d6d3ce;
+
+  /* Financial semantic colors */
+  --color-positive:    #4ade80;   /* income, profit, naik */
+  --color-positive-bg: rgba(74, 222, 128, 0.10);
+  --color-negative:    #f87171;   /* expense, loss, turun */
+  --color-negative-bg: rgba(248, 113, 113, 0.10);
+  --color-neutral:     #fbbf24;   /* pending, warning */
+  --color-neutral-bg:  rgba(251, 191, 36, 0.10);
+
+  /* Skeleton */
+  --skeleton-base:      #1a1917;
+  --skeleton-highlight: #252320;
+
+  /* ── shadcn/ui Compatible Names (siap pakai tanpa ubah token) ── */
+  --background:          var(--bg-secondary);
+  --foreground:          var(--text-main);
+  --card:                var(--card-bg);
+  --card-foreground:     var(--text-main);
+  --popover:             var(--bg-elevated);
+  --popover-foreground:  var(--text-main);
+  --primary:             var(--accent-primary);
+  --primary-foreground:  var(--accent-primary-fg);
+  --secondary:           var(--bg-elevated);
+  --secondary-foreground:var(--text-main);
+  --muted:               var(--bg-elevated);
+  --muted-foreground:    var(--text-muted);
+  --border:              var(--border-color);
+  --input:               var(--border-color-md);
+  --ring:                var(--accent-primary);
+  --radius:              var(--radius-md);
+
+  /* Destructive */
+  --destructive:         var(--color-negative);
+  --destructive-foreground: #0f0e0d;
 }
 
+/* ─── Light Mode ─────────────────────────────────────────────────────────────── */
 [data-theme='light'], :root[data-theme='light'] {
-  --bg-primary: #f1f5f9;
-  --bg-secondary: #f8fafc;
-  --border-color: #e2e8f0;
-  --text-main: #0f172a;
-  --text-muted: #475569;
-  --card-bg: #ffffff;
-  --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-  --accent-primary: #3b82f6;
-  --skeleton-base: #e2e8f0;
-  --skeleton-highlight: #f1f5f9;
+  /* Backgrounds */
+  --bg-primary:   #fafaf8;   /* warm off-white, bukan cold #f1f5f9 */
+  --bg-secondary: #f5f4f1;
+  --bg-elevated:  #ffffff;
+
+  /* Borders */
+  --border-color:        rgba(0, 0, 0, 0.07);
+  --border-color-md:     rgba(0, 0, 0, 0.12);
+  --border-color-strong: rgba(0, 0, 0, 0.20);
+
+  /* Text */
+  --text-main:   #1a1917;   /* warm near-black */
+  --text-muted:  #78766f;   /* warm gray */
+  --text-subtle: #a8a49e;
+
+  /* Card */
+  --card-bg:     #ffffff;
+  --card-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+
+  /* Accent — monokrom: hitam di light mode */
+  --accent-primary:    #1a1917;
+  --accent-primary-fg: #fafaf8;
+  --accent-hover:      #3a3835;
+
+  /* Financial */
+  --color-positive:    #16a34a;
+  --color-positive-bg: rgba(22, 163, 74, 0.08);
+  --color-negative:    #dc2626;
+  --color-negative-bg: rgba(220, 38, 38, 0.08);
+  --color-neutral:     #d97706;
+  --color-neutral-bg:  rgba(217, 119, 6, 0.08);
+
+  /* Skeleton */
+  --skeleton-base:      #eeede9;
+  --skeleton-highlight: #f5f4f1;
 }
 
+/* ─── Base Styles ────────────────────────────────────────────────────────────── */
 html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
+  /* Aktifkan font smoothing untuk DM Sans */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
@@ -51,42 +147,82 @@ body {
   color: var(--text-main);
   overscroll-behavior: none;
   padding-bottom: env(safe-area-inset-bottom);
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  /* Transisi halus saat toggle theme */
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
 }
 
-/* ─── Scrollbar ────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+/* ─── Scrollbar ──────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+::-webkit-scrollbar-thumb {
+  background: var(--border-color-md);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--text-subtle); }
 
 /* ─── Typography ─────────────────────────────────────────────────────────────── */
-code {
-  font-family: "JetBrains Mono", "Fira Code", monospace;
+code, pre {
+  font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
   font-size: 0.875em;
 }
 
-/* Tablet */
-@media (max-width: 1024px) {
-  :root {
-    --content-padding: 20px;
+/* ─── Page Transition ────────────────────────────────────────────────────────── */
+/*
+ * Smooth page transition untuk Next.js App Router.
+ * Tambahkan class 'page-enter' ke root layout, atau gunakan
+ * next-view-transitions / Framer Motion untuk kontrol lebih.
+ */
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* Mobile */
+.page-enter {
+  animation: pageEnter 0.25s ease forwards;
+}
+
+/* View Transitions API (Chrome 111+, progressive enhancement) */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: 0.2s ease both fade-out;
+}
+
+::view-transition-new(root) {
+  animation: 0.25s ease both pageEnter;
+}
+
+@keyframes fade-out {
+  to { opacity: 0; }
+}
+
+/* ─── Responsive Layout Variables ────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  :root { --content-padding: 20px; }
+}
+
 @media (max-width: 768px) {
   :root {
     --sidebar-width: 0px;
     --content-padding: 16px;
     --bottom-nav-height: 64px;
   }
-
   body {
     padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
   }
 }
 
-/* ─── Layout helpers ──────────────────────────────────────────────────────────── */
+/* ─── Layout Helpers ─────────────────────────────────────────────────────────── */
 .dashboard-main {
   margin-left: var(--sidebar-width);
   padding: var(--content-padding);
@@ -101,45 +237,67 @@ code {
   }
 }
 
-/* ─── Card base ──────────────────────────────────────────────────────────────── */
+/* ─── Card Base ──────────────────────────────────────────────────────────────── */
 .card {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 20px;
   box-shadow: var(--card-shadow);
-  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--border-color-md);
 }
 
 @media (max-width: 768px) {
-  .card { padding: 16px; border-radius: 10px; }
+  .card { padding: 16px; border-radius: var(--radius-md); }
 }
 
-/* ─── Form inputs ────────────────────────────────────────────────────────────── */
+/* ─── Form Inputs ────────────────────────────────────────────────────────────── */
 input, select, textarea {
   font-family: inherit;
   font-size: 16px;
+  background: transparent;
+  color: var(--text-main);
+  border: 1px solid var(--border-color-md);
+  border-radius: var(--radius-md);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* ─── Button tap target ──────────────────────────────────────────────────────── */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--border-color-strong);
+  box-shadow: 0 0 0 3px rgba(var(--accent-primary), 0.08);
+}
+
+/* ─── Button Base ────────────────────────────────────────────────────────────── */
 button {
   font-family: inherit;
   cursor: pointer;
   min-height: 36px;
+  border-radius: var(--radius-md);
+  transition: background-color 0.15s ease, opacity 0.15s ease, transform 0.1s ease;
 }
+
+button:active { transform: scale(0.98); }
 
 @media (max-width: 768px) {
   button { min-height: 44px; }
 }
 
-/* ─── PWA install prompt ─────────────────────────────────────────────────────── */
+/* ─── PWA Install Banner ─────────────────────────────────────────────────────── */
 .pwa-install-banner {
   position: fixed;
   bottom: calc(var(--bottom-nav-height) + 12px + env(safe-area-inset-bottom));
   left: 16px; right: 16px;
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border: 1px solid var(--border-color-md);
+  border-radius: var(--radius-lg);
   padding: 14px 16px;
   display: flex;
   align-items: center;
@@ -149,14 +307,38 @@ button {
   box-shadow: var(--card-shadow);
 }
 
+/* ─── Animations ─────────────────────────────────────────────────────────────── */
 @keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
+  from { transform: translateY(16px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
 
 @keyframes scaleIn {
-  from { transform: scale(0.95); opacity: 0.8; }
+  from { transform: scale(0.97); opacity: 0; }
   to   { transform: scale(1);    opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/* ─── Skeleton Loader ────────────────────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: var(--radius-sm);
 }
 
 /* ─── Utilities ──────────────────────────────────────────────────────────────── */
@@ -164,9 +346,50 @@ button {
 .show-mobile  { display: none; }
 
 @media (max-width: 768px) {
-  .hide-mobile { display: none !important; }
-  .show-mobile { display: block !important; }
+  .hide-mobile      { display: none !important; }
+  .show-mobile      { display: block !important; }
   .show-mobile-flex { display: flex !important; }
 }
 
-::selection { background: var(--accent-primary); opacity: 0.3; color: #fff; }
+/* Financial badge utilities */
+.badge-positive {
+  color: var(--color-positive);
+  background: var(--color-positive-bg);
+  border-radius: var(--radius-sm);
+  padding: 2px 7px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.badge-negative {
+  color: var(--color-negative);
+  background: var(--color-negative-bg);
+  border-radius: var(--radius-sm);
+  padding: 2px 7px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.badge-neutral {
+  color: var(--color-neutral);
+  background: var(--color-neutral-bg);
+  border-radius: var(--radius-sm);
+  padding: 2px 7px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+::selection {
+  background: var(--accent-primary);
+  color: var(--accent-primary-fg);
+  opacity: 0.3;
+}
