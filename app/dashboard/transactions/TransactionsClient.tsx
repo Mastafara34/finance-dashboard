@@ -202,30 +202,31 @@ export default function TransactionsClient({ transactions, categories, userId }:
             onBlur={e => { e.target.style.borderColor = 'var(--border-color)'; e.target.style.boxShadow = 'var(--card-shadow)'; }}
           />
         </div>
-        <Select value={filterType} onValueChange={(v) => v && setFilterType(v as any)}>
-          <SelectTrigger style={{ width: '140px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px', height: '42px' }}>
-            <SelectValue placeholder="Tipe" />
-          </SelectTrigger>
-          <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
-            <SelectItem value="all">Semua Tipe</SelectItem>
-            <SelectItem value="income">Pemasukan</SelectItem>
-            <SelectItem value="expense">Pengeluaran</SelectItem>
-          </SelectContent>
-        </Select>
+        <SearchableSelect
+          value={filterType}
+          onValueChange={(v) => v && setFilterType(v as any)}
+          options={[
+            { value: 'all', label: 'Semua Tipe' },
+            { value: 'income', label: 'Pemasukan' },
+            { value: 'expense', label: 'Pengeluaran' }
+          ]}
+          style={{ width: '160px', height: '42px' }}
+          placeholder="Tipe"
+        />
 
-        <Select value={filterMonth} onValueChange={(v) => v && setFilterMonth(v)}>
-          <SelectTrigger style={{ width: '150px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px', height: '42px' }}>
-            <SelectValue placeholder="Bulan" />
-          </SelectTrigger>
-          <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
-            <SelectItem value="all">Semua Bulan</SelectItem>
-            {months.map(m => (
-              <SelectItem key={m} value={m}>
-                {new Date(m+'-01').toLocaleDateString('id-ID', { month:'short', year:'numeric' })}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <SearchableSelect
+          value={filterMonth}
+          onValueChange={(v) => v && setFilterMonth(v)}
+          options={[
+            { value: 'all', label: 'Semua Bulan' },
+            ...months.map(m => ({
+              value: m,
+              label: new Date(m+'-01').toLocaleDateString('id-ID', { month:'long', year:'numeric' })
+            }))
+          ]}
+          style={{ width: '180px', height: '42px' }}
+          placeholder="Bulan"
+        />
         <button
           onClick={() => showToast('Mengekspor data ke CSV...')}
           style={{
@@ -367,15 +368,16 @@ export default function TransactionsClient({ transactions, categories, userId }:
                   </div>
                   <div>
                     <label style={{ display:'block', fontSize:'13px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'6px' }}>TIPE</label>
-                    <Select value={editForm.type} onValueChange={(v) => v && setEditForm(p=>({...p,type:v as any}))}>
-                      <SelectTrigger style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px', height: '42px' }}>
-                        <SelectValue placeholder="Tipe" />
-                      </SelectTrigger>
-                      <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
-                        <SelectItem value="expense">Pengeluaran</SelectItem>
-                        <SelectItem value="income">Pemasukan</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <SearchableSelect
+                      value={editForm.type ?? ''}
+                      onValueChange={(v) => v && setEditForm(p=>({...p,type:v as any}))}
+                      options={[
+                        { value: 'expense', label: 'Pengeluaran' },
+                        { value: 'income', label: 'Pemasukan' }
+                      ]}
+                      style={{ height: '42px' }}
+                      placeholder="Pilih Tipe"
+                    />
                   </div>
                   <div>
                     <label style={{ display:'block', fontSize:'13px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'6px' }}>TANGGAL</label>

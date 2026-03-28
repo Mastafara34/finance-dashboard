@@ -126,38 +126,40 @@ export function SearchableSelect({
             animation: 'selectDropIn 0.15s ease',
           }}
         >
-          {/* Search box */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 10px',
-              borderBottom: '1px solid var(--border-color)',
-            }}
-          >
-            <SearchIcon size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-            <input
-              ref={searchRef}
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder={searchPlaceholder}
-              onKeyDown={e => {
-                if (e.key === 'Escape') { setOpen(false); setSearch(''); }
-                if (e.key === 'Enter' && filtered.length === 1) handleSelect(filtered[0].value);
-              }}
+          {/* Search box - Only show if 10+ options */}
+          {options.length >= 10 && (
+            <div
               style={{
-                flex: 1,
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                color: 'var(--text-main)',
-                fontSize: '13px',
-                padding: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 10px',
+                borderBottom: '1px solid var(--border-color)',
               }}
-            />
-          </div>
+            >
+              <SearchIcon size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+              <input
+                ref={searchRef}
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder={searchPlaceholder}
+                onKeyDown={e => {
+                  if (e.key === 'Escape') { setOpen(false); setSearch(''); }
+                  if (e.key === 'Enter' && filtered.length === 1) handleSelect(filtered[0].value);
+                }}
+                style={{
+                  flex: 1,
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: 'var(--text-main)',
+                  fontSize: '13px',
+                  padding: 0,
+                }}
+              />
+            </div>
+          )}
 
           {/* List with scrollbar */}
           <div

@@ -3,13 +3,7 @@
 
 import { useState, useMemo } from 'react';
 import StrategicReport from './StrategicReport';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from '@/components/ui/searchable-select';
 
 interface Transaction {
   amount: number; type: 'income'|'expense';
@@ -170,17 +164,16 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
                 <button onClick={() => setMode('strategic')} style={btnStyle(mode==='strategic')}>Tinjauan Strategi</button>
             </div>
         </div>
-        <Select value={targetMonth} onValueChange={(v) => v && setTargetMonth(v)}>
-          <SelectTrigger style={{ width: '180px', background: 'var(--card-bg)', border: '1px solid var(--border-color-md)', color: 'var(--text-main)', fontSize: '14px', height: '40px' }}>
-            <SelectValue placeholder="Pilih Bulan" />
-          </SelectTrigger>
-          <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
-            {availableMonths.map(m => {
-              const [y, mm] = m.split('-');
-              return <SelectItem key={m} value={m}>{MONTH_NAMES[parseInt(mm)-1]} {y}</SelectItem>
-            })}
-          </SelectContent>
-        </Select>
+        <SearchableSelect
+          value={targetMonth}
+          onValueChange={(v) => v && setTargetMonth(v)}
+          options={availableMonths.map(m => {
+            const [y, mm] = m.split('-');
+            return { value: m, label: `${MONTH_NAMES[parseInt(mm)-1]} ${y}` };
+          })}
+          style={{ width: '200px', height: '42px' }}
+          placeholder="Pilih Bulan"
+        />
       </header>
 
       {mode === 'strategic' ? (
