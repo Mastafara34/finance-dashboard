@@ -232,10 +232,17 @@ export default function QuickAdd({ userId, categories }: Props) {
                 <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'8px' }}>
                   Kategori
                 </label>
-                <Select value={catId} onValueChange={(v) => v && setCatId(v)}>
-                  <SelectTrigger style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: catId?'var(--text-main)':'var(--text-muted)', fontSize: '14px', height: '42px' }}>
-                    <SelectValue placeholder="— pilih —" />
-                  </SelectTrigger>
+                  <Select value={catId} onValueChange={(v) => v && setCatId(v)}>
+                    <SelectTrigger style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: catId ? 'var(--text-main)' : 'var(--text-muted)' }}>
+                      <SelectValue placeholder="— pilih —">
+                        {catId ? (
+                          (() => {
+                            const c = categories.find(cat => cat.id === catId);
+                            return c ? `${c.icon} ${c.name}` : "— pilih —";
+                          })()
+                        ) : "— pilih —"}
+                      </SelectValue>
+                    </SelectTrigger>
                   <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
                     <SelectItem value="none">— pilih —</SelectItem>
                     {filteredCats.map(c => (
