@@ -647,7 +647,7 @@ export default function BudgetsClient({
               </h1>
               <div style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 Amplop Digital — 
-                <div style={{ width: '160px' }}>
+                <div style={{ width: '200px' }}>
                   <SearchableSelect
                     value={month}
                     onValueChange={(val) => {

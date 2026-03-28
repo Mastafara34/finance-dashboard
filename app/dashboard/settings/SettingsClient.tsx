@@ -156,7 +156,8 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
   const [confirmResetCat, setConfirmResetCat] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [reseting, setReseting] = useState(false);
-  const [activeTab, setActiveTab] = useState('akun'); // NEW: tabs state
+  const [activeTab, setActiveTab] = useState('akun'); 
+  const [showNotif, setShowNotif] = useState(false); // For collapsible notifications
 
   // ── Toast ─────────────────────────────────────────────────────────────────
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
@@ -186,8 +187,9 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
     setPassStrength({ score: s, label: map[s].label, color: map[s].color });
   }
 
-  // ── Save profile ──────────────────────────────────────────────────────────
-  async function saveProfile() {
+  // ── Save combined account ──────────────────────────────────────────────────
+  async function saveAccount() {
+    // 1. Save Profile
     setSavingProfile(true);
     const { error } = await supabase.from('users').update({
       display_name: displayName.trim() || null,
@@ -203,21 +205,21 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
       telegram_chat_id: telegramId ? parseInt(telegramId) : null,
       updated_at: new Date().toISOString(),
     }).eq('id', profile.id);
-    setSavingProfile(false);
-    if (error) { showToast('Gagal menyimpan: ' + error.message, false); return; }
-    showToast('Profil berhasil disimpan.');
-  }
+    
+    if (error) { showToast('Gagal menyimpan profil: ' + error.message, false); setSavingProfile(false); return; }
 
-  // ── Change password ───────────────────────────────────────────────────────
-  async function changePassword() {
-    if (newPassword.length < 6) { showToast('Password minimal 6 karakter', false); return; }
-    if (newPassword !== confirmPass) { showToast('Konfirmasi password tidak cocok', false); return; }
-    setSavingPass(true);
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    setSavingPass(false);
-    if (error) { showToast('Gagal ubah password: ' + error.message, false); return; }
-    setNewPassword(''); setConfirmPass('');
-    showToast('Password berhasil diubah');
+    // 2. Save Password if entered
+    if (newPassword) {
+      if (newPassword.length < 6) { showToast('Password minimal 6 karakter', false); setSavingProfile(false); return; }
+      if (newPassword !== confirmPass) { showToast('Konfirmasi password tidak cocok', false); setSavingProfile(false); return; }
+      
+      const { error: passError } = await supabase.auth.updateUser({ password: newPassword });
+      if (passError) { showToast('Gagal ubah password: ' + passError.message, false); setSavingProfile(false); return; }
+      setNewPassword(''); setConfirmPass('');
+    }
+
+    setSavingProfile(false);
+    showToast('Perubahan berhasil disimpan.');
   }
 
   const openNewCat = () => { setEditCat(null); setCatForm({ name: '', icon: '📦', color: '#6b7280', type: catTab }); setShowCatForm(true); };
@@ -327,7 +329,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
 
       {activeTab === 'akun' && (
         <div className="tab-fade-in">
-          <Section title="Profil" subtitle="Informasi identitas akun kamu">
+          <Section title="Profil & Keamanan" subtitle="Informasi akun dan akses password kamu">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
           <Field label="Nama Lengkap">
             <input value={displayName} onChange={e => setDisplayName(e.target.value)} style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} />
@@ -336,7 +338,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
             <input value={authEmail} disabled style={{ ...inputStyle, opacity: 0.5, cursor: 'not-allowed' }} />
           </Field>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
           <Field label="Pendapatan Bulanan">
             <input value={incomeDisplay} onChange={e => { const raw = e.target.value.replace(/\D/g, ''); setIncomeDisplay(raw ? parseInt(raw).toLocaleString('id-ID') : ''); setMonthlyIncome(parseInt(raw) || 0); }} style={inputStyle} placeholder="cth: 5.000.000" onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} />
           </Field>
@@ -354,17 +356,14 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
             />
           </Field>
         </div>
-        <button onClick={saveProfile} disabled={savingProfile} style={{ padding: '10px 24px', background: 'var(--accent-primary)', color: 'var(--accent-primary-fg)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', opacity: savingProfile ? 0.7 : 1 }}>
-          {savingProfile ? 'Menyimpan...' : 'Simpan Profil'}
-        </button>
-      </Section>
 
-      <Section title="Keamanan" subtitle="Ganti password untuk perlindungan akun">
+        <h3 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', marginBottom: '16px', letterSpacing: '0.05em', borderTop: '1px solid var(--border-color)', paddingTop: '24px' }}>UBAH PASSWORD (OPSIONAL)</h3>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
           <Field label="Password Baru">
             <input 
               type="password" 
               value={newPassword} 
+              placeholder="Kosongkan jika tidak diubah"
               onChange={e => {
                 setNewPassword(e.target.value);
                 checkPassStrength(e.target.value);
@@ -388,109 +387,126 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
             )}
           </Field>
           <Field label="Konfirmasi Password">
-            <input type="password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} />
+            <input type="password" value={confirmPass} placeholder="Tulis ulang password" onChange={e => setConfirmPass(e.target.value)} style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} disabled={!newPassword} />
             {confirmPass && newPassword !== confirmPass && (
               <div style={{ fontSize: '11px', color: 'var(--color-negative)', marginTop: '8px', fontWeight: '500' }}>⚠️ Password tidak cocok</div>
             )}
           </Field>
         </div>
-        <button onClick={changePassword} disabled={savingPass || !newPassword || newPassword !== confirmPass} style={{ padding: '10px 24px', background: !newPassword || newPassword !== confirmPass ? 'var(--bg-secondary)' : 'var(--accent-primary)', color: 'var(--accent-primary-fg)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', opacity: (savingPass || !newPassword || newPassword !== confirmPass) ? 0.7 : 1 }}>
-          {savingPass ? 'Memproses...' : 'Ubah Password'}
+        <button onClick={saveAccount} disabled={savingProfile} style={{ marginTop: '12px', padding: '10px 24px', background: 'var(--accent-primary)', color: 'var(--accent-primary-fg)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', opacity: savingProfile ? 0.7 : 1 }}>
+          {savingProfile ? 'Meyimpan...' : 'Simpan Perubahan'}
         </button>
       </Section>
 
-      <Section title="Notifikasi Telegram" subtitle="Aktifkan laporan otomatis ke akun Telegram">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {[
-            { id: 'weekly',   label: 'Laporan Mingguan', sub: 'Ringkasan performa setiap Sabtu pagi', value: notifyWeekly, set: setNotifyWeekly },
-            { id: 'monthly',  label: 'Laporan Bulanan', sub: 'Tinjauan mendalam setiap tanggal 1', value: notifyMonthly, set: setNotifyMonthly },
-            { id: 'ai',       label: 'Vonis Strategis AI', sub: 'Insight tajam tentang pola belanja Anda', value: notifyAi, set: setNotifyAi },
-            { id: 'reminder', label: 'Pengingat Isi Transaksi', sub: 'Notifikasi jika tidak ada transaksi > 2 hari', value: notifyRemind, set: setNotifyRemind },
-            { id: 'budget',   label: 'Peringatan Anggaran', sub: 'Instan jika budget kategori terpakai > 80%', value: notifyBudget, set: setNotifyBudget },
-            { id: 'anomaly',  label: 'Deteksi Anomali Belanja', sub: 'Instan jika pengeluaran tidak wajar terdeteksi', value: notifyAnomaly, set: setNotifyAnomaly },
-            { id: 'forecast', label: 'Prediksi Defisit (Forecast)', sub: 'Peringatan dini saldo minus di akhir bulan', value: notifyForecast, set: setNotifyForecast },
-          ].map(opt => (
-            <div key={opt.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap:'16px' }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-main)' }}>{opt.label}</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{opt.sub}</div>
-              </div>
-              
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <button 
-                  onClick={async (e) => {
-                  const btn = e.currentTarget;
-                    const old = btn.innerText; btn.innerText = 'Testing...';
-                    btn.disabled = true;
-                    const res = await fetch('/api/cron/test-report', { 
-                      method: 'POST', 
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ type: opt.id, chatId: telegramId ? parseInt(telegramId) : undefined }) 
-                    });
-                    btn.disabled = false;
-                    if (res.ok) {
-                      btn.innerText = 'Sukses ✅';
-                    } else {
-                      const err = await res.json().catch(() => ({}));
-                      alert('Gagal: ' + (err.error || 'Unknown error'));
-                      btn.innerText = 'Gagal ❌';
-                    }
-                    setTimeout(() => { btn.innerText = old; }, 3000);
-                  }}
-                  style={{ 
-                    padding: '6px 12px', fontSize: '11px', fontWeight: '600', 
-                    background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', 
-                    color: 'var(--text-muted)', borderRadius: 'var(--radius-md)', cursor: 'pointer',
-                    transition: 'all 0.15s'
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-primary)'; e.currentTarget.style.borderColor = 'var(--text-muted)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-secondary)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
-                >
-                  TEST
-                </button>
-
-                <div 
-                  onClick={() => opt.set(!opt.value)}
-                  style={{
-                    width: '42px', height: '22px', borderRadius: '99px',
-                    background: opt.value ? 'var(--accent-primary)' : 'var(--bg-secondary)',
-                    border: `1px solid ${opt.value ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-                    position: 'relative', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-                  }}
-                >
-                  <div style={{
-                    position: 'absolute', top: '2px', left: opt.value ? '22px' : '2px',
-                    width: '16px', height: '16px', borderRadius: '50%',
-                    background: '#fff', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.4)'
-                  }} />
-                </div>
-              </div>
-            </div>
-          ))}
+      <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', marginBottom: '24px' }}>
+        <div 
+          onClick={() => setShowNotif(!showNotif)}
+          style={{ padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
+        >
+          <div>
+            <div style={{ fontSize: '15px', fontWeight: '500', color: 'var(--text-main)' }}>Notifikasi Telegram</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Aktifkan laporan otomatis ke akun Telegram</div>
+          </div>
+          <div style={{ color: 'var(--text-muted)', transform: showNotif ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}>
+            ▼
+          </div>
         </div>
         
-        <div style={{ marginTop: '24px', padding: '16px', background: 'var(--bg-primary)', borderRadius: 'var(--radius-lg)', border: '1px dashed var(--border-color)' }}>
-          <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: 'var(--accent-primary)', marginBottom: '8px', letterSpacing: '0.05em' }}>🔗 LINK AKUN TELEGRAM</label>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <input 
-              type="text" 
-              value={telegramId}
-              placeholder="masukkan chat id anda..."
-              onChange={(e) => setTelegramId(e.target.value.replace(/[^0-9-]/g, ''))}
-              style={inputStyle}
-              onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
-              onBlur={e => e.target.style.borderColor = 'var(--border-color)'}
-            />
+        {showNotif && (
+          <div className="tab-fade-in" style={{ padding: '0 24px 24px', borderTop: '1px solid var(--border-color)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingTop: '24px' }}>
+              {[
+                { id: 'weekly',   label: 'Laporan Mingguan', sub: 'Ringkasan performa setiap Sabtu pagi', value: notifyWeekly, set: setNotifyWeekly },
+                { id: 'monthly',  label: 'Laporan Bulanan', sub: 'Tinjauan mendalam setiap tanggal 1', value: notifyMonthly, set: setNotifyMonthly },
+                { id: 'ai',       label: 'Vonis Strategis AI', sub: 'Insight tajam tentang pola belanja Anda', value: notifyAi, set: setNotifyAi },
+                { id: 'reminder', label: 'Pengingat Isi Transaksi', sub: 'Notifikasi jika tidak ada transaksi > 2 hari', value: notifyRemind, set: setNotifyRemind },
+                { id: 'budget',   label: 'Peringatan Anggaran', sub: 'Instan jika budget kategori terpakai > 80%', value: notifyBudget, set: setNotifyBudget },
+                { id: 'anomaly',  label: 'Deteksi Anomali Belanja', sub: 'Instan jika pengeluaran tidak wajar terdeteksi', value: notifyAnomaly, set: setNotifyAnomaly },
+                { id: 'forecast', label: 'Prediksi Defisit (Forecast)', sub: 'Peringatan dini saldo minus di akhir bulan', value: notifyForecast, set: setNotifyForecast },
+              ].map(opt => (
+                <div key={opt.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap:'16px' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-main)' }}>{opt.label}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{opt.sub}</div>
+                  </div>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <button 
+                      onClick={async (e) => {
+                      const btn = e.currentTarget;
+                        const old = btn.innerText; btn.innerText = 'Testing...';
+                        btn.disabled = true;
+                        const res = await fetch('/api/cron/test-report', { 
+                          method: 'POST', 
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ type: opt.id, chatId: telegramId ? parseInt(telegramId) : undefined }) 
+                        });
+                        btn.disabled = false;
+                        if (res.ok) {
+                          btn.innerText = 'Sukses ✅';
+                        } else {
+                          const err = await res.json().catch(() => ({}));
+                          alert('Gagal: ' + (err.error || 'Unknown error'));
+                          btn.innerText = 'Gagal ❌';
+                        }
+                        setTimeout(() => { btn.innerText = old; }, 3000);
+                      }}
+                      style={{ 
+                        padding: '6px 12px', fontSize: '11px', fontWeight: '600', 
+                        background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', 
+                        color: 'var(--text-muted)', borderRadius: 'var(--radius-md)', cursor: 'pointer',
+                        transition: 'all 0.15s'
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-primary)'; e.currentTarget.style.borderColor = 'var(--text-muted)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-secondary)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                    >
+                      TEST
+                    </button>
+
+                    <div 
+                      onClick={() => opt.set(!opt.value)}
+                      style={{
+                        width: '42px', height: '22px', borderRadius: '99px',
+                        background: opt.value ? 'var(--accent-primary)' : 'var(--bg-secondary)',
+                        border: `1px solid ${opt.value ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+                        position: 'relative', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                      }}
+                    >
+                      <div style={{
+                        position: 'absolute', top: '2px', left: opt.value ? '22px' : '2px',
+                        width: '16px', height: '16px', borderRadius: '50%',
+                        background: '#fff', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.4)'
+                      }} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div style={{ marginTop: '24px', padding: '16px', background: 'var(--bg-primary)', borderRadius: 'var(--radius-lg)', border: '1px dashed var(--border-color)' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: 'var(--accent-primary)', marginBottom: '8px', letterSpacing: '0.05em' }}>🔗 LINK AKUN TELEGRAM</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input 
+                  type="text" 
+                  value={telegramId}
+                  placeholder="masukkan chat id anda..."
+                  onChange={(e) => setTelegramId(e.target.value.replace(/[^0-9-]/g, ''))}
+                  style={inputStyle}
+                  onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
+                  onBlur={e => e.target.style.borderColor = 'var(--border-color)'}
+                />
+              </div>
+              <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
+                Ketik <b style={{ color: 'var(--text-main)' }}>/id</b> ke bot Telegram Anda untuk melihat nomor ID Anda, lalu masukkan di sini.
+              </div>
+            </div>
+            <button onClick={saveAccount} disabled={savingProfile} style={{ marginTop:'24px', padding: '10px 24px', background: 'var(--accent-primary)', color: 'var(--accent-primary-fg)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
+              Simpan Pengaturan Notifikasi
+            </button>
           </div>
-          <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
-            Ketik <b style={{ color: 'var(--text-main)' }}>/id</b> ke bot Telegram Anda untuk melihat nomor ID Anda, lalu masukkan di sini.
-          </div>
-        </div>
-        <button onClick={saveProfile} disabled={savingProfile} style={{ marginTop:'24px', padding: '10px 24px', background: 'var(--accent-primary)', color: 'var(--accent-primary-fg)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
-          Simpan Pengaturan Notifikasi
-        </button>
-      </Section>
+        )}
+      </div>
         </div>
       )}
 
