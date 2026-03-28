@@ -30,6 +30,8 @@ export const viewport: Viewport = {
   themeColor: '#0f0e0d',
 };
 
+import { Toaster } from "@/components/ui/sonner";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id" className={cn("font-sans", geist.variable)}>
@@ -44,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body style={{ margin: 0, padding: 0, background: 'var(--bg-secondary)', color: 'var(--text-main)' }}>
         {children}
+        <Toaster richColors closeButton position="top-center" />
       </body>
     </html>
   );
