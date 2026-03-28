@@ -3,8 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 import { getCachedUser, getCachedProfile } from '@/lib/supabase/cached';
 import BudgetsClient from './BudgetsClient';
 
-export default async function BudgetsPage({ searchParams }: { searchParams: Promise<{ u?: string }> }) {
-  const { u: searchU } = await searchParams;
+export default async function BudgetsPage({ searchParams }: { searchParams: Promise<{ u?: string; month?: string }> }) {
+  const { u: searchU, month: queryMonth } = await searchParams;
   const supabase = await createClient();
   
   // 1. Parallel Auth/Profile Discovery
@@ -31,8 +31,15 @@ export default async function BudgetsPage({ searchParams }: { searchParams: Prom
   const viewUserId = isOwner && searchU && searchU !== 'all' ? (searchU as string) : profile.id;
 
   // 3. Date Setup
-  const now     = new Date();
-  const month   = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  // If queryMonth is provided (e.g., '2026-02'), use it. Otherwise, use current month.
+  let validMonth = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+  if (queryMonth && /^\d{4}-\d{2}$/.test(queryMonth)) {
+    validMonth = queryMonth;
+  }
+  
+  const [yearStr, monthStr] = validMonth.split('-');
+  const now = new Date(parseInt(yearStr), parseInt(monthStr) - 1, 15); // middle of the selected month
+  const month = validMonth;
   const monthStart = `${month}-01`;
   const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const prevMonthStr = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;

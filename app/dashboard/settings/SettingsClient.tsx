@@ -156,6 +156,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
   const [confirmResetCat, setConfirmResetCat] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [reseting, setReseting] = useState(false);
+  const [activeTab, setActiveTab] = useState('akun'); // NEW: tabs state
 
   // ── Toast ─────────────────────────────────────────────────────────────────
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
@@ -274,8 +275,15 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
           from { transform: translateX(100px); opacity: 0; }
           to { transform: translateX(0); opacity: 1; }
         }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(5px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
         .toast-notify {
           animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .tab-fade-in {
+          animation: fadeIn 0.25s ease-out forwards;
         }
       `}</style>
 
@@ -295,15 +303,31 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
         </div>
       )}
 
-      <div style={{ marginBottom: '40px' }}>
+      <div style={{ marginBottom: '32px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: '600', margin: '0 0 6px', letterSpacing: '-0.4px', color: 'var(--text-main)' }}>Pengaturan</h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Kelola profil, tampilan, dan integrasi aplikasi</p>
       </div>
 
-      {/* ── GROUP 1: AKUN & KEAMANAN ─────────────────────────────────── */}
-      <h2 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', marginBottom: '16px', letterSpacing: '0.05em' }}>AKUN & KEAMANAN</h2>
-      
-      <Section title="Profil" subtitle="Informasi identitas akun kamu">
+      {/* Tabs */}
+      <div style={{ display:'flex', gap:'4px', background:'var(--bg-secondary)', borderRadius:'var(--radius-md)', padding:'4px', marginBottom:'32px', overflowX:'auto' }}>
+        {[
+          { id: 'akun', label: '👤 Akun & Profil' },
+          { id: 'app', label: '⚙️ Aplikasi & Data' },
+          { id: 'admin', label: '🔐 Sistem & Keamanan' }
+        ].map(tab => (
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
+            flex:1, minWidth:'140px', padding:'10px 14px', borderRadius:'var(--radius-sm)', border:'none', cursor:'pointer',
+            fontSize:'13px', fontWeight:'500', transition:'all .15s', whiteSpace:'nowrap',
+            background: activeTab===tab.id ? 'var(--card-bg)' : 'transparent',
+            color: activeTab===tab.id ? 'var(--text-main)' : 'var(--text-muted)',
+            boxShadow: activeTab===tab.id ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
+          }}>{tab.label}</button>
+        ))}
+      </div>
+
+      {activeTab === 'akun' && (
+        <div className="tab-fade-in">
+          <Section title="Profil" subtitle="Informasi identitas akun kamu">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
           <Field label="Nama Lengkap">
             <input value={displayName} onChange={e => setDisplayName(e.target.value)} style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} />
@@ -467,9 +491,11 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
           Simpan Pengaturan Notifikasi
         </button>
       </Section>
+        </div>
+      )}
 
-      {/* ── GROUP 2: APLIKASI & DATA ─────────────────────────────────── */}
-      <h2 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', marginBottom: '16px', marginTop: '48px', letterSpacing: '0.05em' }}>APLIKASI & DATA</h2>
+      {activeTab === 'app' && (
+        <div className="tab-fade-in">
 
       <Section title="Mode Tampilan">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -483,9 +509,9 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
       </Section>
 
       <Section title="Kategori Transaksi" subtitle="Kelola kategori kustom kamu">
-        <div style={{ display: 'flex', background: 'var(--bg-secondary)', padding: '4px', borderRadius: 'var(--radius-md)', marginBottom: '20px', border: '1px solid var(--border-color)' }}>
+        <div style={{ display: 'flex', background: 'var(--bg-secondary)', padding: '4px', borderRadius: 'var(--radius-md)', marginBottom: '20px', border: 'none' }}>
           {(['expense', 'income'] as const).map(t => (
-            <button key={t} onClick={() => { setCatTab(t); setCatPage(1); }} style={{ flex: 1, padding: '8px', borderRadius: 'var(--radius-sm)', border: 'none', fontSize: '13px', fontWeight: '500', cursor: 'pointer', background: catTab === t ? 'var(--card-bg)' : 'transparent', color: catTab === t ? 'var(--accent-primary)' : 'var(--text-muted)', transition: 'all 0.2s' }}>{t === 'expense' ? 'Pengeluaran' : 'Pemasukan'}</button>
+            <button key={t} onClick={() => { setCatTab(t); setCatPage(1); }} style={{ flex: 1, padding: '10px', borderRadius: 'var(--radius-sm)', border: 'none', fontSize: '13px', fontWeight: '500', cursor: 'pointer', background: catTab === t ? 'var(--card-bg)' : 'transparent', color: catTab === t ? 'var(--text-main)' : 'var(--text-muted)', transition: 'all 0.2s', boxShadow: catTab === t ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}>{t === 'expense' ? 'Pengeluaran' : 'Pemasukan'}</button>
           ))}
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '16px' }}>
@@ -519,9 +545,11 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
           </div>
         )}
       </Section>
+        </div>
+      )}
 
-      {/* ── GROUP 3: ADMINISTRASI & DATA ────────────────────────────── */}
-      <h2 style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)', marginBottom: '16px', marginTop: '48px', letterSpacing: '0.05em' }}>ADMINISTRASI & DATA</h2>
+      {activeTab === 'admin' && (
+        <div className="tab-fade-in">
       
       {(profile.role === 'owner' || profile.role === 'admin') && (
         <a href="/dashboard/settings/users" style={{ textDecoration: 'none' }}>
@@ -562,8 +590,12 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
       </div>
 
       <div style={{ marginTop: '48px', textAlign: 'center' }}>
-        <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'var(--color-negative)', fontSize: '14px', fontWeight: '600', cursor: 'pointer', letterSpacing: '0.02em' }}>SIGN OUT</button>
+        <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'var(--color-negative)', fontSize: '14px', fontWeight: '600', cursor: 'pointer', letterSpacing: '0.02em', opacity: 0.8 }} onMouseEnter={e => e.currentTarget.style.opacity='1'} onMouseLeave={e => e.currentTarget.style.opacity='0.8'}>
+          <span style={{ marginRight: '6px' }}>🚪</span> SIGN OUT
+        </button>
       </div>
+        </div>
+      )}
 
       <ConfirmModal 
         open={confirmResetTx} 

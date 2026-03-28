@@ -94,7 +94,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   const [yearResult, goals, assets, budgets, history] = await Promise.all([
     (() => {
-      let q = supabase.from('transactions').select('amount, type, date, user_id, categories(id, name)').eq('is_deleted', false).gte('date', yearStart);
+      let q = supabase.from('transactions').select('amount, type, date, user_id, category_id, categories(id, name)').eq('is_deleted', false).gte('date', yearStart);
       if (isCollective) { if (userIds.length > 0) q = q.in('user_id', userIds); }
       else { q = q.eq('user_id', viewUserId); }
       return q;

@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import ConfirmModal from '@/components/ConfirmModal';
 import { SearchableSelect } from '@/components/ui/searchable-select';
@@ -412,6 +413,8 @@ export default function BudgetsClient({
   initialBudgets, prevMonthBudgets, historyBudgets, historyTxs, categories, spendMap, userId, month, userRole, initialTargets
 }: Props) {
   const supabase = createClient();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [activeTab, setActiveTab] = useState<'current' | 'history'>('current');
   const [budgets,    setBudgets]    = useState<Budget[]>(initialBudgets);
@@ -642,9 +645,31 @@ export default function BudgetsClient({
               <h1 style={{ fontSize: '24px', fontWeight: '600', margin: '0 0 6px', letterSpacing: '-0.4px', color: 'var(--text-main)' }}>
                 Budget
               </h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>
-                Amplop Digital — {monthLabel}
-              </p>
+              <div style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                Amplop Digital — 
+                <div style={{ width: '160px' }}>
+                  <SearchableSelect
+                    value={month}
+                    onValueChange={(val) => {
+                      if (!val) return;
+                      const u = searchParams?.get('u');
+                      const params = new URLSearchParams();
+                      if (u) params.set('u', u);
+                      params.set('month', val);
+                      router.push(`/dashboard/budgets?${params.toString()}`);
+                    }}
+                    options={Array.from({ length: 12 }).map((_, i) => {
+                      const d = new Date();
+                      d.setMonth(d.getMonth() - i);
+                      const mVal = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                      const mLabel = d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+                      return { value: mVal, label: mLabel };
+                    })}
+                    placeholder="Pilih Bulan"
+                    searchPlaceholder="Cari bulan..."
+                  />
+                </div>
+              </div>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
               {budgets.length === 0 && prevMonthBudgets.length > 0 && (
