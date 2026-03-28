@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   formatDetection: { telephone: false },
   icons: {
     apple: '/icons/icon-192.png',
-    icon:  '/icons/icon-192.png',
+    icon: '/icons/icon-192.png',
   },
 };
 
@@ -23,7 +23,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#f8fafc',
+  themeColor: '#0f0e0d',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

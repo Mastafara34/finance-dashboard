@@ -11,18 +11,18 @@ interface Props {
 }
 
 const PAGE_TITLES: Record<string, string> = {
-  '/dashboard':              'Overview',
+  '/dashboard': 'Overview',
   '/dashboard/transactions': 'Transaksi',
-  '/dashboard/goals':        'Goals',
-  '/dashboard/analytics':    'Analitik',
-  '/dashboard/networth':     'Net Worth',
-  '/dashboard/budgets':      'Budget',
-  '/dashboard/settings':     'Pengaturan',
+  '/dashboard/goals': 'Goals',
+  '/dashboard/analytics': 'Analitik',
+  '/dashboard/networth': 'Net Worth',
+  '/dashboard/budgets': 'Budget',
+  '/dashboard/settings': 'Pengaturan',
 };
 
 export default function MobileHeader({ allUsers, currentUserId, userRole }: Props) {
   const pathname = usePathname();
-  const router   = useRouter();
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   const isOwner = userRole === 'owner';
@@ -82,8 +82,8 @@ export default function MobileHeader({ allUsers, currentUserId, userRole }: Prop
         {isRoot ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
             <div style={{
-              width: '28px', height: '28px', borderRadius: '7px',
-              background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+              width: '28px', height: '28px', borderRadius: 'var(--radius-md)',
+              background: 'var(--border-color-strong)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '14px', flexShrink: 0,
             }}>💰</div>
@@ -102,11 +102,11 @@ export default function MobileHeader({ allUsers, currentUserId, userRole }: Prop
         {/* Global User Selector (Mobile) — only for owner */}
         {isOwner && (
           <div style={{ width: '150px', flexShrink: 0 }}>
-            <UserSelector 
-              users={allUsers} 
-              currentViewId={viewUserId} 
-              isCollective={isCollective} 
-              showCollective={true} 
+            <UserSelector
+              users={allUsers}
+              currentViewId={viewUserId}
+              isCollective={isCollective}
+              showCollective={true}
             />
           </div>
         )}

@@ -51,19 +51,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // Untuk mencegah loop redirect, kita tampilkan pesan error atau fallback
   if (!profile) {
     return (
-      <div style={{ 
-        height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', 
-        background: '#0a0a0f', color: '#f0f0f5', flexDirection: 'column', gap: '16px', padding: '24px', textAlign: 'center' 
+      <div style={{
+        height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'var(--bg-secondary)', color: 'var(--text-main)', flexDirection: 'column', gap: '16px', padding: '24px', textAlign: 'center'
       }}>
         <div style={{ fontSize: '48px' }}>👤</div>
         <h2 style={{ margin: 0 }}>Profil Tidak Ditemukan</h2>
-        <p style={{ color: '#6b7280', fontSize: '14px', maxWidth: '400px' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '14px', maxWidth: '400px' }}>
           Akun <strong>{user.email}</strong> belum terdaftar atau belum memiliki profil di database Supabase kami.
         </p>
-        <p style={{ color: '#6b7280', fontSize: '11px', marginTop: '-8px' }}>UID: {user.id}</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: '11px', marginTop: '-8px' }}>UID: {user.id}</p>
         <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-          <a href="/login" style={{ padding: '8px 16px', background: '#1f1f2e', borderRadius: '8px', color: '#f0f0f5', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>Ke Login</a>
-          <a href="https://t.me/your_bot" style={{ padding: '8px 16px', background: '#2563eb', borderRadius: '8px', color: '#fff', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>Hubungi Admin</a>
+          <a href="/login" style={{ padding: '8px 16px', background: 'var(--card-bg)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>Ke Login</a>
+          <a href="https://t.me/your_bot" style={{ padding: '8px 16px', background: 'var(--color-neutral)', borderRadius: 'var(--radius-md)', color: 'var(--accent-primary-fg)', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>Hubungi Admin</a>
         </div>
       </div>
     );
@@ -114,7 +114,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         }
         .ov-section-title {
           font-size: 14px;
-          font-weight: 800;
+          font-weight: 500;
           color: var(--text-muted);
           margin: 32px 0 16px 0;
           text-transform: uppercase;
@@ -123,7 +123,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         .ov-card {
           background: var(--card-bg);
           border: 1px solid var(--border-color);
-          border-radius: 16px;
+          border-radius: var(--radius-lg);
           padding: 20px;
           box-shadow: var(--card-shadow);
         }
@@ -149,7 +149,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
         <main className="fintrack-content">
           <DemoBanner email={user.email ?? null} />
-          <MobileHeader 
+          <MobileHeader
             allUsers={allUsers}
             currentUserId={profile.id}
             userRole={profile.role || 'user'}
