@@ -410,7 +410,7 @@ export default function AcademyClient() {
                   <div style={{ width:'160px' }}>
                     <label style={lbl}>Kategori</label>
                     <Select value={formData.category} onValueChange={(v) => v && setFormData({...formData,category:v})}>
-                      <SelectTrigger style={{ width: '100%', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-main)', fontSize: '13px', height: '38px' }}>
+                      <SelectTrigger style={{ width: '100%', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-main)', fontSize: '14px', height: '42px' }}>
                         <SelectValue placeholder="Pilih Kategori" />
                       </SelectTrigger>
                       <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>

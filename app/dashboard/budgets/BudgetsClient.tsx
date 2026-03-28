@@ -245,7 +245,7 @@ function BudgetFormModal({
               </div>
             ) : (
               <Select value={catId} onValueChange={(v) => v && setCatId(v)}>
-                <SelectTrigger style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', color: catId?'var(--text-main)':'var(--text-muted)', fontSize: '13px', height: '38px' }}>
+                <SelectTrigger style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', color: catId?'var(--text-main)':'var(--text-muted)', fontSize: '14px', height: '42px' }}>
                   <SelectValue placeholder="— pilih kategori —" />
                 </SelectTrigger>
                 <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>

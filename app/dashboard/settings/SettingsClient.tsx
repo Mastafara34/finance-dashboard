@@ -324,7 +324,7 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
           </Field>
           <Field label="Zona Waktu">
             <Select value={timezone} onValueChange={(v) => v && setTimezone(v)}>
-              <SelectTrigger style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px', height: '40px' }}>
+              <SelectTrigger style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px', height: '42px' }}>
                 <SelectValue placeholder="Pilih Zona Waktu" />
               </SelectTrigger>
               <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>

@@ -139,7 +139,7 @@ export default function TransactionsClient({ transactions, categories, userId }:
           .tx-summary { grid-template-columns:1fr 1fr; gap:8px; }
           .tx-summary .tx-sum-3 { grid-column: span 2; }
           .tx-filters { gap:6px; }
-          .tx-filters select { flex:1; }
+          .tx-filters select, .tx-filters [data-slot="select-trigger"] { flex:1; }
           .tx-table-header { display:none; }
           .tx-row-desktop { display:none !important; }
           .tx-row-mobile { display:flex; padding:12px 14px; align-items:center; justify-content:space-between; gap:8px; }
@@ -201,7 +201,7 @@ export default function TransactionsClient({ transactions, categories, userId }:
           />
         </div>
         <Select value={filterType} onValueChange={(v) => v && setFilterType(v as any)}>
-          <SelectTrigger style={{ width: '140px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px', height: '40px' }}>
+          <SelectTrigger style={{ width: '140px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px', height: '42px' }}>
             <SelectValue placeholder="Tipe" />
           </SelectTrigger>
           <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
@@ -212,7 +212,7 @@ export default function TransactionsClient({ transactions, categories, userId }:
         </Select>
 
         <Select value={filterMonth} onValueChange={(v) => v && setFilterMonth(v)}>
-          <SelectTrigger style={{ width: '150px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px', height: '40px' }}>
+          <SelectTrigger style={{ width: '150px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px', height: '42px' }}>
             <SelectValue placeholder="Bulan" />
           </SelectTrigger>
           <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
