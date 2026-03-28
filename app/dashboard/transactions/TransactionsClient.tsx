@@ -6,6 +6,13 @@
 import { useState, useMemo } from 'react';
 import ConfirmModal from '@/components/ConfirmModal';
 import { createClient } from '@/lib/supabase/client';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Category { id: string; name: string; type: string; icon: string }
 interface Transaction {
@@ -193,23 +200,30 @@ export default function TransactionsClient({ transactions, categories, userId }:
             onBlur={e => { e.target.style.borderColor = 'var(--border-color)'; e.target.style.boxShadow = 'var(--card-shadow)'; }}
           />
         </div>
-        <select value={filterType} onChange={e => setFilterType(e.target.value as any)}
-          style={{ padding:'10px 12px', background:'var(--card-bg)', border:'1px solid var(--border-color)',
-            borderRadius:'var(--radius-md)', color:'var(--text-main)', fontSize:'14px', outline:'none', boxShadow:'var(--card-shadow)', cursor: 'pointer' }}>
-          <option value="all">Semua Tipe</option>
-          <option value="income">Pemasukan</option>
-          <option value="expense">Pengeluaran</option>
-        </select>
-        <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)}
-          style={{ padding:'10px 12px', background:'var(--card-bg)', border:'1px solid var(--border-color)',
-            borderRadius:'var(--radius-md)', color:'var(--text-main)', fontSize:'14px', outline:'none', boxShadow:'var(--card-shadow)', cursor: 'pointer' }}>
-          <option value="all">Semua Bulan</option>
-          {months.map(m => (
-            <option key={m} value={m}>
-              {new Date(m+'-01').toLocaleDateString('id-ID', { month:'short', year:'numeric' })}
-            </option>
-          ))}
-        </select>
+        <Select value={filterType} onValueChange={(v) => v && setFilterType(v as any)}>
+          <SelectTrigger style={{ width: '140px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px', height: '40px' }}>
+            <SelectValue placeholder="Tipe" />
+          </SelectTrigger>
+          <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
+            <SelectItem value="all">Semua Tipe</SelectItem>
+            <SelectItem value="income">Pemasukan</SelectItem>
+            <SelectItem value="expense">Pengeluaran</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={filterMonth} onValueChange={(v) => v && setFilterMonth(v)}>
+          <SelectTrigger style={{ width: '150px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px', height: '40px' }}>
+            <SelectValue placeholder="Bulan" />
+          </SelectTrigger>
+          <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
+            <SelectItem value="all">Semua Bulan</SelectItem>
+            {months.map(m => (
+              <SelectItem key={m} value={m}>
+                {new Date(m+'-01').toLocaleDateString('id-ID', { month:'short', year:'numeric' })}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <button
           onClick={() => showToast('Mengekspor data ke CSV...')}
           style={{
@@ -351,10 +365,15 @@ export default function TransactionsClient({ transactions, categories, userId }:
                   </div>
                   <div>
                     <label style={{ display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'4px', textTransform:'uppercase' }}>Tipe</label>
-                    <select value={editForm.type} onChange={e=>setEditForm(p=>({...p,type:e.target.value as any}))} style={{...inp,cursor:'pointer'}}>
-                      <option value="expense">Pengeluaran</option>
-                      <option value="income">Pemasukan</option>
-                    </select>
+                    <Select value={editForm.type} onValueChange={(v) => v && setEditForm(p=>({...p,type:v as any}))}>
+                      <SelectTrigger style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px', height: '38px' }}>
+                        <SelectValue placeholder="Tipe" />
+                      </SelectTrigger>
+                      <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
+                        <SelectItem value="expense">Pengeluaran</SelectItem>
+                        <SelectItem value="income">Pemasukan</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <label style={{ display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'4px', textTransform:'uppercase' }}>Tanggal</label>
@@ -363,14 +382,24 @@ export default function TransactionsClient({ transactions, categories, userId }:
                 </div>
                 <div style={{ marginBottom:'12px' }}>
                   <label style={{ display:'block', fontSize:'11px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'4px', textTransform:'uppercase' }}>Kategori</label>
-                  <select value={(editForm.categories as any)?.id??''}
-                    onChange={e => { const cat=categories.find(c=>c.id===e.target.value); setEditForm(p=>({...p,categories:cat??null})); }}
-                    style={{...inp,cursor:'pointer'}}>
-                    <option value="">— Tidak dikategori —</option>
-                    {categories.filter(c => !editForm.type || c.type===editForm.type).map(c=>(
-                      <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
-                    ))}
-                  </select>
+                  <Select 
+                    value={(editForm.categories as any)?.id??'none'} 
+                    onValueChange={(v) => { 
+                      if (!v) return;
+                      const cat = categories.find(c => c.id === v); 
+                      setEditForm(p => ({...p, categories: cat ?? null})); 
+                    }}
+                  >
+                    <SelectTrigger style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px', height: '38px' }}>
+                      <SelectValue placeholder="Pilih Kategori" />
+                    </SelectTrigger>
+                    <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
+                      <SelectItem value="none">— Tidak dikategori —</SelectItem>
+                      {categories.filter(c => !editForm.type || c.type===editForm.type).map(c=>(
+                        <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div style={{ display:'flex', gap:'10px' }}>
                   <button onClick={saveEdit} disabled={saving} style={{

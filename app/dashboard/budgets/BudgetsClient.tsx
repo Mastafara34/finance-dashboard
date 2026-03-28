@@ -4,6 +4,13 @@
 import { useState, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import ConfirmModal from '@/components/ConfirmModal';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Category {
@@ -237,16 +244,17 @@ function BudgetFormModal({
                 <span>{budget?.categories?.name}</span>
               </div>
             ) : (
-              <select value={catId} onChange={e => setCatId(e.target.value)} required
-                style={{ ...inp, cursor: 'pointer' }}
-                onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'}
-                onBlur={e  => e.target.style.borderColor = 'var(--border-color)'}
-              >
-                <option value="">— pilih kategori —</option>
-                {available.map(c => (
-                  <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
-                ))}
-              </select>
+              <Select value={catId} onValueChange={(v) => v && setCatId(v)}>
+                <SelectTrigger style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', color: catId?'var(--text-main)':'var(--text-muted)', fontSize: '13px', height: '38px' }}>
+                  <SelectValue placeholder="— pilih kategori —" />
+                </SelectTrigger>
+                <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
+                  <SelectItem value="none">— pilih kategori —</SelectItem>
+                  {available.map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
           </div>
 

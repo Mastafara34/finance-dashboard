@@ -2,6 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface User {
   id: string;
@@ -57,55 +66,58 @@ export function UserSelector({ users, currentViewId, isCollective = false, showC
       transition: 'all 0.2s ease',
       position: 'relative',
     }}>
-      <select
-        value={activeVal}
-        onChange={handleChange}
+      <Select 
+        value={activeVal} 
         disabled={isNavigating}
-        style={{
-          width: '100%',
-          background: isNavigating ? 'var(--bg-main)' : 'var(--bg-secondary, #0a0a0f)',
-          border: '1px solid var(--border-color, #2a2a3a)',
-          color: 'var(--text-main, #f0f0f5)',
-          padding: '8px 30px 8px 12px',
-          borderRadius: '8px',
-          fontSize: '13px',
-          fontWeight: '600',
-          cursor: isNavigating ? 'wait' : 'pointer',
-          outline: 'none',
-          appearance: 'none',
-          WebkitAppearance: 'none',
-          backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'right 10px center',
-          backgroundSize: '14px',
-          transition: 'all 0.2s ease',
-          opacity: isNavigating ? 0.7 : 1
+        onValueChange={(val) => {
+          if (!val) return;
+          setIsNavigating(true);
+          const params = new URLSearchParams(searchParams.toString());
+          params.set('u', val);
+          const targetUrl = `${pathname}?${params.toString()}`;
+          window.location.href = targetUrl;
         }}
       >
-        {showCollective && (
-          <option value="all">🏠 Seluruh Keluarga</option>
-        )}
+        <SelectTrigger style={{ 
+          width: '100%', 
+          background: 'var(--bg-secondary)', 
+          border: '1px solid var(--border-color)', 
+          borderRadius: '8px', 
+          color: 'var(--text-main)', 
+          fontSize: '13px', 
+          fontWeight: '600',
+          height: '38px'
+        }}>
+          <SelectValue placeholder="Pilih User" />
+        </SelectTrigger>
+        <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
+          {showCollective && (
+            <SelectItem value="all">🏠 Seluruh Keluarga</SelectItem>
+          )}
 
-        {familyUsers.length > 0 && (
-          <optgroup label="AKUN KELUARGA">
-            {familyUsers.map(u => (
-              <option key={u.id} value={u.id}>
-                👤 {u.display_name ?? 'Member'}
-              </option>
-            ))}
-          </optgroup>
-        )}
+          {familyUsers.length > 0 && (
+            <SelectGroup>
+              <SelectLabel style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>AKUN KELUARGA</SelectLabel>
+              {familyUsers.map(u => (
+                <SelectItem key={u.id} value={u.id}>
+                  👤 {u.display_name ?? 'Member'}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          )}
 
-        {demoUsers.length > 0 && (
-          <optgroup label="DEMO">
-            {demoUsers.map(u => (
-              <option key={u.id} value={u.id}>
-                🎭 {u.display_name ?? 'Demo'}
-              </option>
-            ))}
-          </optgroup>
-        )}
-      </select>
+          {demoUsers.length > 0 && (
+            <SelectGroup>
+              <SelectLabel style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>DEMO</SelectLabel>
+              {demoUsers.map(u => (
+                <SelectItem key={u.id} value={u.id}>
+                  🎭 {u.display_name ?? 'Demo'}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          )}
+        </SelectContent>
+      </Select>
       {isNavigating && (
         <div style={{ position: 'absolute', right: '35px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
           <span style={{ fontSize: '10px', color: 'var(--text-muted)', animation: 'pulse 1s infinite' }}>Loading...</span>

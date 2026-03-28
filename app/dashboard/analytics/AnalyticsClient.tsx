@@ -3,6 +3,13 @@
 
 import { useState, useMemo } from 'react';
 import StrategicReport from './StrategicReport';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Transaction {
   amount: number; type: 'income'|'expense';
@@ -163,20 +170,17 @@ export default function AnalyticsClient({ transactions }: { transactions: Transa
                 <button onClick={() => setMode('strategic')} style={btnStyle(mode==='strategic')}>Tinjauan Strategi</button>
             </div>
         </div>
-        <select 
-            value={targetMonth} 
-            onChange={e => setTargetMonth(e.target.value)}
-            style={{ 
-                padding:'10px 16px', borderRadius:'var(--radius-md)', background:'var(--card-bg)', 
-                border:'1px solid var(--border-color-md)', color:'var(--text-main)', 
-                fontSize:'14px', fontWeight:'500', outline:'none', cursor:'pointer' 
-            }}
-        >
+        <Select value={targetMonth} onValueChange={(v) => v && setTargetMonth(v)}>
+          <SelectTrigger style={{ width: '180px', background: 'var(--card-bg)', border: '1px solid var(--border-color-md)', color: 'var(--text-main)', fontSize: '14px', height: '40px' }}>
+            <SelectValue placeholder="Pilih Bulan" />
+          </SelectTrigger>
+          <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
             {availableMonths.map(m => {
-                const [y, mm] = m.split('-');
-                return <option key={m} value={m}>{MONTH_NAMES[parseInt(mm)-1]} {y}</option>
+              const [y, mm] = m.split('-');
+              return <SelectItem key={m} value={m}>{MONTH_NAMES[parseInt(mm)-1]} {y}</SelectItem>
             })}
-        </select>
+          </SelectContent>
+        </Select>
       </header>
 
       {mode === 'strategic' ? (

@@ -3,6 +3,13 @@
 
 import { useState, useEffect } from 'react';
 import { Card } from '../components/DashboardComponents';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Tip { id: string; icon: string; title: string; content: string; tip: string; category: string; isCustom?: boolean; }
@@ -400,7 +407,19 @@ export default function AcademyClient() {
                 <div style={{ display:'flex', gap:'12px', flexWrap:'wrap' }}>
                   <div style={{ width:'80px' }}><label style={lbl}>Icon</label><input style={inp} value={formData.icon} onChange={e => setFormData({...formData,icon:e.target.value})} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
                   <div style={{ flex:1, minWidth:'200px' }}><label style={lbl}>Judul</label><input style={inp} required value={formData.title} onChange={e => setFormData({...formData,title:e.target.value})} placeholder="Nama strategi..." onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
-                  <div style={{ width:'160px' }}><label style={lbl}>Kategori</label><select style={{...inp,cursor:'pointer'}} value={formData.category} onChange={e => setFormData({...formData,category:e.target.value})}>{CATEGORIES.filter(c=>c!=='Semua').map(c=><option key={c} value={c}>{c}</option>)}</select></div>
+                  <div style={{ width:'160px' }}>
+                    <label style={lbl}>Kategori</label>
+                    <Select value={formData.category} onValueChange={(v) => v && setFormData({...formData,category:v})}>
+                      <SelectTrigger style={{ width: '100%', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-main)', fontSize: '13px', height: '38px' }}>
+                        <SelectValue placeholder="Pilih Kategori" />
+                      </SelectTrigger>
+                      <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
+                        {CATEGORIES.filter(c=>c!=='Semua').map(c => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div><label style={lbl}>Penjelasan</label><textarea style={{...inp,height:'80px',paddingTop:'12px',resize:'none'}} required value={formData.content} onChange={e => setFormData({...formData,content:e.target.value})} placeholder="Jelaskan konsep strategi ini..." onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>
                 <div><label style={lbl}>Aksi di Dashboard</label><input style={inp} required value={formData.tip} onChange={e => setFormData({...formData,tip:e.target.value})} placeholder="Tindakan konkret..." onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} /></div>

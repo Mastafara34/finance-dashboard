@@ -5,6 +5,13 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Category { id: string; name: string; icon: string; type: string }
 
@@ -225,17 +232,17 @@ export default function QuickAdd({ userId, categories }: Props) {
                 <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'8px' }}>
                   Kategori
                 </label>
-                <select value={catId} onChange={e => setCatId(e.target.value)} style={{
-                  width:'100%', padding:'12px',
-                  background:'var(--bg-secondary)', border:'1px solid var(--border-color)',
-                  borderRadius:'var(--radius-md)', color: catId?'var(--text-main)':'var(--text-muted)',
-                  fontSize:'14px', outline:'none', cursor:'pointer',
-                }}>
-                  <option value="">— pilih —</option>
-                  {filteredCats.map(c => (
-                    <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
-                  ))}
-                </select>
+                <Select value={catId} onValueChange={(v) => v && setCatId(v)}>
+                  <SelectTrigger style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: catId?'var(--text-main)':'var(--text-muted)', fontSize: '14px', height: '42px' }}>
+                    <SelectValue placeholder="— pilih —" />
+                  </SelectTrigger>
+                  <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
+                    <SelectItem value="none">— pilih —</SelectItem>
+                    {filteredCats.map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <label style={{ display:'block', fontSize:'12px', color:'var(--text-muted)', fontWeight:'500', marginBottom:'8px' }}>

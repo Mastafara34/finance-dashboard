@@ -4,6 +4,13 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import ConfirmModal from '@/components/ConfirmModal';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Profile {
@@ -316,11 +323,16 @@ export default function SettingsClient({ profile, categories, authEmail }: Props
             <input value={incomeDisplay} onChange={e => { const raw = e.target.value.replace(/\D/g, ''); setIncomeDisplay(raw ? parseInt(raw).toLocaleString('id-ID') : ''); setMonthlyIncome(parseInt(raw) || 0); }} style={inputStyle} placeholder="cth: 5.000.000" onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'} />
           </Field>
           <Field label="Zona Waktu">
-            <select value={timezone} onChange={e => setTimezone(e.target.value)} style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-color)'}>
-              <option value="Asia/Jakarta">WIB (UTC+7)</option>
-              <option value="Asia/Makassar">WITA (UTC+8)</option>
-              <option value="Asia/Jayapura">WIT (UTC+9)</option>
-            </select>
+            <Select value={timezone} onValueChange={(v) => v && setTimezone(v)}>
+              <SelectTrigger style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '14px', height: '40px' }}>
+                <SelectValue placeholder="Pilih Zona Waktu" />
+              </SelectTrigger>
+              <SelectContent style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
+                <SelectItem value="Asia/Jakarta">WIB (UTC+7)</SelectItem>
+                <SelectItem value="Asia/Makassar">WITA (UTC+8)</SelectItem>
+                <SelectItem value="Asia/Jayapura">WIT (UTC+9)</SelectItem>
+              </SelectContent>
+            </Select>
           </Field>
         </div>
         <button onClick={saveProfile} disabled={savingProfile} style={{ padding: '10px 24px', background: 'var(--accent-primary)', color: 'var(--accent-primary-fg)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', opacity: savingProfile ? 0.7 : 1 }}>
